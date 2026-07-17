@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # ─── FastAPI Fraud Detection Service ─────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fraud-detection-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - fraud-net
+
+  # ─── Streamlit Dashboard ─────────────────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fraud-detection-dashboard
+    command: >
+      streamlit run app/dashboard.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - fraud-net
+
+  # ─── MLflow Tracking Server (Optional) ───────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.3.0
+    container_name: fraud-detection-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/mlruns
+    networks:
+      - fraud-net
+    profiles:
+      - full  # Only runs with: docker-compose --profile full up
+
+networks:
+  fraud-net:
+    driver: bridge
