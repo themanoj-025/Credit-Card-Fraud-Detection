@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 💳 Credit Card Fraud Detection — Portfolio Project
 
 ![CI](https://github.com/yourusername/credit-card-fraud-detection/actions/workflows/ci.yml/badge.svg)
@@ -304,3 +305,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 ---
 
 *Built with ❤️ using Python, XGBoost, SHAP, FastAPI, and Streamlit*
+=======
+# Credit-Card-Fraud-Detection
+>>>>>>> 1fd137e6f80940af3efc38ceb364b8c98a67ef7b
