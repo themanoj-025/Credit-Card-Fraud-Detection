@@ -8,6 +8,9 @@
 | `GET` | `/model-info` | Model metadata | — | `{model_type, threshold, n_features, features}` | No |
 | `POST` | `/predict` | Single prediction | `TransactionInput` | `PredictionResponse` | No |
 | `POST` | `/predict/batch` | Batch prediction | `BatchInput` | `{predictions[], summary}` | No |
+| `POST` | `/explain` | SHAP explanation + LLM narrative | `TransactionInput` | `ExplanationResponse` | No |
+| `POST` | `/similar-cases` | RAG similar-case retrieval | Transaction dict | `SimilarCasesResponse` | No |
+| `POST` | `/chat` | Analyst copilot chat | `ChatRequest` | `{response, tool_calls}` | No |
 
 ### Route Details
 
@@ -107,6 +110,68 @@ Streamlit uses a single-page app model (no URL routing). The dashboard is access
 | URL | Page | Description |
 |-----|------|-------------|
 | `http://localhost:8501` | Main Dashboard | Transaction feed, analytics, business impact |
+
+#### `POST /explain`
+- **Purpose:** Get SHAP values and optional LLM-generated narrative explaining *why* a transaction was flagged
+- **Request Body (`TransactionInput`):**
+  ```json
+  {
+    "Time": 100000.0,
+    "Amount": 150.0,
+    "V1": -1.36, "V2": -0.07, ...
+  }
+  ```
+- **Response (`ExplanationResponse`):**
+  ```json
+  {
+    "fraud_probability": 0.9234,
+    "decision": "FRAUD",
+    "shap_values": {
+      "V14": 0.34,
+      "V4": 0.22,
+      "V12": 0.18
+    },
+    "narrative": "Transaction flagged as fraud (92.3% probability). Key drivers: V14 (high negative value) strongly increases fraud risk..."
+  }
+  ```
+
+#### `POST /similar-cases`
+- **Purpose:** Retrieve similar historical flagged transactions using FAISS-based RAG retrieval
+- **Request Body:** Same `TransactionInput` format (transaction features)
+- **Query Parameters:** `top_k` (default: 3, max: 20) — number of similar cases to return
+- **Response (`SimilarCasesResponse`):**
+  ```json
+  {
+    "transaction_id": "tx_abc123",
+    "similar_cases": [
+      {
+        "similarity_score": 0.94,
+        "actual_outcome": "FRAUD",
+        "features": {"V1": -1.36, "V4": 2.54, ...}
+      }
+    ]
+  }
+  ```
+
+#### `POST /chat`
+- **Purpose:** Analyst copilot chat — ask natural-language questions about transactions and simulation state (requires `ANTHROPIC_API_KEY`)
+- **Request Body (`ChatRequest`):**
+  ```json
+  {
+    "message": "Why was transaction tx_789 flagged?",
+    "conversation_history": [
+      {"role": "user", "content": "What's the current fraud rate?"},
+      {"role": "assistant", "content": "Current fraud rate is 2.3%..."}
+    ]
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "response": "Transaction tx_789 was flagged because...",
+    "tool_calls": []
+  }
+  ```
 
 ### Dashboard Sections
 

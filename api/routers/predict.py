@@ -43,13 +43,23 @@ async def predict_single(transaction: TransactionInput) -> PredictionResponse:
     try:
         result = pred.predict_single(transaction.dict(), return_shap=True)
 
-        # Get anomaly score from Isolation Forest
+        # Get anomaly score from Isolation Forest (handles both raw sklearn model and wrapper)
         anomaly_score = None
-        anomaly_det = get_anomaly_detector()
-        if anomaly_det is not None and anomaly_det.model is not None:
-            X = pd.DataFrame([transaction])[pred.feature_names]
-            anomaly_probas = anomaly_det.predict_proba_as_fraud(X)
-            anomaly_score = round(float(anomaly_probas[0]), 4)
+        try:
+            anomaly_det = get_anomaly_detector()
+            if anomaly_det is not None:
+                # anomaly_det may be raw sklearn IsolationForest or IsolationForestDetector wrapper
+                raw_model = anomaly_det.model if hasattr(anomaly_det, 'model') else anomaly_det
+                if raw_model is not None:
+                    tx_dict = transaction.dict()
+                    # Ensure all expected feature columns exist
+                    X = pd.DataFrame([tx_dict]).reindex(columns=pred.feature_names, fill_value=0.0)
+                    scores = raw_model.score_samples(X.values)
+                    min_s, max_s = scores.min(), scores.max()
+                    probas = 1 - (scores - min_s) / (max_s - min_s + 1e-10)
+                    anomaly_score = round(float(probas[0]), 4)
+        except Exception as anomaly_err:
+            logger.warning("Anomaly score computation failed: %s", anomaly_err)
 
         # Build response
         explanation = None
