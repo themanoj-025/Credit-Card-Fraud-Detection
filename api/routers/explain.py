@@ -9,7 +9,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from api.schemas import ExplanationResponse
-from src.fraudshield.llm.case_narrator import CaseNarrator
+from api.state import get_case_narrator, get_predictor
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,7 @@ async def explain_transaction(transaction: dict) -> ExplanationResponse:
     """
     Get SHAP values and LLM narrative for a transaction.
     """
-    from api.main import predictor, case_narrator
-
+    predictor = get_predictor()
     if predictor is None or predictor.model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -34,8 +33,8 @@ async def explain_transaction(transaction: dict) -> ExplanationResponse:
             for f in result["explanation"]["top_features"]:
                 shap_values[f["feature"]] = f["shap_value"]
 
-        # Generate LLM narrative
         narrative = None
+        case_narrator = get_case_narrator()
         if case_narrator is not None:
             shap_features = result.get("explanation", {}).get("top_features", [])
             narrative = case_narrator.narrate(

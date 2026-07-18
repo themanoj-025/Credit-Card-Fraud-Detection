@@ -5,8 +5,8 @@ Handles single and batch fraud predictions with anomaly scores.
 """
 
 import logging
-from typing import Optional
 
+import pandas as pd
 from fastapi import APIRouter, HTTPException
 
 from api.schemas import (
@@ -19,23 +19,12 @@ from api.schemas import (
     PredictionResponse,
     ShapFeature,
 )
+from api.state import get_anomaly_detector, get_predictor
 from src.fraudshield.config import AVG_FRAUD_LOSS, REVIEW_COST
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["predictions"])
-
-
-def _get_predictor():
-    """Get the global FraudPredictor instance."""
-    from api.main import predictor
-    return predictor
-
-
-def _get_anomaly_detector():
-    """Get the global anomaly detector instance."""
-    from api.main import anomaly_detector
-    return anomaly_detector
 
 
 @router.post("/predict", response_model=PredictionResponse)
@@ -46,7 +35,7 @@ async def predict_single(transaction: dict) -> PredictionResponse:
     Returns fraud probability, anomaly score, SHAP explanation,
     and business impact analysis.
     """
-    pred = _get_predictor()
+    pred = get_predictor()
     if pred is None or pred.model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -55,9 +44,8 @@ async def predict_single(transaction: dict) -> PredictionResponse:
 
         # Get anomaly score from Isolation Forest
         anomaly_score = None
-        anomaly_det = _get_anomaly_detector()
+        anomaly_det = get_anomaly_detector()
         if anomaly_det is not None and anomaly_det.model is not None:
-            import pandas as pd
             X = pd.DataFrame([transaction])[pred.feature_names]
             anomaly_probas = anomaly_det.predict_proba_as_fraud(X)
             anomaly_score = round(float(anomaly_probas[0]), 4)
@@ -99,18 +87,14 @@ async def predict_batch(batch: BatchInput) -> BatchResponse:
 
     Returns a summary with counts and estimated review costs.
     """
-    pred = _get_predictor()
+    pred = get_predictor()
     if pred is None or pred.model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        import pandas as pd
-
-        # Convert to DataFrame
         transactions = [t.dict() for t in batch.transactions]
         X = pd.DataFrame(transactions)
 
-        # Batch predict
         results = pred.predict_batch(X)
 
         predictions = []

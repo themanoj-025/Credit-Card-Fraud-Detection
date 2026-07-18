@@ -6,15 +6,15 @@ natural-language questions about the simulation state and cases.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
+
+from api.state import get_copilot_client
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["copilot"])
-
-# Simple in-memory tool implementations for the copilot
 
 
 def _get_transaction(tx_id: str) -> str:
@@ -44,8 +44,7 @@ async def analyst_chat(
     Accepts natural-language questions and returns AI-powered responses
     with access to current simulation data via tool-use.
     """
-    from api.main import copilot_client
-
+    copilot_client = get_copilot_client()
     if copilot_client is None:
         raise HTTPException(
             status_code=503,
@@ -55,7 +54,6 @@ async def analyst_chat(
     try:
         history = conversation_history or []
 
-        # Build system prompt with available tools
         system_prompt = (
             "You are a fraud analysis copilot. You help analysts understand "
             "transactions, model behavior, and simulation statistics. "

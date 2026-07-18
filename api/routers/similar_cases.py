@@ -5,11 +5,11 @@ Retrieves similar historical flagged transactions using FAISS-based RAG.
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
 from api.schemas import SimilarCase, SimilarCasesResponse
+from api.state import get_case_retriever
 from src.fraudshield.config import RAG_TOP_K
 
 logger = logging.getLogger(__name__)
@@ -25,12 +25,11 @@ async def get_similar_cases(
     """
     Retrieve similar historical cases for a flagged transaction.
     """
-    from api.main import case_retriever
-
-    if case_retriever is None:
+    case_retriever = get_case_retriever()
+    if case_retriever is None or not case_retriever._initialized:
         raise HTTPException(
             status_code=503,
-            detail="Case retriever not initialized. Start with --enable-rag flag.",
+            detail="Case retriever not initialized. Build a RAG index first.",
         )
 
     try:
