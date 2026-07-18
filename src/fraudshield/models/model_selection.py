@@ -15,10 +15,19 @@ import pandas as pd
 from src.fraudshield.config import (
     MODEL_SELECTION_METRIC,
     MODELS_DIR,
+    MLFLOW_EXPERIMENT_NAME,
     SELECTION_RULE_DESCRIPTION,
 )
 
 logger = logging.getLogger(__name__)
+
+# ─── MLflow setup ────────────────────────────────────────────────────────
+try:
+    import mlflow
+
+    MLFLOW_AVAILABLE = True
+except ImportError:
+    MLFLOW_AVAILABLE = False
 
 
 class ModelSelector:
@@ -123,6 +132,9 @@ class ModelSelector:
         logger.info("Selected best model: %s (%s=%.4f)", best_name, self.metric, best_value)
         logger.info("Reasoning: %s", reasoning)
 
+        # Tag the winning model's MLflow run
+        self._tag_winning_model_mlflow(best_name, best_value, reasoning)
+
         return self.selection_result
 
     def save_best_model(self, path: Optional[str] = None) -> str:
@@ -145,6 +157,30 @@ class ModelSelector:
         joblib.dump(self.selection_result["best_model"], path)
         logger.info("Best model saved to %s", path)
         return path
+
+    def _tag_winning_model_mlflow(self, best_name: str, best_value: float, reasoning: str) -> None:
+        """Tag the winning model's MLflow run for easy identification in the UI."""
+        if not MLFLOW_AVAILABLE:
+            return
+        try:
+            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+            # Find the MLflow run by run_name and tag it
+            experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
+            if experiment:
+                runs = mlflow.search_runs(
+                    experiment_ids=[experiment.experiment_id],
+                    filter_string=f"tags.mlflow.runName = '{best_name}'",
+                )
+                if not runs.empty:
+                    run_id = runs.iloc[0]["run_id"]
+                    with mlflow.start_run(run_id=run_id):
+                        mlflow.set_tag("selected", "true")
+                        mlflow.set_tag("selection_metric", self.metric)
+                        mlflow.set_tag("selection_value", str(round(best_value, 4)))
+                        mlflow.set_tag("selection_reasoning", reasoning[:200])
+                    logger.info("  MLflow run '%s' tagged as selected:true", best_name)
+        except Exception as e:
+            logger.warning("  MLflow tagging failed for winning model: %s", e)
 
     def get_selection_summary(self) -> str:
         """Get a human-readable summary of the selection."""

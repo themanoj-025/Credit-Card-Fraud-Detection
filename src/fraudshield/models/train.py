@@ -25,8 +25,21 @@ from src.fraudshield.config import (
     CROSS_VALIDATION_SCORING,
     DEFAULT_MODELS,
     MODELS_DIR,
+    MLFLOW_EXPERIMENT_NAME,
+    MLFLOW_TRACKING_URI,
     RANDOM_STATE,
 )
+
+logger = logging.getLogger(__name__)
+
+# ─── MLflow setup ────────────────────────────────────────────────────────
+try:
+    import mlflow
+
+    MLFLOW_AVAILABLE = True
+except ImportError:
+    MLFLOW_AVAILABLE = False
+    logger.info("MLflow not installed. Experiment tracking disabled.")
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +170,55 @@ class FraudTrainer:
         n_pos = (y == 1).sum()
         return n_neg / n_pos if n_pos > 0 else 1.0
 
+    def _log_to_mlflow(self, name: str, params: Dict, train_time: float, model) -> None:
+        """Log model training run to MLflow if available."""
+        if not MLFLOW_AVAILABLE:
+            return
+        try:
+            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+            with mlflow.start_run(run_name=name) as run:
+                # Log hyperparameters
+                for k, v in params.items():
+                    if isinstance(v, (int, float, str, bool)):
+                        mlflow.log_param(k, v)
+
+                # Log training metadata
+                mlflow.log_param("model_name", name)
+                mlflow.log_param("n_samples", len(self.training_results.get(name, {}).get("n_samples", 0)))
+                mlflow.log_param("n_features", self.training_results.get(name, {}).get("n_features", 0))
+                mlflow.log_metric("train_time_s", round(train_time, 2))
+
+                # Log the model artifact
+                try:
+                    import sklearn
+                    mlflow.sklearn.log_model(model, artifact_path="model")
+                except Exception:
+                    import joblib
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
+                        joblib.dump(model, f.name)
+                        mlflow.log_artifact(f.name, artifact_path="model")
+
+                logger.info("  MLflow run logged: %s", run.info.run_id)
+        except Exception as e:
+            logger.warning("  MLflow logging failed for %s: %s", name, e)
+
+    def _log_cv_to_mlflow(self, name: str, cv_results: Dict) -> None:
+        """Log cross-validation results to MLflow."""
+        if not MLFLOW_AVAILABLE:
+            return
+        try:
+            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+            with mlflow.start_run(run_name=f"{name}_cv") as run:
+                mlflow.log_param("model_name", name)
+                mlflow.log_param("type", "cross_validation")
+                mlflow.log_metric("cv_mean_score", cv_results["mean_score"])
+                mlflow.log_metric("cv_std_score", cv_results["std_score"])
+                for i, s in enumerate(cv_results["scores"]):
+                    mlflow.log_metric(f"cv_fold_{i+1}_score", s)
+        except Exception as e:
+            logger.warning("  MLflow CV logging failed for %s: %s", name, e)
+
     def train_model(self, name: str, X_train: pd.DataFrame, y_train: pd.Series) -> Any:
         """
         Train a single model.
@@ -190,6 +252,9 @@ class FraudTrainer:
             "n_samples": len(X_train),
             "n_features": X_train.shape[1],
         }
+
+        # Log to MLflow
+        self._log_to_mlflow(name, params, train_time, model)
 
         return model
 
@@ -281,11 +346,15 @@ class FraudTrainer:
             )
             scores = cross_val_score(model, X, y, cv=skf, scoring=scoring)
 
-            results[name] = {
+            cv_result = {
                 "mean_score": round(float(scores.mean()), 4),
                 "std_score": round(float(scores.std()), 4),
                 "scores": [round(float(s), 4) for s in scores],
             }
+            results[name] = cv_result
             logger.info("  %s: %.4f ± %.4f", name, scores.mean(), scores.std())
+
+            # Log CV results to MLflow
+            self._log_cv_to_mlflow(name, cv_result)
 
         return results
