@@ -177,6 +177,10 @@ class FraudTrainer:
         try:
             mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
             with mlflow.start_run(run_name=name) as run:
+                # Set custom tags for reliable lookup by model_selection.py
+                mlflow.set_tag("run_name", name)
+                mlflow.set_tag("model_name", name)
+
                 # Log hyperparameters
                 for k, v in params.items():
                     if isinstance(v, (int, float, str, bool)):
@@ -184,8 +188,10 @@ class FraudTrainer:
 
                 # Log training metadata
                 mlflow.log_param("model_name", name)
-                mlflow.log_param("n_samples", len(self.training_results.get(name, {}).get("n_samples", 0)))
-                mlflow.log_param("n_features", self.training_results.get(name, {}).get("n_features", 0))
+                n_samples = len(self.training_results.get(name, {}).get("n_samples", 0)) if name in self.training_results else 0
+                n_features = len(self.training_results.get(name, {}).get("n_features", 0)) if name in self.training_results else 0
+                mlflow.log_param("n_samples", n_samples)
+                mlflow.log_param("n_features", n_features)
                 mlflow.log_metric("train_time_s", round(train_time, 2))
 
                 # Log the model artifact
@@ -199,7 +205,7 @@ class FraudTrainer:
                         joblib.dump(model, f.name)
                         mlflow.log_artifact(f.name, artifact_path="model")
 
-                logger.info("  MLflow run logged: %s", run.info.run_id)
+                logger.info("  MLflow run logged: %s (tagged as %s)", run.info.run_id, name)
         except Exception as e:
             logger.warning("  MLflow logging failed for %s: %s", name, e)
 

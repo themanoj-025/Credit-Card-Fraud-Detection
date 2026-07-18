@@ -164,12 +164,12 @@ class ModelSelector:
             return
         try:
             mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-            # Find the MLflow run by run_name and tag it
+            # Find the MLflow run by custom 'run_name' tag (set in train.py during training)
             experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
             if experiment:
                 runs = mlflow.search_runs(
                     experiment_ids=[experiment.experiment_id],
-                    filter_string=f"tags.mlflow.runName = '{best_name}'",
+                    filter_string=f"tags.run_name = '{best_name}'",
                 )
                 if not runs.empty:
                     run_id = runs.iloc[0]["run_id"]
