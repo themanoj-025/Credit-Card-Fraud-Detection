@@ -1,1 +1,1 @@
-# API Package
+"""FraudLens FastAPI application package."""
