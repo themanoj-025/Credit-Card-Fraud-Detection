@@ -8,7 +8,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from api.schemas import ExplanationResponse
+from api.schemas import ExplanationResponse, TransactionInput
 from api.state import get_case_narrator, get_predictor
 
 logger = logging.getLogger(__name__)
@@ -17,16 +17,18 @@ router = APIRouter(tags=["explainability"])
 
 
 @router.post("/explain", response_model=ExplanationResponse)
-async def explain_transaction(transaction: dict) -> ExplanationResponse:
+async def explain_transaction(transaction: TransactionInput) -> ExplanationResponse:
     """
     Get SHAP values and LLM narrative for a transaction.
+
+    Pydantic validates the input (e.g., Amount >= 0) before the model check.
     """
     predictor = get_predictor()
     if predictor is None or predictor.model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        result = predictor.predict_single(transaction, return_shap=True)
+        result = predictor.predict_single(transaction.dict(), return_shap=True)
 
         shap_values = {}
         if "explanation" in result:
