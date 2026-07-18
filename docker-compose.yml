@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  # ─── FastAPI Fraud Detection Service ─────────────────────
+  # ─── FraudLens API ──────────────────────────────────────────
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fraud-detection-api
+    container_name: fraudlens-api
     ports:
       - "8000:8000"
     volumes:
@@ -14,6 +14,7 @@ services:
       - ./data:/app/data
     environment:
       - PYTHONPATH=/app
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -22,16 +23,16 @@ services:
       start_period: 40s
     restart: unless-stopped
     networks:
-      - fraud-net
+      - fraudlens-net
 
-  # ─── Streamlit Dashboard ─────────────────────────────────
+  # ─── Streamlit Dashboard ────────────────────────────────────
   dashboard:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fraud-detection-dashboard
+    container_name: fraudlens-dashboard
     command: >
-      streamlit run app/dashboard.py
+      streamlit run app/streamlit_app.py
       --server.port 8501
       --server.address 0.0.0.0
       --server.headless true
@@ -42,17 +43,18 @@ services:
       - ./data:/app/data
     environment:
       - PYTHONPATH=/app
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     depends_on:
       api:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - fraud-net
+      - fraudlens-net
 
-  # ─── MLflow Tracking Server (Optional) ───────────────────
+  # ─── MLflow Tracking Server (Optional) ─────────────────────
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.3.0
-    container_name: fraud-detection-mlflow
+    container_name: fraudlens-mlflow
     ports:
       - "5000:5000"
     volumes:
@@ -64,10 +66,10 @@ services:
       --backend-store-uri sqlite:///mlflow/mlflow.db
       --default-artifact-root /mlflow/mlruns
     networks:
-      - fraud-net
+      - fraudlens-net
     profiles:
-      - full  # Only runs with: docker-compose --profile full up
+      - full
 
 networks:
-  fraud-net:
+  fraudlens-net:
     driver: bridge
