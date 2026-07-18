@@ -91,16 +91,26 @@ def status_chip(status: str) -> str:
     """
 
 
-def drift_banner(score: float) -> str:
+def drift_banner(score: float, details: str = "") -> str:
     """
     Generate a drift alert banner HTML.
 
     Args:
         score: Drift score between 0 and 1
+        details: Comma-separated list of drifted features with p-values
 
     Returns:
         HTML string for the banner
     """
+    explanation = (
+        '<p style="color: #a0a0a0; font-size: 12px; margin-top: 6px;">'
+        "<strong>What is drift?</strong> When transaction patterns change over time, "
+        "the model's predictions may become less accurate. Drift detection compares "
+        "incoming transactions to the training data using a KS-test. "
+        "If the distribution of a feature shifts significantly (p < 0.05), it's flagged. "
+        "This helps you decide when to retrain the model.</p>"
+    )
+
     if score > 0.3:
         return f"""
         <div style="
@@ -112,7 +122,9 @@ def drift_banner(score: float) -> str:
             color: #ff6b6b;
             font-weight: 600;
         ">
-            🔴 Data Drift Detected (score: {score:.2f}) — Model retraining recommended
+            🔴 <strong>Data Drift Detected</strong> (score: {score:.2f}) — Model retraining is recommended
+            <br><span style="font-weight: 400; font-size: 13px; color: #ff6b6bcc;">{details}</span>
+            {explanation}
         </div>
         """
     elif score > 0.1:
@@ -126,7 +138,9 @@ def drift_banner(score: float) -> str:
             color: #f1c40f;
             font-weight: 600;
         ">
-            🟡 Mild Drift Detected (score: {score:.2f}) — Monitor closely
+            🟡 <strong>Mild Drift Detected</strong> (score: {score:.2f}) — Monitor closely
+            <br><span style="font-weight: 400; font-size: 13px; color: #f1c40fcc;">{details}</span>
+            {explanation}
         </div>
         """
     return ""
