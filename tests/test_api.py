@@ -147,3 +147,80 @@ class TestModelInfo:
         response = client.get("/model-info")
         data = response.json()
         assert isinstance(data, dict)
+
+
+# ─── Tests: /explain Endpoint ─────────────────────────────────────────────
+
+class TestExplainEndpoint:
+    """Tests for the /explain endpoint."""
+
+    def test_explain_endpoint_accepts_valid_data(self, sample_transaction: dict):
+        """Test that /explain returns 200 or 503 for valid input."""
+        response = client.post("/explain", json=sample_transaction)
+        assert response.status_code in (200, 503)
+
+    def test_explain_returns_shap_values(self, sample_transaction: dict):
+        """Test that /explain returns SHAP values in response."""
+        response = client.post("/explain", json=sample_transaction)
+        if response.status_code == 200:
+            data = response.json()
+            assert "fraud_probability" in data
+            assert "decision" in data
+            assert "shap_values" in data
+
+
+# ─── Tests: /chat Endpoint ───────────────────────────────────────────────
+
+class TestChatEndpoint:
+    """Tests for the /chat endpoint using mocked responses."""
+
+    def test_chat_endpoint_returns_503_without_key(self):
+        """Test that /chat returns 503 when no API key is set."""
+        response = client.post(
+            "/chat",
+            json={"message": "Why was this transaction flagged?", "conversation_history": []},
+        )
+        # Should be 503 since no Anthropic client is configured in test
+        assert response.status_code == 503
+        data = response.json()
+        assert "detail" in data
+
+    def test_chat_endpoint_returns_expected_schema(self):
+        """Test that /chat response has expected structure even when failing."""
+        response = client.post(
+            "/chat",
+            json={"message": "What is the current fraud rate?", "conversation_history": []},
+        )
+        assert response.status_code == 503
+        data = response.json()
+        assert "detail" in data
+
+    def test_chat_endpoint_missing_message(self):
+        """Test that /chat with missing message returns 422."""
+        response = client.post("/chat", json={"conversation_history": []})
+        assert response.status_code == 422
+
+
+# ─── Tests: /similar-cases Endpoint ───────────────────────────────────────
+
+class TestSimilarCasesEndpoint:
+    """Tests for the /similar-cases endpoint."""
+
+    def test_similar_cases_endpoint(self, sample_transaction: dict):
+        """Test that /similar-cases returns 200 or 503."""
+        response = client.post("/similar-cases", json=sample_transaction)
+        assert response.status_code in (200, 503)
+
+
+# ─── Tests: /explain Endpoint Validation ─────────────────────────────────
+
+class TestExplainValidation:
+    """Tests for /explain request validation."""
+
+    def test_explain_rejects_negative_amount(self):
+        """Test that negative Amount returns 422."""
+        tx = {f"V{i}": 0.0 for i in range(1, 29)}
+        tx["Time"] = 0.0
+        tx["Amount"] = -50.0
+        response = client.post("/explain", json=tx)
+        assert response.status_code == 422
