@@ -151,7 +151,7 @@ Net Benefit:       $12,445.00  (money saved - money spent)
 │  Review Costs:      $755.00     ░░░░░░░░░░░░░  │
 │  ─────────────────────────────────────         │
 │  Net Benefit:       $12,445.00                 │
-│  Savings Rate:      ■■■■■■■■■■□□ 83%           │
+│  Savings Rate:      ■■■■■■■■■■■■ 97%           │
 │                                                │
 │  Total Fraud: $73,800 | Caught: 88%            │
 └────────────────────────────────────────────────┘
@@ -231,7 +231,7 @@ graph TB
 | **Data Ingestion** | `DataLoader` | Load CSV, compute statistics, extract samples |
 | **Preprocessing** | `FraudPreprocessor` | Train/test split, scaling (fit on train only) — **NO DATA LEAKAGE** |
 | **Resampling** | `Resampler` | SMOTE, ADASYN, Undersampling, SMOTE+Tomek |
-| **Feature Engineering** | `FeatureEngineer` | Log transforms, interactions, PCA statistics |
+| **Feature Engineering** | `FeatureEngineer` | Log transforms, interactions, PCA cluster stats *(standalone — not yet in main pipeline)* |
 | **Model Training** | `FraudTrainer` | Train XGBoost, LightGBM, RF, Logistic Regression |
 | **Anomaly Detection** | `IsolationForestDetector` | Unsupervised anomaly detection on legit-only data |
 | **Evaluation** | `FraudEvaluator` | PR-AUC, business cost function, threshold optimization |
