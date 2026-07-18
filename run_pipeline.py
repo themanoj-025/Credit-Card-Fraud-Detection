@@ -41,6 +41,7 @@ matplotlib.use("Agg")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.fraudshield.config import (
+    AUTOENCODER_ENCODING_DIM,
     AVG_FRAUD_LOSS,
     MODELS_DIR,
     PROCESSED_DATA_DIR,
