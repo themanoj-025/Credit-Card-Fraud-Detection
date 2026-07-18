@@ -1,1 +1,1 @@
-# App Package
+"""FraudLens Streamlit dashboard package."""
