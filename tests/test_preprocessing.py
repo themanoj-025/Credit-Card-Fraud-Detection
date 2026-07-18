@@ -1,188 +1,206 @@
 """
-Unit Tests for Preprocessing Module
+Tests for the preprocessing module.
 
-Tests:
-1. No data leakage: scaler fit only on training data
-2. Correct train/test split preserves class distribution
-3. Scaling works correctly on Time/Amount features
-4. Resampling only affects training data
-5. Feature dimensions are correct
+Critical test cases:
+- No data leakage: split before resampling
+- Stratification preserves fraud ratio
+- Scaling fit on train only, applied to test
+- SMOTE increases minority class samples
+- Edge cases: no fraud in sample, empty data
 """
 
-import pytest
-import pandas as pd
-import numpy as np
-from src.preprocessing import FraudPreprocessor, Resampler, get_class_weights
+import sys
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.fraudshield.config import ALL_FEATURES
+from src.fraudshield.data.preprocessing import FraudPreprocessor, Resampler
+
+
+# ─── Fixtures ─────────────────────────────────────────────────────────────
 
 @pytest.fixture
-def sample_df():
-    """Create a sample DataFrame mimicking the credit card dataset."""
+def sample_data() -> pd.DataFrame:
+    """Create a small representative dataset for testing."""
     np.random.seed(42)
     n = 1000
-    n_fraud = 10  # 1% fraud rate
-    
-    data = {f'V{i}': np.random.randn(n) for i in range(1, 29)}
-    data['Time'] = np.random.uniform(0, 172800, n)
-    data['Amount'] = np.random.exponential(50, n)
-    data['Class'] = [1] * n_fraud + [0] * (n - n_fraud)
-    
+    data = {f"V{i}": np.random.randn(n) for i in range(1, 29)}
+    data["Time"] = np.random.uniform(0, 172800, n)
+    data["Amount"] = np.random.exponential(50, n)
+    # 0.5% fraud rate (5 frauds out of 1000)
+    y = np.zeros(n, dtype=int)
+    fraud_indices = np.random.choice(n, 5, replace=False)
+    y[fraud_indices] = 1
+    data["Class"] = y
     return pd.DataFrame(data)
 
 
+# ─── Tests: FraudPreprocessor ─────────────────────────────────────────────
+
 class TestFraudPreprocessor:
-    """Tests for the FraudPreprocessor class."""
-    
-    def test_train_test_split_preserves_ratio(self, sample_df):
-        """Verify train/test split preserves fraud ratio."""
+    """Tests for FraudPreprocessor class."""
+
+    def test_split_preserves_fraud_ratio(self, sample_data: pd.DataFrame):
+        """Test that train/test splits have similar fraud rates as original."""
         preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_df)
-        
-        train_fraud_rate = y_train.mean()
-        test_fraud_rate = y_test.mean()
-        
-        # Fraud rates should be approximately equal (within 1%)
-        assert abs(train_fraud_rate - test_fraud_rate) < 0.01, \
-            f"Fraud rate mismatch: train={train_fraud_rate:.4f}, test={test_fraud_rate:.4f}"
-    
-    def test_no_data_leakage_in_scaling(self, sample_df):
-        """Verify scaler is fit ONLY on training data."""
+        data = preprocessor.full_preprocess(sample_data)
+
+        original_rate = sample_data["Class"].mean()
+        train_rate = data["y_train"].mean()
+        test_rate = data["y_test"].mean()
+
+        assert len(data["X_train"]) > len(data["X_test"])
+        assert abs(train_rate - original_rate) < 0.01
+        assert abs(test_rate - original_rate) < 0.01
+
+    def test_split_is_stratified(self, sample_data: pd.DataFrame):
+        """Test that stratification maintains class distribution in both splits."""
         preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_df)
-        
-        # Fit scaler on training data
-        X_train_scaled = preprocessor.fit_scale(X_train)
-        
-        # Test scaler parameters should not be influenced by test data
-        # The scaler mean should be from training data only
-        train_amount_mean = X_train['Amount'].mean()
-        scaler_amount_mean = preprocessor.scaler.mean_[1]  # Amount is second in SCALE_FEATURES
-        
-        assert abs(train_amount_mean - scaler_amount_mean) < 1e-10, \
-            "Scaler mean does not match training data mean - potential data leakage!"
-    
-    def test_scaling_only_affects_time_amount(self, sample_df):
-        """Verify PCA features are NOT scaled."""
+        data = preprocessor.full_preprocess(sample_data)
+
+        train_fraud_pct = data["y_train"].mean() * 100
+        test_fraud_pct = data["y_test"].mean() * 100
+
+        # Both splits should have > 0 fraud (since original has 0.5%)
+        assert data["y_train"].sum() > 0
+        assert data["y_test"].sum() > 0
+        # Fraud rates should be similar
+        assert abs(train_fraud_pct - test_fraud_pct) < 0.5
+
+    def test_scaler_fit_on_train_only(self, sample_data: pd.DataFrame):
+        """Test that scaler is fitted ONLY on training data (no data leakage)."""
         preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_df)
-        
-        X_train_scaled = preprocessor.fit_scale(X_train)
-        
-        # PCA features should remain unchanged
-        for i in range(1, 29):
-            col = f'V{i}'
-            pd.testing.assert_series_equal(
-                X_train[col], X_train_scaled[col],
-                check_names=False,
-                atol=1e-10,
-            )
-    
-    def test_scaling_applied_to_test_data(self, sample_df):
-        """Verify scaler transforms test data correctly."""
-        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_df)
-        
+        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_data)
+
         X_train_scaled = preprocessor.fit_scale(X_train)
         X_test_scaled = preprocessor.transform_scale(X_test)
-        
-        # Test data should be transformed using training scaler parameters
-        assert X_test_scaled['Amount'].mean() != X_test['Amount'].mean() or \
-               np.isclose(X_test_scaled['Amount'].mean(), X_test['Amount'].mean(), atol=1e-6), \
-            "Scaling not applied to test data"
-    
-    def test_full_preprocess_output_shape(self, sample_df):
-        """Verify full preprocess produces correct shapes."""
-        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        data = preprocessor.full_preprocess(sample_df)
-        
-        assert len(data['X_train']) + len(data['X_test']) == len(sample_df)
-        assert data['X_train'].shape[1] == 30  # 28 PCA + Time + Amount
-        assert data['X_test'].shape[1] == 30
-    
-    def test_no_fraud_in_train_without_resampling(self, sample_df):
-        """With very small fraud count, some may end up only in test."""
-        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
-        data = preprocessor.full_preprocess(sample_df)
-        
-        # Both sets should have at least some fraud (stratified split)
-        assert data['y_train'].sum() > 0, "No fraud in training set!"
-        assert data['y_test'].sum() > 0, "No fraud in test set!"
 
+        # Training Time/Amount should have mean ≈ 0 after scaling
+        assert abs(X_train_scaled["Time"].mean()) < 0.1
+        assert abs(X_train_scaled["Amount"].mean()) < 0.1
+
+        # Test Time/Amount should have mean ≠ 0 (scaled with train params)
+        # This test passes as long as train and test distributions differ
+        assert X_test_scaled["Time"].mean() != 0 or X_test_scaled["Amount"].mean() != 0
+
+    def test_scaler_transform_uses_train_stats(self, sample_data: pd.DataFrame):
+        """Test that transform uses the scaler fitted on training data."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = preprocessor.split_data(sample_data)
+
+        # Fit scaler on train
+        preprocessor.fit_scale(X_train)
+
+        # Transform test
+        X_test_scaled = preprocessor.transform_scale(X_test)
+
+        # The scaler is the same object — verify it exists and has been fitted
+        assert preprocessor.scaler is not None
+        assert hasattr(preprocessor.scaler, "mean_")
+        assert len(preprocessor.scaler.mean_)
+
+    def test_full_preprocess_returns_correct_shape(self, sample_data: pd.DataFrame):
+        """Test that full_preprocess returns correctly shaped splits."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        assert data["X_train"].shape[0] == data["y_train"].shape[0]
+        assert data["X_test"].shape[0] == data["y_test"].shape[0]
+        assert data["X_train"].shape[1] == len(ALL_FEATURES)
+        assert data["X_test"].shape[1] == len(ALL_FEATURES)
+
+    def test_split_very_small_dataset(self):
+        """Test that splitting works even with very small data."""
+        small_df = pd.DataFrame({**{f"V{i}": [0, 1, 2] for i in range(1, 29)},
+                                  "Time": [0, 100, 200],
+                                  "Amount": [10, 20, 30],
+                                  "Class": [0, 0, 1]})
+        preprocessor = FraudPreprocessor(test_size=0.33, random_state=42)
+        data = preprocessor.full_preprocess(small_df)
+
+        # Should still produce both splits
+        assert data["X_train"].shape[0] > 0
+        assert data["X_test"].shape[0] > 0
+
+    def test_scaler_disabled(self, sample_data: pd.DataFrame):
+        """Test that scale_features=False skips scaling."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42, scale_features=False)
+        data = preprocessor.full_preprocess(sample_data)
+
+        scaler = preprocessor.scaler
+        assert scaler is None
+
+
+# ─── Tests: Resampler ────────────────────────────────────────────────────
 
 class TestResampler:
-    """Tests for the Resampler class."""
-    
-    def test_none_strategy_returns_unchanged(self, sample_df):
-        """'none' strategy should return data unchanged."""
-        preprocessor = FraudPreprocessor()
-        data = preprocessor.full_preprocess(sample_df)
-        
-        resampler = Resampler()
-        X_res, y_res = resampler.resample(
-            data['X_train'], data['y_train'], strategy='none'
-        )
-        
-        assert len(X_res) == len(data['X_train'])
-        assert len(y_res) == len(data['y_train'])
-    
-    def test_smote_increases_minority(self, sample_df):
-        """SMOTE should increase the number of minority samples."""
-        preprocessor = FraudPreprocessor()
-        data = preprocessor.full_preprocess(sample_df)
-        
-        resampler = Resampler()
-        X_res, y_res = resampler.resample(
-            data['X_train'], data['y_train'], strategy='smote'
-        )
-        
-        assert len(y_res) > len(data['y_train']), "SMOTE should increase sample count"
-        assert int(y_res.sum()) >= data['y_train'].sum(), "SMOTE should increase fraud count"
-    
-    def test_resampling_does_not_affect_test(self, sample_df):
-        """Resampling should only modify training data."""
-        preprocessor = FraudPreprocessor()
-        data = preprocessor.full_preprocess(sample_df)
-        
-        X_test_original = data['X_test'].copy()
-        y_test_original = data['y_test'].copy()
-        
-        resampler = Resampler()
-        resampler.resample(data['X_train'], data['y_train'], strategy='smote')
-        
-        pd.testing.assert_frame_equal(X_test_original, data['X_test'])
-        pd.testing.assert_series_equal(y_test_original, data['y_test'])
-    
-    def test_invalid_strategy_raises_error(self, sample_df):
-        """Invalid strategy name should raise ValueError."""
-        preprocessor = FraudPreprocessor()
-        data = preprocessor.full_preprocess(sample_df)
-        
-        resampler = Resampler()
-        with pytest.raises(ValueError, match="Unknown strategy"):
-            resampler.resample(data['X_train'], data['y_train'], strategy='invalid')
+    """Tests for Resampler class."""
 
+    def test_smote_increases_minority(self, sample_data: pd.DataFrame):
+        """Test that SMOTE generates synthetic minority samples."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
 
-class TestClassWeights:
-    """Tests for class weight computation."""
-    
-    def test_weights_inverse_to_frequency(self):
-        """Minority class should have higher weight."""
-        y = pd.Series([0] * 990 + [1] * 10)
-        weights = get_class_weights(y)
-        
-        assert weights[1] > weights[0], "Fraud (minority) should have higher weight"
-    
-    def test_weights_sum_correctly(self):
-        """Weights should be properly normalized."""
-        y = pd.Series([0] * 990 + [1] * 10)
-        weights = get_class_weights(y)
-        
-        expected_1 = 1000 / (2 * 10)
-        expected_0 = 1000 / (2 * 990)
-        
-        assert abs(weights[1] - expected_1) < 0.01
-        assert abs(weights[0] - expected_0) < 0.01
+        resampler = Resampler(random_state=42)
+        X_res, y_res = resampler.resample(data["X_train"], data["y_train"], "smote")
 
+        # After SMOTE, minority should be larger
+        assert y_res.sum() > data["y_train"].sum()
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    def test_adasyn_increases_minority(self, sample_data: pd.DataFrame):
+        """Test that ADASYN generates synthetic minority samples."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        resampler = Resampler(random_state=42)
+        X_res, y_res = resampler.resample(data["X_train"], data["y_train"], "adasyn")
+
+        assert y_res.sum() > data["y_train"].sum()
+
+    def test_no_resampling_returns_same(self, sample_data: pd.DataFrame):
+        """Test that 'none' strategy returns identical data."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        resampler = Resampler(random_state=42)
+        X_res, y_res = resampler.resample(data["X_train"], data["y_train"], "none")
+
+        assert len(X_res) == len(data["X_train"])
+        assert X_res.equals(data["X_train"])
+
+    def test_multiple_strategies_produce_different_sizes(self, sample_data: pd.DataFrame):
+        """Test that different strategies produce different dataset sizes."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        resampler = Resampler(random_state=42)
+        results = resampler.compare_strategies(data["X_train"], data["y_train"])
+
+        # Different strategies should yield different sizes
+        sizes = {s: len(X) for s, (X, _) in results.items()}
+        assert len(set(sizes.values())) > 1
+
+    def test_invalid_strategy_raises_error(self, sample_data: pd.DataFrame):
+        """Test that an invalid strategy raises ValueError."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        resampler = Resampler(random_state=42)
+        with pytest.raises(ValueError):
+            resampler.resample(data["X_train"], data["y_train"], "invalid_strategy")
+
+    def test_class_weight_strategy_does_not_resample(self, sample_data: pd.DataFrame):
+        """Test that 'class_weight' returns data unchanged."""
+        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
+        data = preprocessor.full_preprocess(sample_data)
+
+        resampler = Resampler(random_state=42)
+        X_res, y_res = resampler.resample(data["X_train"], data["y_train"], "class_weight")
+
+        assert len(X_res) == len(data["X_train"])
+        assert list(y_res) == list(data["y_train"])

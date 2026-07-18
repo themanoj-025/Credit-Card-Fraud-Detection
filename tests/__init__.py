@@ -1,1 +1,1 @@
-# Tests Package
+"""FraudLens test suite."""
