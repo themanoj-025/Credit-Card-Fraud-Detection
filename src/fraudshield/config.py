@@ -92,6 +92,11 @@ MAX_TRANSACTION_HISTORY: int = 500
 SIMULATION_FRAUD_RATE: float = 0.02
 SIMULATION_BATCH_SIZE: int = 10
 
+# ─── API ────────────────────────────────────────────────────────────────────
+API_URL: str = "http://localhost:8000"              # Base URL for FastAPI
+API_PORT: int = 8000
+DASHBOARD_PORT: int = 8501
+
 # ─── Evaluation ──────────────────────────────────────────────────────────
 CROSS_VALIDATION_FOLDS: int = 5
 CROSS_VALIDATION_SCORING: str = "average_precision"
