@@ -23,8 +23,6 @@ from src.fraudshield.config import (
     SIMULATION_FRAUD_RATE,
 )
 
-API_URL = "http://localhost:8000"
-
 
 def _init_session_state() -> None:
     """Initialize session state for the live monitor."""

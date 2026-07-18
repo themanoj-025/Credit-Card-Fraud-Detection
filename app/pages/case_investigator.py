@@ -20,8 +20,6 @@ import streamlit as st
 from app.components.metric_cards import metric_card, status_chip
 from src.fraudshield.config import API_URL
 
-API_URL = "http://localhost:8000"
-
 
 def show() -> None:
     """Render the Case Investigator page."""

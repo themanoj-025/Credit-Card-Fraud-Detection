@@ -13,8 +13,6 @@ import streamlit as st
 
 from src.fraudshield.config import API_URL
 
-API_URL = "http://localhost:8000"
-
 
 def _get_copilot_response(
     message: str,
