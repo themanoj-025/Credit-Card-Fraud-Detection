@@ -23,6 +23,13 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from api.routers import chat, explain, predict, similar_cases
+from api.state import (
+    set_anomaly_detector,
+    set_case_narrator,
+    set_case_retriever,
+    set_copilot_client,
+    set_predictor,
+)
 from src.fraudshield.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST
 from src.fraudshield.explainability.shap_utils import FraudPredictor
 from src.fraudshield.llm.case_narrator import CaseNarrator
@@ -32,23 +39,16 @@ from src.fraudshield.models.anomaly import IsolationForestDetector
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# ─── Global State ────────────────────────────────────────────────────────
-predictor: Optional[FraudPredictor] = None
-anomaly_detector: Optional[IsolationForestDetector] = None
-case_narrator: Optional[CaseNarrator] = None
-case_retriever: Optional[SimilarCaseRetriever] = None
-copilot_client = None
 
 # ─── Attempt to load optional dependencies ───────────────────────────────
 
 def _try_load_copilot():
     """Try to load Anthropic client for copilot features."""
-    global copilot_client
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if api_key:
         try:
             from anthropic import Anthropic
-            copilot_client = Anthropic(api_key=api_key)
+            set_copilot_client(Anthropic(api_key=api_key))
             logger.info("Analyst Copilot initialized")
         except ImportError:
             logger.warning("anthropic package not installed. Copilot unavailable.")
@@ -58,9 +58,8 @@ def _try_load_copilot():
 
 def _try_load_case_narrator():
     """Try to load the case narrator."""
-    global case_narrator
     try:
-        case_narrator = CaseNarrator()
+        set_case_narrator(CaseNarrator())
         logger.info("Case Narrator initialized")
     except Exception as e:
         logger.warning("Case Narrator unavailable: %s", e)
@@ -68,17 +67,17 @@ def _try_load_case_narrator():
 
 def _try_load_rag_retriever():
     """Try to load the RAG-based similar case retriever."""
-    global case_retriever
     index_path = MODELS_DIR / "rag_index"
     if index_path.exists():
         try:
-            case_retriever = SimilarCaseRetriever()
-            case_retriever.load(str(index_path))
+            retriever = SimilarCaseRetriever()
+            retriever.load(str(index_path))
+            set_case_retriever(retriever)
             logger.info("RAG retriever loaded from %s", index_path)
         except Exception as e:
             logger.warning("RAG retriever unavailable: %s", e)
     else:
-        logger.info("No RAG index found at %s. Run build_rag_index.py first.", index_path)
+        logger.info("No RAG index found at %s", index_path)
 
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────
@@ -86,20 +85,18 @@ def _try_load_rag_retriever():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load models and dependencies on startup."""
-    global predictor, anomaly_detector
-
     logger.info("Starting FraudLens API v2.0.0...")
 
     # Load supervised model
     try:
         predictor = FraudPredictor()
         predictor.load_from_config()
-        # Load threshold
         threshold_path = MODELS_DIR / "threshold.txt"
         if threshold_path.exists():
             with open(threshold_path) as f:
                 predictor.threshold = float(f.read().strip())
             logger.info("Threshold loaded: %.4f", predictor.threshold)
+        set_predictor(predictor)
         logger.info("Model loaded successfully")
     except Exception as e:
         logger.warning("Failed to load model: %s", e)
@@ -109,7 +106,8 @@ async def lifespan(app: FastAPI):
         anomaly_path = MODELS_DIR / "anomaly_detector.pkl"
         if anomaly_path.exists():
             import joblib
-            anomaly_detector = joblib.load(anomaly_path)
+            detector = joblib.load(anomaly_path)
+            set_anomaly_detector(detector)
             logger.info("Anomaly detector loaded")
     except Exception as e:
         logger.warning("Failed to load anomaly detector: %s", e)
