@@ -45,6 +45,9 @@ COLORS = {"legitimate": "#2ecc71", "fraud": "#e74c3c"}
 LABELS = {0: "Legitimate", 1: "Fraud"}
 DPI = 150
 
+# Cache for RF feature importance (computed once, reused across charts)
+_FEATURE_IMPORTANCE_CACHE = None
+
 
 def _load_data() -> pd.DataFrame:
     """Load the credit card fraud dataset."""
@@ -198,7 +201,7 @@ def plot_tsne_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
         df_sample = df
 
     print(f"  Running t-SNE on {len(df_sample):,} samples...")
-    X = df_sample[PCA_FEATURES].values
+    X = df_sample[PCA_FEATURES].fillna(0).values
     y = df_sample["Class"].values
 
     tsne = TSNE(n_components=2, random_state=42, perplexity=30, n_iter=1000, verbose=0)
@@ -242,7 +245,7 @@ def plot_umap_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
             df_sample = df
 
         print(f"  Running UMAP on {len(df_sample):,} samples...")
-        X = df_sample[PCA_FEATURES].values
+        X = df_sample[PCA_FEATURES].fillna(0).values
         y = df_sample["Class"].values
 
         reducer = umap.UMAP(n_components=2, random_state=42, n_neighbors=30, min_dist=0.1)
@@ -299,24 +302,33 @@ def plot_correlation_heatmap(df: pd.DataFrame) -> plt.Figure:
     return fig
 
 
-def plot_feature_separability(df: pd.DataFrame) -> plt.Figure:
-    """Chart 7: Single-feature separability check — box plots of top 6 features."""
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.preprocessing import StandardScaler
+def _get_feature_importances(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute feature importances once and cache for reuse across charts."""
+    global _FEATURE_IMPORTANCE_CACHE
+    if _FEATURE_IMPORTANCE_CACHE is not None:
+        return _FEATURE_IMPORTANCE_CACHE
 
-    # Train a quick RF to find top discriminative features
-    print("  Finding top discriminative features...")
+    from sklearn.ensemble import RandomForestClassifier
+
+    print("  Computing feature importances (RF, cached)...")
     X = df[PCA_FEATURES].fillna(0).values
     y = df["Class"].values
 
     rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
     rf.fit(X, y)
-    importances = pd.DataFrame({
+    _FEATURE_IMPORTANCE_CACHE = pd.DataFrame({
         "feature": PCA_FEATURES,
         "importance": rf.feature_importances_,
     }).sort_values("importance", ascending=False)
 
+    return _FEATURE_IMPORTANCE_CACHE
+
+
+def plot_feature_separability(df: pd.DataFrame) -> plt.Figure:
+    """Chart 7: Single-feature separability check — box plots of top 6 features."""
+    importances = _get_feature_importances(df)
     top_features = importances.head(6)["feature"].tolist()
+    print(f"  Top features: {top_features}")
     print(f"  Top features: {top_features}")
 
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
@@ -350,18 +362,7 @@ def plot_feature_separability(df: pd.DataFrame) -> plt.Figure:
 
 def plot_feature_distributions(df: pd.DataFrame) -> plt.Figure:
     """Chart 8: Distribution of top 9 features by class."""
-    from sklearn.ensemble import RandomForestClassifier
-
-    X = df[PCA_FEATURES].fillna(0).values
-    y = df["Class"].values
-
-    rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-    rf.fit(X, y)
-    importances = pd.DataFrame({
-        "feature": PCA_FEATURES,
-        "importance": rf.feature_importances_,
-    }).sort_values("importance", ascending=False)
-
+    importances = _get_feature_importances(df)
     top_9 = importances.head(9)["feature"].tolist()
 
     fig, axes = plt.subplots(3, 3, figsize=(18, 15))
@@ -386,7 +387,7 @@ def plot_feature_distributions(df: pd.DataFrame) -> plt.Figure:
 
 def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt.Figure:
     """Chart 9: Pairplot of top 4 features colored by class."""
-    from sklearn.ensemble import RandomForestClassifier
+    importances = _get_feature_importances(df)
 
     # Sample for speed
     if len(df) > sample_size:
@@ -398,16 +399,6 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
         df_sample = df.loc[sample_idx]
     else:
         df_sample = df
-
-    X = df_sample[PCA_FEATURES].fillna(0).values
-    y = df_sample["Class"].values
-
-    rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-    rf.fit(X, y)
-    importances = pd.DataFrame({
-        "feature": PCA_FEATURES,
-        "importance": rf.feature_importances_,
-    }).sort_values("importance", ascending=False)
 
     top_4 = importances.head(4)["feature"].tolist()
 
@@ -424,9 +415,11 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
         diag_kws={"alpha": 0.6},
         height=2.5,
     )
-    g.fig.suptitle("Pairplot of Top 4 Features", fontsize=16, fontweight="bold", y=1.02)
+    # Capture figure from current pyplot state (compatible across seaborn versions)
+    fig = plt.gcf()
+    fig.suptitle("Pairplot of Top 4 Features", fontsize=16, fontweight="bold", y=1.02)
 
-    return g.fig
+    return fig
 
 
 # ─── Main Pipeline ────────────────────────────────────────────────────────
@@ -438,6 +431,9 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     Args:
         output_dir: Directory to save figures to
     """
+    global _FEATURE_IMPORTANCE_CACHE
+    _FEATURE_IMPORTANCE_CACHE = None  # Reset cache
+
     print("=" * 70)
     print("  FRAUDLENS — Enhanced Exploratory Data Analysis")
     print("=" * 70)
@@ -446,7 +442,13 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     print(f"\nOutput directory: {output_dir}\n")
 
     # Load data
-    df = _load_data()
+    try:
+        df = _load_data()
+    except FileNotFoundError as e:
+        print(f"\n  ❌ {e}")
+        print("  Download the dataset from: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud")
+        print("  Place it at: data/raw/creditcard.csv")
+        return
 
     # Basic info
     print(f"\n  Columns: {list(df.columns)}")
