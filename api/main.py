@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from api.routers import chat, explain, predict, similar_cases
 from api.state import (
+    get_predictor,
     set_anomaly_detector,
     set_case_narrator,
     set_case_retriever,
@@ -151,9 +152,10 @@ app.include_router(chat.router)
 @app.get("/health")
 async def health():
     """Health check endpoint."""
+    pred = get_predictor()
     return {
         "status": "healthy",
-        "model_loaded": predictor is not None and predictor.model is not None,
+        "model_loaded": pred is not None and pred.model is not None,
         "version": "2.0.0",
     }
 
@@ -161,14 +163,15 @@ async def health():
 @app.get("/model-info")
 async def model_info():
     """Get model metadata and configuration."""
-    if predictor is None:
+    pred = get_predictor()
+    if pred is None:
         return {"status": "model not loaded"}
 
     return {
-        "model_type": type(predictor.model).__name__ if predictor.model else None,
-        "threshold": predictor.threshold,
-        "n_features": len(predictor.feature_names or []),
-        "features": predictor.feature_names,
+        "model_type": type(pred.model).__name__ if pred.model else None,
+        "threshold": pred.threshold,
+        "n_features": len(pred.feature_names or []),
+        "features": pred.feature_names,
         "avg_fraud_loss": AVG_FRAUD_LOSS,
         "review_cost": REVIEW_COST,
     }
