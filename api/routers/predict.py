@@ -18,6 +18,7 @@ from api.schemas import (
     Explanation,
     PredictionResponse,
     ShapFeature,
+    TransactionInput,
 )
 from api.state import get_anomaly_detector, get_predictor
 from src.fraudshield.config import AVG_FRAUD_LOSS, REVIEW_COST
@@ -28,7 +29,7 @@ router = APIRouter(tags=["predictions"])
 
 
 @router.post("/predict", response_model=PredictionResponse)
-async def predict_single(transaction: dict) -> PredictionResponse:
+async def predict_single(transaction: TransactionInput) -> PredictionResponse:
     """
     Predict fraud probability for a single transaction.
 
@@ -40,7 +41,7 @@ async def predict_single(transaction: dict) -> PredictionResponse:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        result = pred.predict_single(transaction, return_shap=True)
+        result = pred.predict_single(transaction.dict(), return_shap=True)
 
         # Get anomaly score from Isolation Forest
         anomaly_score = None

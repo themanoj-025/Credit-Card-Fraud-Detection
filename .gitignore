@@ -61,3 +61,21 @@ htmlcov/
 
 # ─── Jupyter ─────────────────────────────────────────────────
 .ipynb_checkpoints/
+
+# ─── Archived / Dead Code ────────────────────────────────────
+src/**/_archived_*
+monitoring/_archived_*
+
+# ─── Generated Training Artifacts ───────────────────────────
+models/threshold.txt
+models/*.json
+
+# ─── ML Model Formats (defensive) ───────────────────────────
+*.pth
+*.h5
+*.onnx
+
+# ─── Type Checking ──────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json

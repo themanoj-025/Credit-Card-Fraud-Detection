@@ -149,6 +149,21 @@ class FraudPredictor:
 
         return result
 
+    @staticmethod
+    def _extract_shap_values(shap_values, idx: int = 0):
+        """Extract SHAP values for the positive class, handling different SHAP output shapes."""
+        # Newer SHAP (TreeExplainer) returns shape (n_samples, n_features, n_classes) for multi-class
+        # Older SHAP returns list of arrays [neg_class_vals, pos_class_vals]
+        if isinstance(shap_values, list):
+            # List format: [negative_class_values, positive_class_values]
+            return shap_values[1][idx]
+        elif hasattr(shap_values, 'shape') and len(shap_values.shape) == 3:
+            # 3D format: (n_samples, n_features, n_classes) — take positive class (index 1)
+            return shap_values[idx, :, 1]
+        else:
+            # 2D format: (n_samples, n_features) — single class
+            return shap_values[idx]
+
     def _compute_shap_explanation(
         self,
         X_processed: pd.DataFrame,
@@ -159,10 +174,7 @@ class FraudPredictor:
 
         shap_values = self.explainer.shap_values(X_processed)
 
-        if isinstance(shap_values, list):
-            shap_vals = shap_values[1][0]
-        else:
-            shap_vals = shap_values[0]
+        shap_vals = self._extract_shap_values(shap_values, idx=0)
 
         feature_importance = list(zip(self.feature_names, shap_vals))
         feature_importance.sort(key=lambda x: abs(x[1]), reverse=True)
@@ -220,6 +232,16 @@ class FraudPredictor:
 
         return " | ".join(parts) if parts else "No strong individual feature drivers"
 
+    def _extract_global_shap_values(self, shap_values):
+        """Extract global SHAP values, handling different output shapes."""
+        if isinstance(shap_values, list):
+            return shap_values[1]
+        elif hasattr(shap_values, 'shape') and len(shap_values.shape) == 3:
+            # (n_samples, n_features, n_classes) → (n_samples, n_features) for positive class
+            return shap_values[:, :, 1]
+        else:
+            return shap_values
+
     def get_global_feature_importance(self, X_sample: pd.DataFrame) -> pd.DataFrame:
         """
         Compute global feature importance using SHAP.
@@ -234,10 +256,7 @@ class FraudPredictor:
         X_processed = self.preprocess(X_sample)
 
         shap_values = self.explainer.shap_values(X_processed)
-        if isinstance(shap_values, list):
-            shap_vals = shap_values[1]
-        else:
-            shap_vals = shap_values
+        shap_vals = self._extract_global_shap_values(shap_values)
 
         importance = pd.DataFrame({
             "feature": self.feature_names,

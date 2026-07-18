@@ -122,13 +122,19 @@ class TestComputeBusinessCost:
         assert cost["fraud_caught_usd"] >= 0
         assert cost["fraud_missed_usd"] >= 0
         assert cost["review_costs_usd"] >= 0
+        # y_true: [0,0,0,0,0, 1,1,1,1,1]
+        # y_pred: [0,0,1,0,0, 1,1,0,1,1]
+        # TN: legit predicted legit = indices 0,1,3,4 = 4
+        # FP: legit predicted fraud = index 2 = 1
+        # FN: fraud predicted legit = index 7 = 1
+        # TP: fraud predicted fraud = indices 5,6,8,9 = 4
         assert cost["false_positives"] == 1
-        assert cost["true_negatives"] == 5
-        assert cost["false_negatives"] == 2
-        assert cost["fraud_caught_usd"] == 450.0   # 3 * 150
-        assert cost["fraud_missed_usd"] == 300.0   # 2 * 150
-        assert cost["review_costs_usd"] == 20.0    # (3+1) * 5
-        assert cost["net_benefit_usd"] == 430.0    # 450 - 20
+        assert cost["true_negatives"] == 4
+        assert cost["false_negatives"] == 1
+        assert cost["fraud_caught_usd"] == 600.0   # 4 * 150
+        assert cost["fraud_missed_usd"] == 150.0   # 1 * 150
+        assert cost["review_costs_usd"] == 25.0    # (4+1) * 5
+        assert cost["net_benefit_usd"] == 575.0    # 600 - 25
 
     def test_cost_dict_structure(self, calculator, perfect_predictions):
         """Test that cost dictionary has all required keys."""

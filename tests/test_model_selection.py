@@ -106,7 +106,7 @@ class TestModelSelector:
     def test_single_model_always_selected(self, trained_models: dict):
         """Test that with one model, it's always selected."""
         single_df = pd.DataFrame({"Model": ["XGBoost"], "PR-AUC": [0.88]})
-        selector = ModelSelector()
+        selector = ModelSelector(metric="PR-AUC")
         result = selector.select(single_df, {"XGBoost": trained_models["XGBoost"]})
 
         assert result["best_model_name"] == "XGBoost"

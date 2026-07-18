@@ -9,12 +9,19 @@ import logging
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from api.state import get_copilot_client
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["copilot"])
+
+
+class ChatRequest(BaseModel):
+    """Chat request schema."""
+    message: str
+    conversation_history: Optional[List[Dict[str, str]]] = None
 
 
 def _get_transaction(tx_id: str) -> str:
@@ -34,10 +41,7 @@ TOOLS = {
 
 
 @router.post("/chat")
-async def analyst_chat(
-    message: str,
-    conversation_history: Optional[List[Dict[str, str]]] = None,
-) -> dict:
+async def analyst_chat(request: ChatRequest) -> dict:
     """
     Analyst copilot chat endpoint.
 
@@ -52,7 +56,7 @@ async def analyst_chat(
         )
 
     try:
-        history = conversation_history or []
+        history = request.conversation_history or []
 
         system_prompt = (
             "You are a fraud analysis copilot. You help analysts understand "
@@ -66,7 +70,7 @@ async def analyst_chat(
         messages = []
         for h in history:
             messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
-        messages.append({"role": "user", "content": f"{system_prompt}\n\nAnalyst question: {message}"})
+        messages.append({"role": "user", "content": f"{system_prompt}\n\nAnalyst question: {request.message}"})
 
         response = copilot_client.messages.create(
             model="claude-sonnet-4-20250514",
