@@ -890,9 +890,117 @@ jobs:
 
 ---
 
-## :whale: Docker Deployment
+---
 
-### Multi-Stage Docker Build
+## 🤖 Beyond the Model: Traditional ML + LLM Architecture
+
+This project goes beyond a standard ML model by combining **traditional supervised learning for detection** with **LLM-powered explanation and interaction** — exactly the hybrid architecture real fraud teams are moving toward.
+
+### Three Layers of Intelligence
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                FRAUDLENS HYBRID ARCHITECTURE                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Layer 1: Detection (Traditional ML)                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  XGBoost model (PR-AUC: 0.8810)                      │   │
+│  │  Isolation Forest (unsupervised anomaly detection)    │   │
+│  │  Business-cost-optimized threshold ($150 vs $5)       │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Layer 2: Explanation (LLM Layer)                           │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  SHAP values → structured feature contributions      │   │
+│  │  ↓                                                    │   │
+│  │  LLM Case Narrator → Plain-English analyst narrative  │   │
+│  │  "Flagged due to unusual V14 and V4 at 3:14 AM..."   │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Layer 3: Interaction (Copilot)                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  RAG Similar-Case Retrieval (FAISS)                  │   │
+│  │  Analyst Copilot Chat (tool-use enabled)              │   │
+│  │  "Why was #4821 flagged? Show me similar cases."     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Why This Matters
+
+| Component | What It Does | Why It's Powerful |
+|-----------|-------------|-------------------|
+| **XGBoost + Isolation Forest** | Catches known + novel fraud patterns | Two complementary signals side by side in the UI |
+| **SHAP + LLM Narrator** | Turns 30 anonymized PCA features into a readable paragraph | A non-technical fraud analyst can act on it immediately |
+| **RAG Similar Cases** | Finds 3 most similar historical transactions (FAISS) | Gives analysts precedent to reason from — "This looks like the pattern from last month" |
+| **Analyst Copilot** | Natural-language chat with tool-use access to data | Analysts ask questions without SQL or Python knowledge |
+
+### What Sets This Apart
+
+Most fraud-detection portfolios stop at "here's a model with 99% accuracy." This project demonstrates:
+
+1. **Traditional ML for detection** — XGBoost catches known fraud patterns with measured business impact
+2. **Unsupervised anomaly for novelty** — Isolation Forest catches *new* fraud patterns the supervised model hasn't seen
+3. **LLM for explanation** — The case narrator translates SHAP values into analyst-readable English
+4. **RAG for reasoning** — Similar-case retrieval provides precedents for decision-making
+5. **Copilot for interaction** — Natural-language querying over the simulation data
+
+This is not just a model — it's a complete **human-in-the-loop fraud analysis system**.
+
+---
+
+## 🖥️ Dashboard UI/UX
+
+The Streamlit dashboard is designed to look and function like a **real internal fraud-ops tool** (think: Stripe Radar or a bank's fraud analyst console), not a data science demo with stacked default widgets.
+
+### Design Decisions
+
+| Decision | Why |
+|----------|-----|
+| **Dark-mode theme** | Fraud-ops tools are typically dark (near-black `#0f0f1a` background) — reduces eye strain during long monitoring sessions |
+| **Inter font** | Clean sans-serif loaded via Google Fonts for professional typography |
+| **Custom metric cards** | Rounded corners, subtle shadows, accent-colored left borders, icon + value + delta — not raw `st.metric()` |
+| **Plotly for all charts** | Interactive hover tooltips, zoom, and theme-matched dark palette — not static matplotlib images |
+| **Status chips** | Colored pill badges (🟢 CLEARED / 🟡 UNDER REVIEW / 🔴 FLAGGED) at-a-glance |
+
+### Page Screenshots
+
+*(Replace these placeholders with actual screenshots from your deployment)*
+
+| Page | Description |
+|------|-------------|
+| **📡 Live Monitor** | Real-time transaction feed with running metrics, drift alerts, and interactive charts |
+| **🔍 Case Investigator** | Deep-dive into flagged transactions with SHAP force plots, LLM narratives, and RAG similar cases |
+| **📊 Model Performance** | PR-AUC comparison bars, multi-metric grouped charts, cost-threshold analysis, selection reasoning |
+| **🤖 Analyst Copilot** | Chat interface backed by Anthropic API with tool-use access to simulation data |
+
+---
+
+## Resume & LinkedIn
+
+### 📄 Resume Bullet
+
+> **Built FraudLens**, a production-grade credit card fraud detection system combining XGBoost (PR-AUC: 0.8810) with LLM-powered explanation and interaction layers. Architected a FastAPI REST API serving SHAP-explained predictions, a real-time Streamlit dashboard with drift monitoring, and an AI analyst copilot with RAG-based similar-case retrieval. Optimized decision thresholds using a business cost function ($150/fraud vs $5/review), achieving 88% fraud capture and 97% loss reduction. Implemented MLflow experiment tracking, comprehensive test suite (12 modules), Docker deployment, and CI/CD pipeline.
+
+### 📝 LinkedIn Post Draft
+
+> **Beyond the model: Why I built an ML + LLM hybrid fraud detection system for my portfolio**
+>
+> Most fraud detection portfolios stop at "here's a model with 99.8% accuracy." But in production, accuracy is nearly meaningless with 0.17% fraud rate. What actually matters:
+>
+> 1️⃣ **PR-AUC over ROC-AUC** — The only honest metric for imbalanced data
+> 2️⃣ **Business cost optimization** — Our threshold of 0.0298 (not 0.5!) minimizes $150 fraud loss vs $5 review cost
+> 3️⃣ **Explainability** — SHAP + LLM narrator turns 30 PCA features into analyst-readable English
+> 4️⃣ **Anomaly detection** — Isolation Forest catches novel fraud patterns the supervised model hasn't seen
+> 5️⃣ **RAG similar cases** — FAISS-based retrieval of historical precedents for every flagged transaction
+>
+> Built with: XGBoost, SHAP, FAISS, Anthropic API, FastAPI, Streamlit, MLflow, Docker
+>
+> Check out the full repo (link in comments) — the dashboard simulates live transactions with drift alerts and an AI copilot that analysts can actually talk to.
+>
+> #FraudDetection #MachineLearning #LLM #RAG #MLOps #DataScience #XGBoost #SHAP
 
 ```dockerfile
 # Stage 1: Base Python environment
@@ -919,8 +1027,8 @@ CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # Start all services
 docker-compose up --build
 
-# Start with MLflow (profile: full)
-docker-compose --profile full up --build
+# Start with MLflow (now started by default)
+docker-compose up --build  # MLflow is included by default
 
 # View logs
 docker-compose logs -f
@@ -937,7 +1045,7 @@ docker-compose down -v
 | FastAPI API | `http://localhost:8000` | Fraud prediction endpoints |
 | API Docs | `http://localhost:8000/docs` | Swagger UI documentation |
 | Dashboard | `http://localhost:8501` | Real-time Streamlit dashboard |
-| MLflow (optional) | `http://localhost:5000` | Experiment tracking |
+| MLflow | `http://localhost:5000` | Experiment tracking |
 
 ---
 
@@ -946,13 +1054,13 @@ docker-compose down -v
 Known areas for improvement:
 
 1. **No automated data download** — User must manually download `creditcard.csv` from Kaggle
-2. **MLflow not integrated** — Package is installed but training code doesn't log to MLflow yet
-3. **No authentication** — API and dashboard are open (intended for local development)
-4. **Session state limit** — Dashboard caps transaction history at 500, business metrics don't reset
-5. **Batch prediction skips SHAP** — Trade-off for speed, but batch responses lack explanations
-6. **Feature engineering underused** — `FeatureEngineer` exists but isn't integrated into the main pipeline
-7. **No rate limiting** — API has no request throttling
-8. **Streaming not implemented** — Simulated transactions; no real Kafka/streaming integration
+2. **No authentication** — API and dashboard are open (intended for local development)
+3. **Session state limit** — Dashboard caps transaction history at 500, business metrics don't reset
+4. **Batch prediction skips SHAP** — Trade-off for speed, but batch responses lack explanations
+5. **Feature engineering underused** — `FeatureEngineer` exists but isn't integrated into the main pipeline
+6. **No rate limiting** — API has no request throttling
+7. **Streaming not implemented** — Simulated transactions; no real Kafka/streaming integration
+8. **Drift alerts in UI depend on simulation data** — Real drift detection requires actual production transactions
 
 ---
 
@@ -966,7 +1074,7 @@ Known areas for improvement:
 | 🟡 P1 | **Autoencoder baseline** | Unsupervised deep learning for anomaly detection (TensorFlow code ready, needs pipeline integration) |
 | 🟡 P1 | **A/B testing framework** | Compare model versions in production with statistical significance tests |
 | 🟢 P2 | **Customer fairness audit** | Analyze false-positive rates across customer demographics |
-| 🟢 P2 | **MLflow integration** | Full experiment tracking — log params, metrics, artifacts per training run |
+| ✅ Done | **MLflow integration** | Now logs params, metrics, and model artifacts per training run; winning model auto-tagged |
 | 🟢 P2 | **Cloud deployment** | Deploy API to Render/Railway, dashboard to Streamlit Community Cloud |
 | 🟢 P2 | **API authentication** | API key-based auth for production deployment |
 
@@ -1009,7 +1117,7 @@ Known areas for improvement:
 │                                                                     │
 │  🐳 Deploy:    Docker + docker-compose                              │
 │                                                                     │
-│  🧪 Test:      pytest + pytest-cov (18 tests total)                 │
+│  🧪 Test:      pytest + pytest-cov (12 test modules)                │
 │                                                                     │
 │  🔄 CI/CD:     GitHub Actions (3 Python versions, lint)             │
 │                                                                     │
