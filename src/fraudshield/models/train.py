@@ -253,7 +253,7 @@ class FraudTrainer:
             "n_features": X_train.shape[1],
         }
 
-        # Log to MLflow
+        # Log to MLflow (AFTER training_results is populated)
         self._log_to_mlflow(name, params, train_time, model)
 
         return model
