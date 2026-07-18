@@ -27,7 +27,7 @@ st.set_page_config(
 from src.fraudshield.config import AVG_FRAUD_LOSS, REVIEW_COST
 
 # ─── Inject dark theme ────────────────────────────────────────────────────
-with open(Path(__file__).parent / "assets" / "theme.css") as f:
+with open(Path(__file__).parent / "assets" / "theme.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────
