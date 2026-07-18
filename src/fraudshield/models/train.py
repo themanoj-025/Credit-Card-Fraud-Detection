@@ -12,12 +12,15 @@ from typing import Any, Dict, List, Optional
 import joblib
 import lightgbm as lgb
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from xgboost import XGBClassifier
 
 from src.fraudshield.config import (
+    CATBOOST_DEPTH,
+    CATBOOST_ITERATIONS,
+    CATBOOST_VERBOSE,
     CROSS_VALIDATION_FOLDS,
     CROSS_VALIDATION_SCORING,
     DEFAULT_MODELS,
@@ -31,6 +34,14 @@ logger = logging.getLogger(__name__)
 class FraudTrainer:
     """
     Train and compare multiple fraud detection models.
+
+    Models:
+    - Logistic Regression (baseline, interpretable)
+    - Random Forest (tree ensemble, robust)
+    - Gradient Boosting (sklearn native, sequential trees)
+    - XGBoost (optimized gradient boosting, top performer)
+    - LightGBM (lightweight gradient boosting, fast)
+    - CatBoost (categorical boosting, handles imbalance)
     """
 
     DEFAULT_CONFIGS: Dict[str, Dict] = {
@@ -57,6 +68,18 @@ class FraudTrainer:
                 "n_jobs": -1,
             },
             "uses_class_weight": True,
+        },
+        "gradient_boosting": {
+            "model_class": GradientBoostingClassifier,
+            "params": {
+                "n_estimators": 200,
+                "max_depth": 4,
+                "learning_rate": 0.1,
+                "min_samples_split": 5,
+                "min_samples_leaf": 2,
+                "random_state": RANDOM_STATE,
+            },
+            "uses_class_weight": False,
         },
         "xgboost": {
             "model_class": XGBClassifier,
@@ -85,6 +108,18 @@ class FraudTrainer:
             },
             "uses_class_weight": False,
         },
+        "catboost": {
+            "model_class": None,  # Set dynamically in __init__
+            "params": {
+                "iterations": CATBOOST_ITERATIONS,
+                "depth": CATBOOST_DEPTH,
+                "learning_rate": 0.1,
+                "random_seed": RANDOM_STATE,
+                "verbose": CATBOOST_VERBOSE,
+                "auto_class_weights": "Balanced",
+            },
+            "uses_class_weight": False,
+        },
     }
 
     def __init__(
@@ -103,7 +138,16 @@ class FraudTrainer:
         if custom_configs:
             self.configs.update(custom_configs)
 
-        self.models_to_train = models_to_train or DEFAULT_MODELS
+        # Try to load CatBoost — graceful fallback if not installed
+        try:
+            from catboost import CatBoostClassifier
+            self.configs["catboost"]["model_class"] = CatBoostClassifier
+        except ImportError:
+            logger.info("CatBoost not installed. Removing from configs.")
+            if "catboost" in self.configs:
+                del self.configs["catboost"]
+
+        self.models_to_train = [m for m in (models_to_train or DEFAULT_MODELS) if m in self.configs]
         self.trained_models: Dict[str, Any] = {}
         self.training_results: Dict[str, Dict] = {}
 
