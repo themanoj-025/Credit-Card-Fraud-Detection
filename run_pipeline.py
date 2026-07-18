@@ -43,11 +43,25 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from src.fraudshield.config import (
     AUTOENCODER_ENCODING_DIM,
     AVG_FRAUD_LOSS,
+    MLFLOW_EXPERIMENT_NAME,
+    MLFLOW_TRACKING_URI,
     MODELS_DIR,
     PROCESSED_DATA_DIR,
     REPORTS_DIR,
     REVIEW_COST,
 )
+
+# ─── MLflow Experiment Tracking ────────────────────────────────────────────
+try:
+    import mlflow
+
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+    HAS_MLFLOW = True
+    print(f"  MLflow tracking: enabled (URI={MLFLOW_TRACKING_URI})")
+except (ImportError, Exception) as e:
+    HAS_MLFLOW = False
+    print(f"  MLflow tracking: disabled ({e})")
 from src.fraudshield.data.loaders import DataLoader
 from src.fraudshield.data.preprocessing import FraudPreprocessor, Resampler
 from src.fraudshield.evaluation.business_cost import BusinessCostCalculator

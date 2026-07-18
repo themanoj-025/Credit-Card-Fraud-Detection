@@ -3,7 +3,7 @@
 # Common development commands
 # ════════════════════════════════════════════════════════════════
 
-.PHONY: help install train api dashboard test lint clean docker-up docker-build
+.PHONY: help install train api dashboard test lint clean docker-up docker-build mlflow-ui
 
 help:
 	@echo "FraudLens — Development Makefile"
@@ -18,6 +18,7 @@ help:
 	@echo "  make clean        Remove cache and artifacts"
 	@echo "  make docker-up    Start Docker services"
 	@echo "  make docker-build Build Docker images"
+	@echo "  make mlflow-ui    Start MLflow tracking UI"
 
 install:
 	pip install -r requirements.txt
@@ -54,6 +55,10 @@ clean:
 	find . -type f -name ".coverage" -delete
 	rm -rf .pytest_cache
 	rm -rf build/ dist/ *.egg-info
+
+mlflow-ui:
+	@echo "Starting MLflow UI on port 5000..."
+	mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlruns
 
 docker-build:
 	docker-compose build
