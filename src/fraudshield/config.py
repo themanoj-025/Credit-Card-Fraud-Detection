@@ -112,3 +112,8 @@ DASHBOARD_PORT: int = 8501
 # ─── Evaluation ──────────────────────────────────────────────────────────
 CROSS_VALIDATION_FOLDS: int = 5
 CROSS_VALIDATION_SCORING: str = "average_precision"
+
+# ─── MLflow Experiment Tracking ──────────────────────────────────────────
+MLFLOW_EXPERIMENT_NAME: str = "fraudlens_model_comparison"
+MLFLOW_TRACKING_URI: str = "http://localhost:5000"  # MLflow server URL
+MLFLOW_ARTIFACT_DIR: str = "mlruns"                 # Local artifact storage
