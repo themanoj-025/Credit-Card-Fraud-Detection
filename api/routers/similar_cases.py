@@ -26,7 +26,7 @@ async def get_similar_cases(
     Retrieve similar historical cases for a flagged transaction.
     """
     case_retriever = get_case_retriever()
-    if case_retriever is None or not case_retriever._initialized:
+    if case_retriever is None:
         raise HTTPException(
             status_code=503,
             detail="Case retriever not initialized. Build a RAG index first.",

@@ -17,7 +17,7 @@ import plotly.express as px
 import requests
 import streamlit as st
 
-from app.components.metric_cards import metric_card, status_chip
+from app.components.metric_cards import metric_card
 from src.fraudshield.config import API_URL
 
 

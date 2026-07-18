@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 
-from app.components.metric_cards import drift_banner, metric_card, status_chip
+from app.components.metric_cards import drift_banner, metric_card
 from src.fraudshield.config import (
     API_URL,
     MAX_TRANSACTION_HISTORY,
