@@ -51,8 +51,10 @@ DEFAULT_RESAMPLING: str = "smote"
 DEFAULT_MODELS: List[str] = [
     "logistic_regression",
     "random_forest",
+    "gradient_boosting",
     "xgboost",
     "lightgbm",
+    "catboost",
 ]
 
 # Auto-selection rule: pick model with highest PR-AUC
@@ -65,6 +67,16 @@ SELECTION_RULE_DESCRIPTION: str = (
 # Isolation Forest
 IFOREST_CONTAMINATION: float = 0.01
 IFOREST_N_ESTIMATORS: int = 200
+
+# Autoencoder
+AUTOENCODER_ENCODING_DIM: int = 16
+AUTOENCODER_EPOCHS: int = 20
+AUTOENCODER_BATCH_SIZE: int = 32
+
+# CatBoost
+CATBOOST_VERBOSE: bool = False
+CATBOOST_ITERATIONS: int = 200
+CATBOOST_DEPTH: int = 6
 
 # ─── Threshold Tuning ────────────────────────────────────────────────────
 N_THRESHOLDS: int = 100
