@@ -86,7 +86,7 @@ Net Benefit:       $12,445.00  (money saved - money spent)
 **Without this system:** The bank loses **$73,800** from 492 fraudulent transactions.
 **With this system:** The net loss is reduced to **$1,500** (missed fraud only).
 
-**That's an 83% reduction in fraud losses.**
+**That's a ~97% reduction in fraud losses.**
 
 ---
 
@@ -173,33 +173,33 @@ Net Benefit:       $12,445.00  (money saved - money spent)
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph Client[Client Layer]
         BROWSER[Browser / Client]
-        API_CLIENT[API Consumer - curl/Postman]
+        API_CLIENT[API Consumer]
     end
     
-    subgraph "Docker Network (fraud-net)"
-        subgraph "FastAPI Server :8000"
+    subgraph Docker[Docker Network]
+        subgraph API_SVC[FastAPI Server - Port 8000]
             HEALTH[GET /health]
             MODEL_INFO[GET /model-info]
             PREDICT[POST /predict]
             BATCH[POST /predict/batch]
         end
         
-        subgraph "Streamlit Dashboard :8501"
+        subgraph DASH[Streamlit Dashboard - Port 8501]
             UI[Transaction Feed]
-            CHARTS[Probability & Impact Charts]
+            CHARTS[Charts]
             METRICS[Business KPIs]
         end
         
-        subgraph "ML Pipeline"
+        subgraph PIPELINE[ML Pipeline]
             PREDICTOR[FraudPredictor]
             SHAP[SHAP Explainer]
             MODEL[XGBoost Model]
             SCALER[StandardScaler]
         end
         
-        MLFLOW[(MLflow Server :5000)]
+        MLFLOW[(MLflow Server - Port 5000)]
     end
     
     BROWSER --> UI
@@ -703,9 +703,7 @@ result = requests.post(f"{API_URL}/predict", json=selected_transaction)
 update_dashboard(result)
 ```
 
-### Screenshots
 
-> Live transaction simulation with real-time fraud detection, probability distribution, and cumulative business impact tracking.
 
 ---
 
