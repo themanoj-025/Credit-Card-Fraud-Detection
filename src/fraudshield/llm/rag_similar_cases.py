@@ -91,6 +91,7 @@ class SimilarCaseRetriever:
 
         # Build FAISS index
         embeddings = self.historical_cases[features].values.astype(np.float32)
+        embeddings = np.ascontiguousarray(embeddings)
         self._faiss.normalize_L2(embeddings)
 
         self.index = self._faiss.IndexFlatIP(self.embedding_dim)
@@ -132,6 +133,7 @@ class SimilarCaseRetriever:
         # Extract features
         features = [c for c in ALL_FEATURES if c in transaction]
         query = np.array([[transaction.get(f, 0.0) for f in features]], dtype=np.float32)
+        query = np.ascontiguousarray(query)
         self._faiss.normalize_L2(query)
 
         # Search
