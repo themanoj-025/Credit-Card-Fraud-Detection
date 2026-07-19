@@ -48,7 +48,7 @@ class BatchInput(BaseModel):
     """Batch of transactions to predict."""
 
     transactions: List[TransactionInput] = Field(
-        ..., min_length=1, max_length=1000, description="List of transactions"
+        ..., min_items=1, max_items=1000, description="List of transactions"
     )
 
 
