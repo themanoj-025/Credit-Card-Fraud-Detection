@@ -131,7 +131,10 @@ class SimilarCaseRetriever:
         k = top_k or self.top_k
 
         # Extract features
-        features = [c for c in ALL_FEATURES if c in transaction]
+        features = [
+            c for c in self.historical_cases.columns 
+            if c not in ("actual_outcome", "is_fraud")
+        ]
         query = np.array([[transaction.get(f, 0.0) for f in features]], dtype=np.float32)
         query = np.ascontiguousarray(query)
         self._faiss.normalize_L2(query)
