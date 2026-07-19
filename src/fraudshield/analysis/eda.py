@@ -141,7 +141,7 @@ def plot_amount_distribution(df: pd.DataFrame) -> plt.Figure:
     ax2 = axes[1]
     bp_data = [df[df["Class"] == 0]["Amount"].clip(upper=500),
                df[df["Class"] == 1]["Amount"].clip(upper=500)]
-    bp = ax2.boxplot(bp_data, labels=[LABELS[0], LABELS[1]],
+    bp = ax2.boxplot(bp_data, tick_labels=[LABELS[0], LABELS[1]],
                      patch_artist=True, widths=0.5)
     bp["boxes"][0].set_facecolor(COLORS["legitimate"])
     bp["boxes"][1].set_facecolor(COLORS["fraud"])
@@ -341,7 +341,7 @@ def plot_feature_separability(df: pd.DataFrame) -> plt.Figure:
 
         bp = ax.boxplot(
             [legit_vals, fraud_vals],
-            labels=[LABELS[0], LABELS[1]],
+            tick_labels=[LABELS[0], LABELS[1]],
             patch_artist=True,
             widths=0.5,
         )
