@@ -117,38 +117,50 @@ class TestHyperparameterOptimizer:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    @patch.dict("sys.modules", {"optuna": MagicMock()})
     def test_tune_xgboost_optuna_not_installed(self, sample_data):
         """Test tune_xgboost fallback when optuna is not available."""
-        X, y = sample_data
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+        import sys
+        saved_optuna = sys.modules.pop("optuna", None)
+        try:
+            X, y = sample_data
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            params = optimizer.tune_xgboost(X, y)
+            assert params["n_estimators"] == 200
+            assert params["max_depth"] == 6
+        finally:
+            if saved_optuna is not None:
+                sys.modules["optuna"] = saved_optuna
 
-        params = optimizer.tune_xgboost(X, y)
-
-        assert params["n_estimators"] == 200
-        assert params["max_depth"] == 6
-
-    @patch.dict("sys.modules", {"optuna": MagicMock()})
     def test_tune_lightgbm_optuna_not_installed(self, sample_data):
         """Test tune_lightgbm fallback when optuna is not available."""
-        X, y = sample_data
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+        import sys
+        saved_optuna = sys.modules.pop("optuna", None)
+        try:
+            X, y = sample_data
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            params = optimizer.tune_lightgbm(X, y)
+            assert params["n_estimators"] == 200
+            assert params["is_unbalance"] is True
+        finally:
+            if saved_optuna is not None:
+                sys.modules["optuna"] = saved_optuna
 
-        params = optimizer.tune_lightgbm(X, y)
-
-        assert params["n_estimators"] == 200
-        assert params["is_unbalance"] is True
-
-    @patch.dict("sys.modules", {"optuna": MagicMock()})
     def test_tune_catboost_optuna_not_installed(self, sample_data):
         """Test tune_catboost fallback when optuna/catboost is not available."""
-        X, y = sample_data
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-
-        params = optimizer.tune_catboost(X, y)
-
-        assert params["iterations"] == 200
-        assert params["depth"] == 6
+        import sys
+        saved_optuna = sys.modules.pop("optuna", None)
+        saved_catboost = sys.modules.pop("catboost", None)
+        try:
+            X, y = sample_data
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            params = optimizer.tune_catboost(X, y)
+            assert params["iterations"] == 200
+            assert params["depth"] == 6
+        finally:
+            if saved_optuna is not None:
+                sys.modules["optuna"] = saved_optuna
+            if saved_catboost is not None:
+                sys.modules["catboost"] = saved_catboost
 
     def test_get_trials_dataframe_no_study(self):
         """Test get_trials_dataframe returns None when no study exists."""
