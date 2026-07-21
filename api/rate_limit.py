@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 # ─── Storage Backend Selection ─────────────────────────────────────────────
 # Default: Redis (safe for horizontal scaling).
 # Opt-in memory: Set RATE_LIMIT_BACKEND=memory for local dev without Redis.
+# If REDIS_URL is not set and backend=redis, falls back to memory with warning.
 
 _backend = os.environ.get("RATE_LIMIT_BACKEND", "redis").lower()
-redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+redis_url = os.environ.get("REDIS_URL", "")
 
 if _backend == "memory":
     # Explicit opt-in for local dev — not safe for multi-worker deployments
@@ -36,7 +37,23 @@ if _backend == "memory":
         "multi-worker/multi-replica deployments! Set RATE_LIMIT_BACKEND=redis "
         "and REDIS_URL for production use."
     )
+elif redis_url:
+    # Redis-backed (default when REDIS_URL is set) — safe for horizontal scaling
+    try:
+        limiter = Limiter(key_func=get_remote_address, storage_uri=redis_url)
+        logger.info("Rate limiter using Redis backend: %s", redis_url)
+    except Exception as e:
+        logger.warning(
+            "Failed to connect to Redis at %s (%s). "
+            "Falling back to in-memory storage.",
+            redis_url,
+            e,
+        )
+        limiter = Limiter(key_func=get_remote_address)
 else:
-    # Redis-backed (default) — safe for horizontal scaling
-    limiter = Limiter(key_func=get_remote_address, storage_uri=redis_url)
-    logger.info("Rate limiter using Redis backend: %s", redis_url)
+    # No REDIS_URL set — default to in-memory with a helpful log
+    limiter = Limiter(key_func=get_remote_address)
+    logger.info(
+        "Rate limiter using in-memory storage (no REDIS_URL set). "
+        "Set RATE_LIMIT_BACKEND=redis and REDIS_URL for production use."
+    )
