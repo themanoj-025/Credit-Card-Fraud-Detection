@@ -17,6 +17,7 @@ help:  ## Show this help message
 	@echo "  📦 Setup"
 	@echo "    make install          Install Python dependencies"
 	@echo "    make install-dev      Install dev extras (pre-commit, etc.)"
+	@echo "    make setup-data       Download or generate dataset"
 	@echo ""
 	@echo "  🚀 Run"
 	@echo "    make train            Run full training pipeline"
@@ -60,6 +61,9 @@ install-dev:  ## Install dev extras
 	pre-commit install
 
 # ─── Run ──────────────────────────────────────────────────────
+
+setup-data:  ## Download or generate dataset (Kaggle or synthetic fallback)
+	python -c "from src.fraudlens.data.download import ensure_data_ready; ensure_data_ready()"
 
 train:  ## Run full training pipeline
 	python run_pipeline.py
