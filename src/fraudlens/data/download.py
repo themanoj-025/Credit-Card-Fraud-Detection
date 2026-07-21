@@ -14,10 +14,8 @@ Usage:
     df = ensure_data_ready()  # auto-downloads or generates synthetic
 """
 
-import hashlib
 import logging
 import os
-import secrets
 from pathlib import Path
 from typing import Optional
 

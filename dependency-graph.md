@@ -30,7 +30,11 @@ api/main.py (FastAPI app, lifespan, middleware)
 ├── api/routers/chat.py
 │   └── api/providers (get_copilot_client)
 ├── api/routers/admin.py
-│   └── api/auth (require_admin_key)
+│   ├── api/auth (require_admin_key)
+│   └── src.fraudlens.llm.cost_tracker (LLM usage endpoint)
+├── api/metrics.py
+│   └── fraudlens_llm_cost_usd_total, fraudlens_llm_tokens_total, fraudlens_llm_calls_total
+
 │
 └── src/fraudlens/persistence/ (DB initialization)
     ├── sqlalchemy.ext.asyncio (AsyncSession)
@@ -153,8 +157,10 @@ app/api_client.py
 pandas, numpy, scikit-learn, xgboost, lightgbm
 imbalanced-learn, shap, joblib, optuna
 
-### Deep Learning (training only)
-tensorflow, keras, catboost  (removed from serve image)
+### Deep Learning (removed in Phase 14)
+~~tensorflow, keras~~ — removed (AutoencoderDetector eliminated, ADR-0001)
+
+catboost  (optional, not in default training)
 
 ### API
 fastapi, uvicorn, pydantic, httpx, slowapi

@@ -5,6 +5,56 @@ All notable changes to FraudLens will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] — 2026-07-22
+
+### Added
+
+#### Automated Data Download (Phase 14 — Gap 1)
+- `src/fraudlens/data/download.py` — Kaggle API download + synthetic fallback
+- Synthetic dataset: 10,000 rows matching real schema (V1-V28, Time, Amount, Class)
+- Zero-credential demo: works without Kaggle account via synthetic data
+- `make setup-data` target for manual data setup
+- Docker Compose auto-downloads data on first startup
+- README Quickstart updated with both Kaggle and synthetic paths
+
+#### Rate Limiting: Redis Default (Phase 14 — Gap 3)
+- `api/rate_limit.py` now defaults to Redis-backed storage
+- In-memory storage opt-in via `RATE_LIMIT_BACKEND=memory` with startup warning
+- Graceful fallback: if Redis unreachable, falls back to in-memory with warning
+- Safe for multi-worker / multi-replica deployments out of the box
+
+#### LLM Cost Tracking (Phase 14 — Gap 4)
+- `src/fraudlens/llm/cost_tracker.py` — thread-safe, per-call cost recording
+- Config-driven price table (per 1M tokens, models: claude-sonnet-4, claude-3.5-sonnet, claude-3-haiku, claude-3-opus)
+- Prometheus counters: `fraudlens_llm_cost_usd_total{model,endpoint}`, `fraudlens_llm_tokens_total{model,endpoint,type}`, `fraudlens_llm_calls_total{model,endpoint,status}`
+- Wired into `CaseNarrator` — every LLM call records input/output tokens and cost
+- `GET /v1/admin/llm-usage?period=today|month|total` — admin-only endpoint for spend queries
+- Structured log field on every LLM call with cost breakdown
+
+#### Autoencoder Removal (Phase 14 — Gap 6)
+- Removed `AutoencoderDetector` class from `src/fraudlens/models/anomaly.py`
+- Removed TensorFlow and Keras from `requirements.txt` (~600MB dependency saved)
+- Removed `AUTOENCODER_ENCODING_DIM`, `AUTOENCODER_EPOCHS`, `AUTOENCODER_BATCH_SIZE` from config
+- `IsolationForestDetector` is now the sole unsupervised anomaly detector
+- `docs/adr/0001-remove-autoencoder.md` — ADR documenting the decision
+
+#### Test Coverage (Phase 14 — Gap 2)
+- `tests/test_download.py` — 25+ tests for the download module (synthetic generation, validation, Kaggle detection, ensure_data_ready, get_or_create_data)
+
+### Changed
+- `requirements.txt`: Removed `tensorflow>=2.12.0` and `keras>=2.12.0`
+- `src/fraudlens/data/__init__.py`: Exports `ensure_data_ready` and `get_or_create_data`
+- `src/fraudlens/llm/case_narrator.py`: Uses `_call_llm_with_response()` to capture usage tokens for cost tracking
+- `api/routers/admin.py`: Added `/v1/admin/llm-usage` endpoint (admin-only, rate-limited)
+- `api/rate_limit.py`: Redis default with memory fallback and startup warnings
+- `docker-compose.yml`: Auto-downloads/generates data on container startup
+- `docs/adr/0000-baseline.md`: Updated with Phase 14 results (audit score 7.8 → 9.1)
+
+### Removed
+- `AutoencoderDetector` class (untrained, unused, TF dependency cost)
+- TensorFlow and Keras from `requirements.txt`
+- Autoencoder config settings from `src/fraudlens/config.py`
+
 ## [2.0.0] — 2026-07-21
 
 ### Added

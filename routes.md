@@ -14,6 +14,7 @@
 | `POST` | `/v1/chat` | Analyst copilot | API Key | 20/min | `ChatRequest` | `{response, tool_calls}` |
 | `GET` | `/v1/auth/keys` | List API keys | Admin Key | 30/min | — | `{keys[], count}` |
 | `POST` | `/v1/auth/keys` | Generate API key | Admin Key | 10/hour | `{role, description}` | `{api_key, role, sha256_hash}` |
+| `GET` | `/v1/admin/llm-usage` | LLM cost & usage | Admin Key | 30/min | `?period=today\|month\|total` | `{date, total_cost_usd, total_calls, by_model, by_endpoint}` |
 
 ## Route Details
 

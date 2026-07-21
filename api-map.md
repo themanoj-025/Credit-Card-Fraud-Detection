@@ -24,6 +24,7 @@
 | `POST` | `/v1/chat` | Analyst copilot chat (requires Anthropic key) | API Key | 20/min |
 | `GET` | `/v1/auth/keys` | List configured API keys (admin only) | Admin Key | 30/min |
 | `POST` | `/v1/auth/keys` | Generate new API key (admin only) | Admin Key | 10/hour |
+| `GET` | `/v1/admin/llm-usage` | LLM cost & usage summary (admin only) | Admin Key | 30/min |
 
 ## Pydantic Models
 

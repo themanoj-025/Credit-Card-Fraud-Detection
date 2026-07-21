@@ -129,12 +129,11 @@ XGBoost and LightGBM are automatically tuned:
 4. **Adversarial Adaptation:** Sophisticated fraudsters may adapt to detection
    patterns. The model should be monitored for drift and retrained as needed.
 
-5. **Autoencoder Limitations:** The `AutoencoderDetector` is trained during
-   `run_pipeline.py` (Stage 4d) and evaluated alongside supervised models.
-   However, it requires TensorFlow/Keras which is excluded from the serve
-   Docker image. The autoencoder is used as an additional unsupervised signal
-   during training comparison but is not served in production — only
-   `IsolationForestDetector` runs in the API prediction path.
+5. **Autoencoder Removed (ADR-0001):** The `AutoencoderDetector` was removed
+   in Phase 14. It was never trained on real data, never integrated into the
+   serving pipeline, and dragged in TensorFlow + Keras (~600MB). The decision
+   is documented in `docs/adr/0001-remove-autoencoder.md`. Isolation Forest
+   provides the sole unsupervised anomaly signal in production.
 
 6. **RAG Embedding Approach:** The `SimilarCaseRetriever` uses raw PCA feature
    vectors (V1–V28 + Time + Amount) with FAISS `IndexFlatIP` (cosine similarity

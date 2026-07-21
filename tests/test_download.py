@@ -19,7 +19,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.data.download import (
-    _compute_checksum,
     _generate_synthetic_dataset,
     _is_valid_dataset,
     _kaggle_available,
@@ -55,34 +54,6 @@ def valid_csv(tmp_data_dir):
 
 
 # ─── Tests: Checksum ──────────────────────────────────────────────────────
-
-
-class TestChecksum:
-    """Tests for _compute_checksum."""
-
-    def test_checksum_deterministic(self, tmp_path):
-        """Same file should produce same checksum."""
-        f = tmp_path / "test.txt"
-        f.write_text("hello world")
-        c1 = _compute_checksum(f)
-        c2 = _compute_checksum(f)
-        assert c1 == c2
-
-    def test_checksum_different_files(self, tmp_path):
-        """Different files should produce different checksums."""
-        f1 = tmp_path / "a.txt"
-        f2 = tmp_path / "b.txt"
-        f1.write_text("content A")
-        f2.write_text("content B")
-        assert _compute_checksum(f1) != _compute_checksum(f2)
-
-    def test_checksum_is_hex_string(self, tmp_path):
-        """Checksum should be a hex string."""
-        f = tmp_path / "test.txt"
-        f.write_text("data")
-        c = _compute_checksum(f)
-        assert len(c) == 64  # SHA-256 hex
-        assert all(ch in "0123456789abcdef" for ch in c)
 
 
 # ─── Tests: Kaggle Available ──────────────────────────────────────────────
