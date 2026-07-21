@@ -95,7 +95,23 @@ A **FAISS-based SimilarCaseRetriever** finds the most similar historical transac
 
 ## Component Responsibilities
 
-### 1. Core Library (`src/fraudlens/`)
+### 1. API Layer (`api/`)
+
+| Module | Responsibility |
+|--------|---------------|
+| `main.py` | FastAPI app creation, CORS, security headers, lifespan |
+| `schemas.py` | All Pydantic request/response models (RFC 7807) |
+| `providers.py` | FastAPI `Depends()` providers (DI), `FraudPredictor`, `PredictionCache` |
+| `auth.py` | API key authentication (SHA-256 hashed) |
+| `rate_limit.py` | SlowAPI rate limiter (Redis-backed) |
+| `errors.py` | RFC 7807 error handlers |
+| `routers/predict.py` | `POST /v1/predict`, `POST /v1/predict/batch` |
+| `routers/explain.py` | `POST /v1/explain` |
+| `routers/similar_cases.py` | `POST /v1/similar-cases` (cursor pagination) |
+| `routers/chat.py` | `POST /v1/chat` (Anthropic Claude) |
+| `routers/admin.py` | `GET /v1/auth/keys`, `POST /v1/auth/keys` |
+
+### 2. Core Library (`src/fraudlens/`)
 
 | Package | Module | Class/Function | Responsibility |
 |---------|--------|----------------|----------------|
@@ -115,22 +131,6 @@ A **FAISS-based SimilarCaseRetriever** finds the most similar historical transac
 | **llm** | `rag_similar_cases.py` | `SimilarCaseRetriever` | FAISS-based RAG retrieval |
 | **monitoring** | `drift.py` | `DriftDetector` | KS-test for data drift |
 | **persistence** | | SQLAlchemy models | Predictions, feedback, API keys, drift events |
-
-### 2. API Layer (`api/`)
-
-| Module | Responsibility |
-|--------|---------------|
-| `main.py` | FastAPI app creation, CORS, security headers, lifespan |
-| `schemas.py` | All Pydantic request/response models (RFC 7807) |
-| `providers.py` | FastAPI `Depends()` providers (DI), `FraudPredictor`, `PredictionCache` |
-| `auth.py` | API key authentication (SHA-256 hashed) |
-| `rate_limit.py` | SlowAPI rate limiter (Redis-backed) |
-| `errors.py` | RFC 7807 error handlers |
-| `routers/predict.py` | `POST /v1/predict`, `POST /v1/predict/batch` |
-| `routers/explain.py` | `POST /v1/explain` |
-| `routers/similar_cases.py` | `POST /v1/similar-cases` (cursor pagination) |
-| `routers/chat.py` | `POST /v1/chat` (Anthropic Claude) |
-| `routers/admin.py` | `GET /v1/auth/keys`, `POST /v1/auth/keys` |
 
 ### 3. Dashboard Layer (`app/`)
 

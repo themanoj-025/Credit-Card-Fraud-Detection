@@ -84,8 +84,10 @@ htmlcov/
 # ─── Jupyter ─────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# ─── DVC Temp Files ──────────────────────────────────────────
-.dvc/tmp/*
+# ─── DVC ─────────────────────────────────────────────────────
+.dvc/tmp/*            # Temp/lock files from DVC operations
+.dvc/cache/           # DVC data cache (large binary blobs)
+.dvc/config.local     # Local DVC config (machine-specific paths/creds)
 
 # ─── Linter / Formatter Cache ────────────────────────────────
 .ruff_cache/

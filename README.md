@@ -10,6 +10,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![PR-AUC](https://img.shields.io/badge/PR--AUC-0.8810-success.svg)](https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html)
 [![Coverage](https://img.shields.io/badge/coverage-80%25-yellow.svg)]()
+[![Tests](https://img.shields.io/badge/tests-359%20passing-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **A production-grade credit card fraud detection system** that catches **88% of fraud** while minimizing false positives — with **SHAP explainability**, **LLM-powered case narration**, **RAG-based similar case retrieval**, and an **AI analyst copilot**. Fully containerized with CI/CD, K8s manifests, and Postgres persistence.
@@ -281,24 +282,25 @@ docker compose --profile training up --build
 
 ```
 fraudlens/
-├── src/fraudlens/           # 🧠 Core ML pipeline
-│   ├── api/                 # FastAPI app, routers, DI providers
-│   ├── config/              # pydantic-settings config
+├── api/                     # 🌐 FastAPI routes, schemas, providers, auth
+├── src/fraudlens/           # 🧠 Core ML library
+│   ├── analysis/            # EDA functions
+│   ├── common/              # Logging, exceptions, enums
 │   ├── data/                # Data loading, preprocessing
-│   ├── features/            # Feature engineering
-│   ├── models/              # Training, selection, anomaly detection
-│   ├── prediction/          # ModelLoader, FraudPredictor
+│   ├── evaluation/          # Metrics, business cost
 │   ├── explainability/      # ShapExplainer
+│   ├── features/            # Feature engineering
 │   ├── llm/                 # CaseNarrator, RAG retriever
+│   ├── models/              # Training, HPO, anomaly detection
 │   ├── monitoring/          # Drift detection
-│   ├── persistence/         # SQLAlchemy models, migrations
-│   └── common/              # Logging, exceptions, enums
+│   ├── persistence/         # SQLAlchemy models, repos, migrations
+│   ├── prediction/          # ModelLoader, FraudPredictor
+│   └── config/              # pydantic-settings config
 ├── app/                     # 🖥️ Streamlit Dashboard
-├── api/                     # 🌐 FastAPI routes & schemas
 ├── infra/                   # 🐳 Docker, K8s, Terraform
 │   ├── docker/
 │   ├── k8s/                 # Deployment, Service, HPA, Ingress, ConfigMap
-├── tests/                   # 🧪 Test suite (248+ tests)
+├── tests/                   # 🧪 Test suite (359 tests)
 ├── docs/                    # 📚 Architecture docs, ADRs, model card
 ├── notebooks/               # 📓 Exploratory notebooks
 └── .github/workflows/       # 🔄 CI/CD pipeline
@@ -389,7 +391,7 @@ make load-test
 
 | Test Category | Coverage |
 |--------------|----------|
-| Unit tests | 248+ tests across 14 test modules |
+| Unit tests | 359 tests across 18+ test modules |
 | Integration tests | End-to-end training→prediction pipeline |
 | Edge cases | NaN/Inf inputs, empty batches, boundary values |
 | Contract tests | OpenAPI schema consistency, endpoint existence |

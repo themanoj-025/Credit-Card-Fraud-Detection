@@ -103,14 +103,58 @@ Credit Card Fraud Detection/
 ├── infra/
 │   ├── k8s/                     # K8s: deployment, service, ingress, hpa, configmap, secret
 │   └── docker/                  # Docker configs
-├── tests/                       # Test suite (248+ tests)
+├── tests/                       # Test suite (359 tests)
 │   ├── conftest.py              # Shared fixtures (mock_anthropic, sample_transaction)
 │   ├── test_api.py              # API endpoint tests
 │   ├── test_integration.py      # End-to-end training→prediction
 │   ├── test_edge_cases.py       # NaN/Inf/boundary/empty batch
 │   ├── test_contract.py         # OpenAPI schema contract tests
 │   ├── test_preprocessing.py    # Preprocessing pipeline
-│   └── ...                      # 14 total test modules
+```
+Credit Card Fraud Detection/
+├── api/                         # 🌐 FastAPI routes, schemas, providers, auth
+│   ├── main.py                  # App creation, lifespan, middleware
+│   ├── providers.py             # DI providers, FraudPredictor, PredictionCache
+│   ├── schemas.py               # Pydantic models (v1)
+│   ├── auth.py                  # API key authentication
+│   ├── rate_limit.py            # slowapi limiter
+│   ├── errors.py                # RFC 7807 error handlers
+│   └── routers/                 # Endpoint definitions
+│       ├── predict.py           # POST /v1/predict, /v1/predict/batch
+│       ├── explain.py           # POST /v1/explain
+│       ├── similar_cases.py     # POST /v1/similar-cases (cursor pagination)
+│       ├── chat.py              # POST /v1/chat
+│       └── admin.py             # GET/POST /v1/auth/keys
+├── src/fraudlens/               # 🧠 Core ML library
+│   ├── analysis/                # EDA functions
+│   ├── common/                  # Logging, exceptions, enums
+│   ├── data/                    # Data loading, preprocessing
+│   ├── evaluation/              # Metrics, business cost
+│   ├── explainability/          # ShapExplainer
+│   ├── features/                # Feature engineering
+│   ├── llm/                     # CaseNarrator, RAG retriever
+│   ├── models/                  # Training, HPO, anomaly, selection
+│   ├── monitoring/              # Drift detection
+│   ├── persistence/             # SQLAlchemy models, repos, migrations
+│   ├── prediction/              # ModelLoader, FraudPredictor
+│   └── config/                  # pydantic-settings config
+├── app/                         # 🖥️ Streamlit dashboard
+│   ├── streamlit_app.py         # Multi-page entry point
+│   ├── api_client.py            # Shared HTTP client (retries, spinners)
+│   ├── components/              # Metric cards, status chips
+│   ├── pages/                   # Live Monitor, Investigator, Performance, Copilot
+│   └── assets/                  # CSS theme
+├── infra/
+│   ├── k8s/                     # K8s: deployment, service, ingress, hpa, configmap, secret
+│   └── docker/                  # Docker configs
+├── tests/                       # 🧪 Test suite (359 tests)
+│   ├── conftest.py              # Shared fixtures (mock_anthropic, sample_transaction)
+│   ├── test_api.py              # API endpoint tests
+│   ├── test_integration.py      # End-to-end training→prediction
+│   ├── test_edge_cases.py       # NaN/Inf/boundary/empty batch
+│   ├── test_contract.py         # OpenAPI schema contract tests
+│   ├── test_preprocessing.py    # Preprocessing pipeline
+│   └── ...                      # 18+ test modules covering all modules
 ├── docs/
 │   ├── adr/                     # Architecture Decision Records
 │   ├── MODEL_CARD.md            # Model card
