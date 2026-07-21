@@ -75,6 +75,26 @@ LLM_AVAILABLE_GAUGE = Gauge(
     "Whether the LLM is available (1 = yes, 0 = no)",
 )
 
+# ─── LLM Cost Tracking ────────────────────────────────────────────────────
+
+LLM_COST_TOTAL = Counter(
+    "fraudlens_llm_cost_usd_total",
+    "Total LLM API cost in USD",
+    labelnames=["model", "endpoint"],
+)
+
+LLM_TOKENS_TOTAL = Counter(
+    "fraudlens_llm_tokens_total",
+    "Total LLM tokens consumed",
+    labelnames=["model", "endpoint", "type"],
+)
+
+LLM_CALLS_TOTAL = Counter(
+    "fraudlens_llm_calls_total",
+    "Total LLM API calls",
+    labelnames=["model", "endpoint", "status"],
+)
+
 
 def setup_metrics(app: object) -> None:
     """Configure and attach Prometheus metrics to the FastAPI app.
