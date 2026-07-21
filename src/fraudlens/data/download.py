@@ -35,15 +35,6 @@ _SYNTHETIC_FRAUD_RATE = 0.00172  # 0.172% fraud (matches real dataset)
 _SYNTHETIC_N_FEATURES = 28  # V1-V28
 
 
-def _compute_checksum(path: Path) -> str:
-    """Compute SHA-256 checksum of a file."""
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def _kaggle_available() -> bool:
     """Check if Kaggle credentials are configured."""
     return bool(os.environ.get("KAGGLE_USERNAME")) and bool(
