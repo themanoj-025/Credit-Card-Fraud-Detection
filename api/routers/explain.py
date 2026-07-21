@@ -2,6 +2,11 @@
 Explanation Router — /explain endpoint.
 
 Returns SHAP values + LLM narrative for a transaction.
+
+Resilience:
+- Uses typed exceptions instead of bare except Exception
+- LLM failures gracefully fall back to template narrative
+- Circuit breaker prevents cascading LLM failures
 """
 
 import logging
@@ -9,6 +14,11 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.auth import require_api_key
+from api.exceptions import (
+    LLMServiceUnavailable,
+    ModelNotLoadedError,
+    PredictionError,
+)
 from api.rate_limit import limiter
 from api.schemas import ExplanationResponse, TransactionInput
 from api.providers import get_case_narrator, get_predictor
@@ -29,10 +39,11 @@ async def explain_transaction(
     Get SHAP values and LLM narrative for a transaction.
 
     Pydantic validates the input (e.g., Amount >= 0) before the model check.
+    If the LLM is unavailable, SHAP values are still returned without narrative.
     """
     predictor = get_predictor()
     if predictor is None or predictor.model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+        raise ModelNotLoadedError()
 
     try:
         result = predictor.predict_single(transaction.dict(), return_shap=True)
@@ -42,6 +53,7 @@ async def explain_transaction(
             for f in result["explanation"]["top_features"]:
                 shap_values[f["feature"]] = f["shap_value"]
 
+        # LLM narrative — graceful fallback if unavailable
         narrative = None
         case_narrator = get_case_narrator()
         if case_narrator is not None:
@@ -59,6 +71,8 @@ async def explain_transaction(
             shap_values=shap_values,
             narrative=narrative,
         )
+    except (ModelNotLoadedError, LLMServiceUnavailable):
+        raise
     except Exception as e:
         logger.error("Explanation failed: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise PredictionError(detail=str(e), original=e)

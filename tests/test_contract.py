@@ -74,13 +74,17 @@ class TestEndpointExistence:
 
     @staticmethod
     def _get_registered_routes(app) -> Set[str]:
-        """Extract all registered routes from the app as 'METHOD /path' strings."""
+        """Extract all registered routes from the app's OpenAPI spec.
+
+        Uses the OpenAPI spec instead of app.routes because newer FastAPI
+        versions wrap included routers as _IncludedRouter objects that
+        don't expose path/methods directly on app.routes.
+        """
         routes = set()
-        for route in app.routes:
-            if hasattr(route, "methods") and hasattr(route, "path"):
-                for method in route.methods:
-                    if method in ("GET", "POST", "PUT", "DELETE", "PATCH"):
-                        routes.add(f"{method} {route.path}")
+        spec = app.openapi()
+        for path, methods in spec.get("paths", {}).items():
+            for method in methods:
+                routes.add(f"{method.upper()} {path}")
         return routes
 
 

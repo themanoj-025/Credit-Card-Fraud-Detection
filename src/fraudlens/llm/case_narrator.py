@@ -4,9 +4,11 @@ LLM Case Narrator Module
 Translates SHAP values and transaction features into plain-English
 analyst-readable narratives using an LLM.
 
-This turns a wall of SHAP numbers into something a non-technical fraud
-analyst could actually read and act on — a real, current best practice
-(LLM as an explanation layer on top of a traditional ML model).
+Resilience features:
+- Tenacity retries (exponential backoff) around Anthropic API calls
+- Circuit breaker integration to prevent cascading failures
+- Honest fallback narrative when LLM unavailable
+- Explicit timeout on all LLM calls
 """
 
 import json
@@ -14,9 +16,25 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
+from tenacity import (
+    before_sleep_log,
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+)
+
 from src.fraudlens.config import LLM_MAX_TOKENS, LLM_MODEL, LLM_TEMPERATURE
 
 logger = logging.getLogger(__name__)
+
+# ─── Tenacity retry policy for LLM calls ──────────────────────────────────
+# Retry up to 3 times with exponential backoff (2s, 4s, 8s)
+_LLM_RETRY = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10),
+    before_sleep=before_sleep_log(logger, logging.DEBUG),
+    reraise=True,
+)
 
 
 class CaseNarrator:
@@ -25,6 +43,11 @@ class CaseNarrator:
 
     Takes SHAP values and transaction features, sends them to an LLM,
     and returns a short analyst-readable explanation.
+
+    Resilience:
+    - Retries LLM calls up to 3 times with exponential backoff
+    - Checks the circuit breaker before making LLM calls
+    - Falls back to an honest template-based narrative when LLM unavailable
     """
 
     def __init__(
@@ -46,12 +69,16 @@ class CaseNarrator:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self._client = None
+        self._circuit_breaker = None  # Set by main.py's lifespan
+
+    def set_circuit_breaker(self, breaker: Any) -> None:
+        """Set the circuit breaker instance (called during app initialization)."""
+        self._circuit_breaker = breaker
 
     def _init_client(self):
         """Initialize the Anthropic client."""
         try:
             from anthropic import Anthropic
-
             self._client = Anthropic(api_key=self.api_key)
         except ImportError:
             logger.error(
@@ -70,6 +97,9 @@ class CaseNarrator:
         """
         Generate a natural-language narrative for a flagged transaction.
 
+        Uses retry logic with exponential backoff for LLM calls.
+        Falls back to an honest template-based narrative if LLM unavailable.
+
         Args:
             transaction: The raw transaction features
             fraud_probability: Model's fraud probability score
@@ -78,30 +108,43 @@ class CaseNarrator:
 
         Returns:
             Plain-English narrative string
-
-        Raises:
-            RuntimeError: If LLM call fails or API key is missing
         """
         if not self.api_key:
             return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
 
-        self._init_client()
+        # Check circuit breaker before attempting LLM call
+        if self._circuit_breaker is not None and self._circuit_breaker.is_open():
+            logger.warning("Circuit breaker open — skipping LLM call")
+            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
 
+        self._init_client()
         prompt = self._build_prompt(transaction, fraud_probability, shap_explanation, is_fraud)
 
         try:
+            narrative = self._call_llm_with_retry(prompt)
+            if self._circuit_breaker is not None:
+                self._circuit_breaker.record_success()
+            logger.info("LLM narrative generated (%d chars)", len(narrative))
+            return narrative
+        except Exception as e:
+            logger.warning("LLM call failed after retries: %s", e)
+            if self._circuit_breaker is not None:
+                self._circuit_breaker.record_failure()
+            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
+
+    def _call_llm_with_retry(self, prompt: str) -> str:
+        """Make the LLM call with tenacity retry logic."""
+        @_LLM_RETRY
+        def _do_call() -> str:
             response = self._client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 messages=[{"role": "user", "content": prompt}],
             )
-            narrative = response.content[0].text.strip()
-            logger.info("LLM narrative generated (%d chars)", len(narrative))
-            return narrative
-        except Exception as e:
-            logger.warning("LLM call failed: %s. Using fallback narrative.", e)
-            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
+            return response.content[0].text.strip()
+
+        return _do_call()
 
     def _build_prompt(
         self,
@@ -141,21 +184,33 @@ Be specific, concise, and avoid technical jargon. Write as if for a non-technica
         fraud_probability: float,
         is_fraud: bool,
     ) -> str:
-        """Generate a template-based narrative when LLM is unavailable."""
+        """Generate an honest template-based narrative when LLM is unavailable.
+
+        The narrative clearly states that it's an automated summary, not
+        an LLM-generated narrative, so analysts are not misled by a
+        confident-sounding but generic fraud story.
+        """
         top = shap_explanation[:3] if shap_explanation else []
-        top_features_str = ", ".join(f"{f['feature']} ({f['impact']})" for f in top)
+        top_features_str = ", ".join(
+            f"{f['feature']} ({f.get('value', f.get('shap_value', 0)):.2f}, {f['impact']})" for f in top
+        )
+
+        prefix = "[Automated summary — narrative generation unavailable] "
 
         if is_fraud:
             narrative = (
-                f"This transaction was flagged with {fraud_probability:.1%} confidence as potentially fraudulent. "
-                f"The primary indicators were {top_features_str}. "
-                f"This pattern is consistent with the profile of fraudulent transactions in our reference dataset. "
+                prefix
+                + f"Transaction flagged as potentially fraudulent "
+                f"({fraud_probability:.1%} confidence). "
+                f"Top indicators: {top_features_str}. "
                 f"Recommended action: manual review by a fraud analyst."
             )
         else:
             narrative = (
-                f"This transaction appears legitimate ({1-fraud_probability:.1%} confidence). "
-                f"No strong fraud indicators were detected in the feature analysis."
+                prefix
+                + f"Transaction appears legitimate "
+                f"({1-fraud_probability:.1%} confidence). "
+                f"No strong fraud indicators detected."
             )
 
         return narrative

@@ -1,4 +1,4 @@
-# 📡 API Map — Credit Card Fraud Detection
+# 📡 API Map — FraudLens
 
 ## API Overview
 
@@ -6,158 +6,219 @@
 - **Base URL:** `http://localhost:8000`
 - **Documentation:** `http://localhost:8000/docs` (Swagger UI)
 - **OpenAPI Schema:** `http://localhost:8000/openapi.json`
-- **CORS:** Enabled (all origins)
+- **Auth:** `X-API-Key` header (optional — set `FRAUDLENS_API_KEYS` env var)
+- **Rate Limiting:** slowapi (Redis-backed in production, in-memory for dev)
+- **Error Format:** RFC 7807 Problem Details
 
-## API Inventory
+## API Inventory (v1)
 
-| Method | Route | Purpose | Input Model | Response Model | Used By |
-|--------|-------|---------|-------------|----------------|---------|
-| GET | `/health` | Health check | — | Dict | Docker healthcheck, dashboard |
-| GET | `/model-info` | Model metadata | — | Dict | Dashboard sidebar |
-| POST | `/predict` | Single fraud prediction | `TransactionInput` | `PredictionResponse` | Dashboard, external clients |
-| POST | `/predict/batch` | Batch predictions | `BatchInput` | BatchResponse | Bulk processing |
-| POST | `/explain` | SHAP + LLM narrative | `TransactionInput` | `ExplanationResponse` | Dashboard detail panel |
-| POST | `/similar-cases` | RAG similar-case retrieval | Transaction dict | `SimilarCasesResponse` | Case investigator page |
-| POST | `/chat` | Analyst copilot chat | `ChatRequest` | ChatResponse | Analyst copilot page |
+| Method | Route | Purpose | Auth | Rate Limit |
+|--------|-------|---------|------|------------|
+| `GET` | `/health` | Legacy health check | No | — |
+| `GET` | `/v1/health` | Per-dependency health check | No | — |
+| `GET` | `/model-info` | Model metadata | No | — |
+| `POST` | `/v1/predict` | Single fraud prediction | API Key | 100/min |
+| `POST` | `/v1/predict/batch` | Batch predictions (no SHAP) | API Key | 30/min |
+| `POST` | `/v1/explain` | SHAP values + LLM narrative | API Key | 60/min |
+| `POST` | `/v1/similar-cases` | RAG similar-case retrieval (cursor pagination) | API Key | 60/min |
+| `POST` | `/v1/chat` | Analyst copilot chat (requires Anthropic key) | API Key | 20/min |
+| `GET` | `/v1/auth/keys` | List configured API keys (admin only) | Admin Key | 30/min |
+| `POST` | `/v1/auth/keys` | Generate new API key (admin only) | Admin Key | 10/hour |
 
 ## Pydantic Models
 
 ### TransactionInput (Request)
-```
+
+```python
 Fields:
-  Time: float          # Transaction time in seconds
-  Amount: float        # Transaction amount (≥ 0)
-  V1-V28: float        # PCA features (default 0.0)
+  Time: float          # Transaction time in seconds (0–172,800)
+  Amount: float        # Transaction amount (≥ 0, finite)
+  V1..V28: float       # PCA components (default 0.0)
+
+Validation:
+  - Amount ≥ 0 (Field constraint)
+  - Amount must be finite (NaN/Inf → 422)
 ```
 
 ### PredictionResponse (Response)
-```
+
+```python
 Fields:
-  fraud_probability: float     # 0.0 to 1.0
-  decision: str                # "FRAUD" or "LEGITIMATE"
-  threshold_used: float        # Classification threshold
-  is_fraud: bool               # Boolean flag
-  anomaly_score: Optional[float]  # Isolation Forest score
-  explanation: Optional[Dict]  # SHAP breakdown
-  business_impact: Optional[Dict]  # Cost analysis
+  fraud_probability: float        # 0.0 to 1.0
+  decision: str                   # "FRAUD" or "LEGITIMATE"
+  threshold_used: float           # Classification threshold
+  is_fraud: bool                  # Boolean flag
+  anomaly_score: Optional[float]  # Isolation Forest score (0–1)
+  explanation: Optional[Dict]     # SHAP breakdown (only if ?explain=true)
+  business_impact: Optional[Dict] # Cost analysis
 ```
 
 ### BatchInput (Request)
-```
+
+```python
 Fields:
   transactions: List[TransactionInput]  # 1–1000 transactions
 ```
 
-### ExplanationResponse (Response)
-```
+### BatchResponse (Response)
+
+```python
 Fields:
-  fraud_probability: float        # 0.0 to 1.0
-  decision: str                   # "FRAUD" or "LEGITIMATE"
-  shap_values: Dict[str, float]   # Feature → SHAP contribution
-  narrative: Optional[str]        # LLM-generated plain-English explanation
+  predictions: List[BatchPredictionItem]
+  summary: BatchSummary  # total, flagged_fraud, flagged_legitimate, estimated_review_cost
 ```
 
 ### SimilarCasesResponse (Response)
-```
+
+```python
 Fields:
   transaction_id: str                 # Hashed transaction ID
   similar_cases: List[SimilarCase]    # Top-k similar cases
+  pagination: CursorPagination        # next_cursor, has_more, limit, total
 ```
 
-### SimilarCase (Nested)
-```
+### CursorPagination (Nested)
+
+```python
 Fields:
-  similarity_score: float         # 0.0 to 1.0 (cosine similarity)
-  actual_outcome: str             # "FRAUD" or "LEGITIMATE"
-  features: Dict[str, float]      # Transaction features
+  next_cursor: Optional[str]  # Cursor for next page (null if no more)
+  has_more: bool              # Whether more results exist
+  limit: int                  # Max results per page
+  total: Optional[int]        # Total results (if known)
 ```
 
-### ChatRequest (Request)
-```
-Fields:
-  message: str                           # Natural-language question
-  conversation_history: Optional[List]    # Previous messages [{"role", "content"}]
+### Query Parameters for /v1/similar-cases
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `top_k` | int | `RAG_TOP_K` | 1–20 | Number of similar cases |
+| `cursor` | str | null | — | Pagination cursor from previous response |
+| `limit` | int | `RAG_TOP_K` | 1–50 | Max results per page |
+
+## Error Responses (RFC 7807)
+
+All error responses use the RFC 7807 Problem Details format:
+
+```json
+{
+  "type": "https://httpstatuses.io/422",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "Input validation failed",
+  "errors": [
+    {
+      "field": "Amount",
+      "message": "Amount must be non-negative",
+      "type": "value_error"
+    }
+  ]
+}
 ```
 
-### ChatResponse (Response)
-```
-Fields:
-  response: str                     # AI-generated answer
-  tool_calls: Optional[List[Dict]]  # Tool invocations (future use)
+| Status Code | RFC 7807 `title` | Common Causes |
+|-------------|------------------|---------------|
+| **422** | Validation Error | Negative Amount, NaN/Inf, missing fields, empty batch, missing features |
+| **401** | Unauthorized | Missing or invalid `X-API-Key` header |
+| **403** | Forbidden | Valid key but insufficient permissions |
+| **429** | Too Many Requests | Rate limit exceeded |
+| **500** | Internal Server Error | Model prediction failed, RAG retrieval failed |
+| **503** | Service Unavailable | Model not loaded, Copilot API key missing, RAG index absent |
+
+## Health Check
+
+`GET /health` and `GET /v1/health` return per-dependency status:
+
+```json
+{
+  "status": "degraded",
+  "version": "2.0.0",
+  "auth_enabled": false,
+  "dependencies": {
+    "model": {"status": "degraded", "detail": "not loaded"},
+    "database": {"status": "ok", "detail": "connected"},
+    "anomaly_detector": {"status": "degraded", "detail": "not loaded"},
+    "llm": {"status": "degraded", "detail": "API key not set"},
+    "case_narrator": {"status": "degraded", "detail": "not loaded"},
+    "rag_retriever": {"status": "degraded", "detail": "no index found"}
+  }
+}
 ```
 
-### Error Responses
+Each dependency reports its own `status`: `ok`, `degraded`, or `error`.
+The overall `status` is `healthy` only if all dependencies are `ok`.
 
-| Status Code | Meaning | Common Causes |
-|-------------|---------|---------------|
-| 200 | Success | |
-| 422 | Validation Error | Negative Amount, missing fields, empty batch |
-| 500 | Server Error | Model prediction failed, RAG retrieval failed |
-| 503 | Service Unavailable | Model not loaded, Copilot API key missing, RAG index absent |
+## Rate Limiting
 
-## Error Flow
+| Endpoint | Limit | Reason |
+|----------|-------|--------|
+| `/v1/predict` | 100/minute | Production prediction |
+| `/v1/predict/batch` | 30/minute | Batch processing |
+| `/v1/explain` | 60/minute | SHAP + LLM (compute heavy) |
+| `/v1/chat` | 20/minute | LLM cost protection |
+| `/v1/similar-cases` | 60/minute | RAG retrieval |
+| `/v1/auth/keys` POST | 10/hour | Admin security |
+| `/v1/auth/keys` GET | 30/minute | Admin security |
+
+## Auth Flow
 
 ```
-Client                    FastAPI
-  │                          │
-  │  POST /explain (invalid) │
-  │  {"Amount": -100}        │
-  │ ─────────────────────►   │
-  │                          │  Pydantic: Amount ≥ 0?
-  │                          │  ── 422 Validation Error
-  │ ◄─────────────────────   │
-  │                          │
-  │  POST /explain (valid)   │
-  │ ─────────────────────►   │
-  │                          │  Model loaded?
-  │                          │  ── 503 Service Unavailable
-  │ ◄─────────────────────   │
+Client                              FastAPI
+  │                                    │
+  │  POST /v1/predict                  │
+  │  X-API-Key: fl_abc123...           │
+  │ ───────────────────────────────►   │
+  │                                    │ 1. Extract X-API-Key header
+  │                                    │ 2. SHA-256 hash the key
+  │                                    │ 3. Compare against FRAUDLENS_API_KEYS
+  │                                    │ 4. If valid → proceed
+  │                                    │ 5. If invalid → 401
+  │ ◄───────────────────────────────   │
 ```
+
+### Admin vs Readonly Keys
+
+| Role | Permissions |
+|------|-------------|
+| `admin` | Can generate/list API keys, all prediction endpoints |
+| `readonly` | All prediction endpoints (cannot manage keys) |
+
+## Batch vs Single Performance
+
+| Metric | Single (/v1/predict) | Batch (/v1/predict/batch) |
+|--------|---------------------|---------------------------|
+| SHAP Explanation | ✅ Optional (`?explain=true`) | ❌ Skipped for speed |
+| Prediction Cache | ✅ LRU cache | ❌ Not cached |
+| Vectorized Path | ✅ Numpy (no DataFrame) | ✅ DataFrame (amortized) |
+| Anomaly Score | ✅ Isolation Forest | ❌ Not computed |
+| Per-request overhead | ~5µs vectorization | Amortized across batch |
+| Use Case | Real-time per transaction | Bulk processing |
 
 ## Request/Response Flow
-
-### Single Prediction Flow
 
 ```
 Client                    FastAPI                    FraudPredictor          XGBoost
   │                          │                            │                    │
-  │  POST /predict           │                            │                    │
+  │  POST /v1/predict        │                            │                    │
   │  {TransactionInput}      │                            │                    │
   │ ─────────────────────►   │                            │                    │
+  │                          │  Auth check (X-API-Key)    │                    │
+  │                          │  Rate limit check          │                    │
+  │                          │  Pydantic validation       │                    │
+  │                          │                            │                    │
   │                          │  predict_single()          │                    │
   │                          │ ──────────────────────►    │                    │
+  │                          │                            │  Check cache       │
+  │                          │                            │  vectorize (numpy) │
+  │                          │                            │  preprocess (scale)│
   │                          │                            │  predict_proba()   │
   │                          │                            │ ───────────────►   │
   │                          │                            │ ◄───────────────   │
-  │                          │                            │  shap_values()    │
-  │                          │                            │ ───────────────►   │
-  │                          │                            │ ◄───────────────   │
+  │                          │                            │                    │
+  │                          │  [if ?explain=true]        │                    │
+  │                          │  shap_values()             │                    │
+  │                          │ ──────────────────────►    │                    │
   │                          │ ◄──────────────────────    │                    │
+  │                          │                            │                    │
   │  PredictionResponse      │                            │                    │
   │ ◄─────────────────────   │                            │                    │
 ```
-
-### Error Responses
-
-| Status Code | Meaning | Example |
-|-------------|---------|---------|
-| 200 | Success | Prediction returned |
-| 422 | Validation Error | Negative Amount, missing fields |
-| 500 | Server Error | Model prediction failed |
-| 503 | Service Unavailable | Model not loaded |
-
-## Rate Limiting
-
-**None currently implemented.** Future consideration for production deployment.
-
-## Authentication
-
-**None currently implemented.** API is open for local development.
-
-## Batch vs Single Performance
-
-| Metric | Single | Batch |
-|--------|--------|-------|
-| SHAP Explanation | ✅ Yes | ❌ No (skipped for speed) |
-| Per-request overhead | Higher | Amortized |
-| Use case | Real-time | Bulk processing |

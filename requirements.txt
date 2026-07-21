@@ -71,11 +71,22 @@ httpx>=0.24.0,<1.0.0               # HTTP client with connection pooling
 # ─── Hyperparameter Optimization ───────────────────────────
 optuna>=3.3.0,<4.0.0
 
+# ─── Observability ───────────────────────────────────────
+structlog>=23.0.0,<24.0.0             # Structured JSON logging
+prometheus-fastapi-instrumentator>=6.0.0,<7.0.0  # Prometheus metrics
+opentelemetry-api>=1.22.0,<2.0.0       # OpenTelemetry API
+opentelemetry-sdk>=1.22.0,<2.0.0       # OpenTelemetry SDK
+opentelemetry-exporter-otlp>=1.22.0,<2.0.0  # OTLP exporter (Jaeger)
+opentelemetry-instrumentation-fastapi>=0.41b0,<1.0.0  # FastAPI auto-instrumentation
+
 # ─── Code Quality ──────────────────────────────────────────────
 black>=23.0.0,<24.0.0
 isort>=5.12.0,<6.0.0
 ruff>=0.0.276,<1.0.0           # Replaces flake8 + typeguard
 pre-commit>=3.0.0,<4.0.0       # Pre-commit hooks
+
+# ─── Resilience ────────────────────────────────────────────
+tenacity>=8.2.0,<9.0.0                 # Retry logic with exponential backoff
 
 # ─── Utilities ─────────────────────────────────────────────────
 tqdm>=4.65.0,<5.0.0

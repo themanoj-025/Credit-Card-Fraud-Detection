@@ -1,21 +1,20 @@
 <div align="center">
 
-# 💳 Credit Card Fraud Detection
+# 🔍 FraudLens — Credit Card Fraud Detection
 
-### *Production-Grade ML System · Real Business Impact · SHAP-Explained Predictions*
+### *Production-Grade ML System · SHAP-Explained Predictions · LLM Narrator · AI Analyst Copilot*
 
 [![CI](https://github.com/yourusername/credit-card-fraud-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/credit-card-fraud-detection/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-1.7%2B-orange.svg)](https://xgboost.readthedocs.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688.svg)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.22%2B-FF4B4B.svg)](https://streamlit.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![PR-AUC](https://img.shields.io/badge/PR--AUC-0.8810-success.svg)](https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **A production-grade credit card fraud detection system** that catches **88% of fraud** while minimizing false positives — with real business impact metrics, not just accuracy scores. Features a **FastAPI REST API**, a **real-time Streamlit dashboard**, **SHAP explainability**, and **data drift monitoring**.
+> **A production-grade credit card fraud detection system** that catches **88% of fraud** while minimizing false positives — with **SHAP explainability**, **LLM-powered case narration**, **RAG-based similar case retrieval**, and an **AI analyst copilot**. Fully containerized with CI/CD, K8s manifests, and Postgres persistence.
 
-[🚀 Quick Start](#rocket-quick-start) • [📊 Results](#bar_chart-results) • [🏗️ Architecture](#house-architecture) • [🔬 Methodology](#microscope-methodology) • [📡 API](#satellite-api) • [🖥️ Dashboard](#desktop_computer-dashboard) • [🧪 Testing](#test_tube-testing) • [📈 Monitoring](#chart_with_upwards_trend-monitoring)
+[🚀 Quick Start](#rocket-quick-start) • [📊 Results](#bar_chart-results) • [🏗️ Architecture](#house-architecture) • [🔬 Methodology](#microscope-methodology) • [📡 API](#satellite-api) • [🧪 Testing](#test_tube-testing) • [🔄 CI/CD](#hammer_and_wrench-cicd)
 
 </div>
 
@@ -25,7 +24,6 @@
 
 - [Problem Statement](#problem-statement)
 - [Business Impact](#business-impact)
-- [Dataset](#dataset)
 - [Results](#bar_chart-results)
 - [Architecture](#house-architecture)
 - [Methodology](#microscope-methodology)
@@ -33,14 +31,10 @@
 - [Project Structure](#open_file_folder-project-structure)
 - [API Reference](#satellite-api)
 - [Dashboard](#desktop_computer-dashboard)
-- [Explainability](#bulb-explainability)
 - [Testing](#test_tube-testing)
-- [Monitoring](#chart_with_upwards_trend-monitoring)
-- [CI/CD Pipeline](#hammer_and_wrench-cicd-pipeline)
-- [Docker Deployment](#whale-docker-deployment)
-- [Technical Debt](#warning-technical-debt)
-- [Future Roadmap](#compass-future-roadmap)
-- [Key Learnings](#key-learnings)
+- [CI/CD Pipeline](#hammer_and_wrench-cicd)
+- [Security](#lock-security)
+- [Documentation](#book-documentation)
 - [License](#scroll-license)
 
 ---
@@ -52,7 +46,7 @@
 | Objective | Why It Matters |
 |-----------|---------------|
 | **Maximize fraud caught** | Each missed fraudulent transaction costs the bank **~$150** |
-| **Minimize false positives** | Each manual review of a legitimate transaction costs **~$5** in labor |
+| **Minimize false positives** | Each manual review of a legitimate transaction costs **~$5** |
 | **Provide explainable decisions** | Fraud analysts need to know *why* a transaction was flagged |
 | **Detect data drift** | Transaction patterns change over time — models must adapt |
 
@@ -64,8 +58,6 @@
 | Cost to manually review a flagged transaction | **$5** |
 | Dataset fraud rate | **0.172%** (492 out of 284,807 transactions) |
 | Baseline loss (no detection) | **$73,800** |
-
-> **⚠️ Why not accuracy?** A model that predicts "all legitimate" achieves 99.8% accuracy while catching **zero fraud**. This is the classic class imbalance trap. We use **Precision-Recall AUC** and a **business cost function** as our primary metrics — directly tied to dollars saved.
 
 ---
 
@@ -83,39 +75,11 @@ Net Benefit:       $12,445.00  (money saved - money spent)
 
 **Optimal Threshold:** `0.0298` (far below default 0.5 — validates our cost-based approach)
 
-**Without this system:** The bank loses **$73,800** from 492 fraudulent transactions.
-**With this system:** The net loss is reduced to **$1,500** (missed fraud only).
-
 **That's a ~97% reduction in fraud losses.**
 
 ---
 
-## 📊 Dataset
-
-### Kaggle ULB Credit Card Fraud Detection Dataset
-
-| Property | Value |
-|----------|-------|
-| **Total Transactions** | 284,807 |
-| **Fraudulent Transactions** | 492 (0.172%) |
-| **Legitimate Transactions** | 284,315 (99.828%) |
-| **Imbalance Ratio** | 578:1 (legitimate to fraud) |
-| **Features** | V1–V28 (PCA-anonymized), Time, Amount |
-| **Target** | Class (0 = legitimate, 1 = fraud) |
-
-### Feature Description
-
-| Feature Group | Features | Description |
-|--------------|----------|-------------|
-| **V1–V28** | 28 features | PCA-anonymized components (privacy-preserving) |
-| **Time** | 1 feature | Seconds elapsed since first transaction (0–172,800) |
-| **Amount** | 1 feature | Transaction amount in USD ($0–$25,691) |
-
-🔗 [Dataset Source](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
-
----
-
-## :bar_chart: Results
+## 📊 Results
 
 ### Model Comparison (Sorted by PR-AUC)
 
@@ -124,166 +88,119 @@ Net Benefit:       $12,445.00  (money saved - money spent)
 | **XGBoost** | **0.8810** | 0.9724 | **0.7068** | **0.5828** | **0.8980** | **$12,445** | 🥇 **Best** |
 | Random Forest | 0.8352 | **0.9836** | 0.5641 | 0.4112 | 0.8980 | $12,130 | 🥈 |
 | Logistic Regression | 0.7159 | 0.9722 | 0.6214 | 0.4780 | 0.8878 | $12,140 | 🥉 |
-| Isolation Forest | 0.0981 | 0.9489 | 0.1243 | 0.0680 | 0.7245 | $5,430 | ❌ |
 | LightGBM | 0.0428 | 0.9054 | 0.0890 | 0.0470 | 0.8571 | $3,655 | ❌ |
 
 > *Results from actual training run. Optimal thresholds chosen via business cost function.*
 
-### The PR-AUC Advantage
-
-| Metric | Random Model Score | "All Legitimate" Score | Ours | Why PR-AUC Wins |
-|--------|-------------------|----------------------|------|-----------------|
-| **PR-AUC** ⭐ | 0.0017 | 0.0017 | **0.8810** | Sensitive to minority class performance |
-| **ROC-AUC** | 0.5000 | 0.5000 | 0.9724 | Over-optimistic with imbalance |
-| **Accuracy** | 50% | 99.83% | 99.93% | Misleading — useless metric |
-
-**Bottom line:** PR-AUC is the *only* metric that honestly evaluates performance on highly imbalanced fraud data.
-
-### Business Impact (XGBoost — Best Model)
-
-```
-┌────────────────────────────────────────────────┐
-│         BUSINESS IMPACT SUMMARY                │
-├────────────────────────────────────────────────┤
-│                                                │
-│  Fraud Caught:      $13,200.00  ████████████░░  │
-│  Fraud Missed:      $1,500.00   █░░░░░░░░░░░░  │
-│  Review Costs:      $755.00     ░░░░░░░░░░░░░  │
-│  ─────────────────────────────────────         │
-│  Net Benefit:       $12,445.00                 │
-│  Savings Rate:      ■■■■■■■■■■■■ 97%           │
-│                                                │
-│  Total Fraud: $73,800 | Caught: 88%            │
-└────────────────────────────────────────────────┘
-```
-
-### Resampling Strategy Impact
-
-| Strategy | Train Samples | Fraud Samples | Fraud Rate | Best For |
-|----------|--------------|---------------|------------|----------|
-| None (class weights) | 227,845 | 394 | 0.17% | Production (no synthetic data) |
-| Random Undersampling | 114,216 | 394 | 0.34% | Speed (smaller dataset) |
-| **SMOTE** ⭐ | 341,593 | 113,864 | **33.3%** | **Best overall performance** |
-| ADASYN | 345,120 | 117,391 | 34.0% | Adaptive to class boundaries |
-| SMOTE+Tomek | 338,456 | 112,387 | 33.2% | Cleaner synthetic boundaries |
-
 ---
 
-## :house: Architecture
+## 🏗️ Architecture
+
+### Three-Layer Intelligence
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    FRAUDLENS HYBRID ARCHITECTURE                  │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Layer 1: Detection (Traditional ML)                             │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  XGBoost model (PR-AUC: 0.8810) + Isolation Forest       │    │
+│  │  Business-cost-optimized threshold ($150 vs $5)           │    │
+│  └──────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  Layer 2: Explanation (SHAP + LLM)                               │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  SHAP → structured feature contributions                 │    │
+│  │  LLM Case Narrator → Plain-English analyst narrative      │    │
+│  └──────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  Layer 3: Interaction (RAG + Copilot)                            │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  FAISS-based Similar-Case Retrieval                      │    │
+│  │  Analyst Copilot Chat (tool-use enabled)                  │    │
+│  └──────────────────────────────────────────────────────────┘    │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### System Architecture
 
 ```mermaid
 graph TB
     subgraph Client[Client Layer]
-        BROWSER[Browser / Client]
-        API_CLIENT[API Consumer]
+        BROWSER[Streamlit Dashboard :8501]
+        API_CLIENT[REST API Consumer]
     end
-    
-    subgraph Docker[Docker Network]
-        subgraph API_SVC[FastAPI Server - Port 8000]
-            HEALTH[GET /health]
-            MODEL_INFO[GET /model-info]
-            PREDICT[POST /predict]
-            BATCH[POST /predict/batch]
-        end
-        
-        subgraph DASH[Streamlit Dashboard - Port 8501]
-            UI[Transaction Feed]
-            CHARTS[Charts]
-            METRICS[Business KPIs]
-        end
-        
-        subgraph PIPELINE[ML Pipeline]
-            PREDICTOR[FraudPredictor]
-            SHAP[SHAP Explainer]
-            MODEL[XGBoost Model]
-            SCALER[StandardScaler]
-        end
-        
-        MLFLOW[(MLflow Server - Port 5000)]
+
+    subgraph API[FastAPI Server :8000]
+        AUTH[API Key Auth]
+        RATE[Rate Limiter]
+        PREDICT[/v1/predict]
+        BATCH[/v1/predict/batch]
+        EXPLAIN[/v1/explain]
+        SIMILAR[/v1/similar-cases]
+        CHAT[/v1/chat]
+        HEALTH[/v1/health]
     end
-    
-    BROWSER --> UI
-    API_CLIENT --> PREDICT
-    API_CLIENT --> BATCH
-    HEALTH --> PREDICTOR
-    MODEL_INFO --> PREDICTOR
-    PREDICT --> PREDICTOR
-    BATCH --> PREDICTOR
-    UI --> PREDICTOR
-    PREDICTOR --> SHAP
-    PREDICTOR --> MODEL
-    PREDICTOR --> SCALER
-    MODEL --> MLFLOW
-    
-    style BROWSER fill:#667eea,color:#fff
-    style API_CLIENT fill:#667eea,color:#fff
-    style PREDICT fill:#38ef7d,color:#000
-    style BATCH fill:#38ef7d,color:#000
-    style UI fill:#FF4B4B,color:#fff
-    style MODEL fill:#f093fb,color:#000
-    style SHAP fill:#764ba2,color:#fff
+
+    subgraph ML[ML Pipeline]
+        PREDICTOR[FraudPredictor]
+        SHAP[ShapExplainer]
+        MODEL[ModelLoader → XGBoost]
+        SCALER[StandardScaler]
+        ANOMALY[IsolationForest]
+        NARRATOR[LLM CaseNarrator]
+        RETRIEVER[FAISS RAG Retriever]
+    end
+
+    subgraph DATA[Data Layer]
+        PG[(Postgres)]
+        REDIS[(Redis Cache)]
+        MLFLOW[MLflow Tracking]
+    end
+
+    subgraph INFRA[Infrastructure]
+        K8S[K8s: Deployment/Service/HPA/Ingress]
+        DOCKER[Docker Compose]
+        CI[GitHub Actions CI/CD]
+    end
+
+    BROWSER --> PREDICT & EXPLAIN & SIMILAR & CHAT
+    API_CLIENT --> AUTH --> RATE --> PREDICT & BATCH
+    PREDICT --> PREDICTOR --> MODEL & SHAP & ANOMALY
+    EXPLAIN --> NARRATOR
+    SIMILAR --> RETRIEVER
+    HEALTH --> PREDICTOR & PG & REDIS
+    PREDICTOR --> PG & REDIS
+    MLFLOW --> MODEL
+    DOCKER --> API & BROWSER & PG & REDIS
+    K8S --> API
+    CI --> DOCKER & K8S
 ```
 
 ### Component Responsibilities
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Data Ingestion** | `DataLoader` | Load CSV, compute statistics, extract samples |
-| **Preprocessing** | `FraudPreprocessor` | Train/test split, scaling (fit on train only) — **NO DATA LEAKAGE** |
-| **Resampling** | `Resampler` | SMOTE, ADASYN, Undersampling, SMOTE+Tomek |
-| **Feature Engineering** | `FeatureEngineer` | Log transforms, interactions, PCA cluster stats *(standalone — not yet in main pipeline)* |
-| **Model Training** | `FraudTrainer` | Train XGBoost, LightGBM, RF, Logistic Regression |
-| **Anomaly Detection** | `IsolationForestDetector` | Unsupervised anomaly detection on legit-only data |
-| **Evaluation** | `FraudEvaluator` | PR-AUC, business cost function, threshold optimization |
-| **Prediction** | `FraudPredictor` | Prediction pipeline with SHAP explanations |
-| **API** | FastAPI | REST endpoints: `/health`, `/model-info`, `/predict`, `/predict/batch` |
-| **Dashboard** | Streamlit + Plotly | Real-time transaction simulation, analytics, KPI tracking |
-| **Drift Detection** | SciPy KS-test | Monitor feature distribution shifts over time |
-| **Experiment Tracking** | MLflow (optional) | Log params, metrics, and model artifacts |
-| **Containerization** | Docker + docker-compose | Multi-service orchestration with healthchecks |
-
-### Data Flow (End-to-End)
-
-```
-1. INGEST
-   creditcard.csv ──► DataLoader.load() ──► DataFrame (284,807 × 31)
-
-2. PREPROCESS (No Data Leakage)
-   DataFrame ──► FraudPreprocessor.split_data() ──► Train (80%) | Test (20%) [STRATIFIED]
-              ──► StandardScaler.fit(Time, Amount on TRAIN ONLY)
-              ──► X_train_scaled, X_test_scaled
-
-3. RESAMPLE (Training Set ONLY)
-   X_train_scaled ──► SMOTE.fit_resample() ──► X_resampled, y_resampled
-
-4. TRAIN
-   X_resampled ──► FraudTrainer.train_all() ──► models/*.pkl (XGBoost, RF, LR, LGBM)
-
-5. EVALUATE
-   X_test + models ──► FraudEvaluator.evaluate_model()
-                    ──► PR-AUC, F1, Business Cost ($ saved/lost)
-                    ──► Optimal threshold via cost minimization ──► threshold.txt
-
-6. EXPLAIN
-   Transaction ──► FraudPredictor.predict_single()
-               ──► SHAP TreeExplainer.shap_values()
-               ──► "Flagged due to V14 (-5.23, +0.34 increase fraud risk)"
-
-7. SERVE
-   FastAPI loads model at startup ──► POST /predict returns {probability, explanation}
-   Streamlit dashboard simulates live transactions for demonstration
-
-8. MONITOR
-   DriftDetector(reference=training_data) ──► KS-test on new data ──► drift_report.json
-```
+| **API** | FastAPI + Pydantic | REST endpoints with auth, rate limiting, RFC 7807 errors |
+| **Prediction** | ModelLoader + FraudPredictor | Vectorized numpy prediction path, LRU cache |
+| **Explainability** | ShapExplainer | SHAP computation (async for high-risk txns) |
+| **LLM** | CaseNarrator (Anthropic) | Plain-English narrative from SHAP values |
+| **RAG** | SimilarCaseRetriever (FAISS) | Cosine-similarity historical case retrieval |
+| **Dashboard** | Streamlit + Plotly | 4 pages: Monitor, Investigator, Performance, Copilot |
+| **Database** | Postgres + Alembic | Predictions, feedback, API keys, drift events |
+| **Cache** | Redis | Prediction LRU cache, rate limiting backend |
+| **Monitoring** | DriftDetector (KS-test) | Feature distribution shift detection |
+| **Container** | Docker + Docker Compose | Multi-stage build, Postgres + Redis services |
+| **Orchestration** | K8s manifests | Deployment, Service, HPA, Ingress, ConfigMap |
+| **CI/CD** | GitHub Actions | Lint → Test → Build → Scan (Trivy) → Deploy (GHCR) |
 
 ---
 
-## :microscope: Methodology
+## 🔬 Methodology
 
-### 1. Data Preprocessing — No Data Leakage
-
-The single most important design decision: **split BEFORE resampling**.
+### 1. No Data Leakage
 
 ```python
 # ✅ CORRECT — No data leakage
@@ -294,266 +211,151 @@ X_test_scaled = scaler.transform(X_test)   # Transform test with train scaler
 X_train_smote, y_train_smote = SMOTE().fit_resample(X_train_scaled, y_train)
 ```
 
-```python
-# ❌ WRONG — DATA LEAKAGE!
-X_resampled, y_resampled = SMOTE().fit_resample(X, y)  # SMOTE on ALL data!
-X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled)
-# Test data now contains synthetic neighbors of training data — inflated scores!
-```
+### 2. Models Trained
 
-### 2. Resampling Strategies Compared
+| Model | Type | Imbalance Handling |
+|-------|------|-------------------|
+| **XGBoost** ⭐ | Gradient boosting | `scale_pos_weight` |
+| **Random Forest** | Tree ensemble | `class_weight='balanced'` |
+| **Logistic Regression** | Linear baseline | `class_weight='balanced'` |
+| **LightGBM** | Gradient boosting | `is_unbalance=True` |
+| **Isolation Forest** | Unsupervised anomaly | Trained on legit only |
 
-| Strategy | How It Works | Fraud Samples After | Train Size |
-|----------|-------------|-------------------|------------|
-| **None** | Original distribution, use class weights | 394 | 227,845 |
-| **Random Undersampling** | Remove random legitimate samples | 394 | 114,216 |
-| **SMOTE** ⭐ | Interpolate synthetic fraud samples | 113,864 | 341,593 |
-| **ADASYN** | Adaptive synthetic sampling (focuses on hard examples) | 117,391 | 345,120 |
-| **SMOTE+Tomek** | SMOTE + Tomek Links (cleaner boundaries) | 112,387 | 338,456 |
+### 3. Hyperparameter Tuning (Optuna)
 
-### 3. Models Trained
-
-| Model | Type | Imbalance Handling | Training Time |
-|-------|------|-------------------|---------------|
-| **Logistic Regression** | Linear baseline | `class_weight='balanced'` | Fastest |
-| **Random Forest** | Tree ensemble | `class_weight='balanced'` | Medium |
-| **XGBoost** ⭐ | Gradient boosting | `scale_pos_weight` | Medium |
-| **LightGBM** | Gradient boosting | `is_unbalance=True` | Fast |
-| **Isolation Forest** | Unsupervised anomaly | Trained on legit only | Fast |
-
-### 4. Evaluation Metrics (In Order of Importance)
-
-| Rank | Metric | What It Measures | Why We Use It |
-|------|--------|-----------------|---------------|
-| 🥇 | **PR-AUC** | Precision-Recall tradeoff across all thresholds | Honest on imbalanced data |
-| 🥇 | **Business Cost** | $$ saved - $$ lost - $$ review costs | Directly ties to P&L |
-| 🥇 | **Optimal Threshold** | Minimizes total business cost | Not default 0.5! |
-| 🥈 | **F1, Precision, Recall** | Classification performance at optimal threshold | Interpretable |
-| 🥉 | **ROC-AUC** | TPR vs FPR across thresholds | Informative but over-optimistic |
-
-### 5. SHAP Explainability
-
-Every prediction comes with a human-readable explanation:
-
-```
-Transaction flagged as FRAUD (92% probability)
-├── V14 = -5.23  →  +0.34  (increases fraud risk — strongest indicator)
-├── V4  =  4.12  →  +0.22  (increases fraud risk)
-├── V12 = -3.89  →  +0.18  (increases fraud risk)
-├── V10 = -2.45  →  +0.11  (increases fraud risk)
-├── V16 = -0.12  →  -0.03  (slight mitigation)
-└── Other features → -0.05  (joint effect)
-```
-
-**Top global features by importance:** V14, V4, V12, V10, V17
+XGBoost and LightGBM are automatically tuned with:
+- 30 trials per model
+- 3-fold cross-validation
+- PR-AUC optimization
+- Search space: n_estimators, max_depth, learning_rate, subsample, regularization
 
 ---
 
-## :rocket: Quick Start
-
-### Prerequisites
-
-- Python 3.10+
-- pip or conda
-- Docker (optional, for containerized deployment)
+## 🚀 Quick Start
 
 ### Local Setup
 
 ```bash
-# 1. Clone the repository
+# 1. Clone
 git clone https://github.com/yourusername/credit-card-fraud-detection.git
 cd credit-card-fraud-detection
 
-# 2. Create virtual environment
+# 2. Virtual env
 python -m venv venv
-source venv/bin/activate        # Linux/macOS
-# venv\Scripts\activate         # Windows
+source venv/bin/activate
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# 3. Install + pre-commit
+make install
+make install-dev
 
-# 4. Download the dataset
-# Download from: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
-# Place at: Dataset/Dataset/creditcard.csv
+# 4. Train models
+make train
 
-# 5. Run the EDA notebook
-jupyter notebook notebooks/01_eda.ipynb
+# 5. Run API
+make api
 
-# 6. Run the full pipeline (preprocessing → training → evaluation)
-python run_pipeline.py
-# OR for enhanced comparison
-python train_and_compare.py
-
-# 7. Start the API
-uvicorn api.main:app --reload --port 8000
-
-# 8. Start the Dashboard (in a separate terminal)
-streamlit run app/dashboard.py
+# 6. Run Dashboard (separate terminal)
+make dashboard
 ```
 
-### Docker Setup (One-Command Deployment)
+### Docker (One Command)
 
 ```bash
-# Build and run everything (API + Dashboard)
-docker-compose up --build
+# Full stack: API + Dashboard + Postgres + Redis
+docker compose up --build
 
-# With MLflow experiment tracking
-docker-compose --profile full up --build
+# With MLflow training profile
+docker compose --profile training up --build
 
-# Services are now running:
+# Services:
 #   🔗 API:        http://localhost:8000
 #   📊 Dashboard:  http://localhost:8501
 #   📝 API Docs:   http://localhost:8000/docs
-#   📈 MLflow:     http://localhost:5000 (with --profile full)
-```
-
-### Docker Services Architecture
-
-```yaml
-services:
-  api:
-    ports: "8000:8000"
-    healthcheck: curl -f http://localhost:8000/health
-    restart: unless-stopped
-
-  dashboard:
-    ports: "8501:8501"
-    depends_on: api (condition: service_healthy)
-    restart: unless-stopped
-
-  mlflow:  # Optional (profile: full)
-    ports: "5000:5000"
-    backend-store-uri: sqlite:///mlflow/mlflow.db
+#   🗄️ Postgres:   localhost:5432
+#   📈 MLflow:     http://localhost:5000 (with --profile training)
 ```
 
 ---
 
-## :open_file_folder: Project Structure
+## 📁 Project Structure
 
 ```
-credit-card-fraud-detection/
-│
-├── 📁 data/
-│   ├── 📁 raw/                        # Raw dataset (gitignored)
-│   └── 📁 processed/                  # Processed data, charts, results
-│
-├── 📁 src/                            # 🧠 Core ML pipeline
-│   ├── __init__.py                    # Package init (v1.0.0)
-│   ├── data_loader.py                 # DataLoader — load & inspect dataset
-│   ├── preprocessing.py               # FraudPreprocessor — split/scale (no leakage!)
-│   │                                  # Resampler — SMOTE, ADASYN, etc.
-│   ├── features.py                    # FeatureEngineer — log transforms, interactions
-│   ├── train.py                       # FraudTrainer — train 4 ML models + Isolation Forest
-│   ├── evaluate.py                    # FraudEvaluator — PR-AUC, business cost, threshold opt.
-│   └── predict.py                     # FraudPredictor — predictions with SHAP explanations
-│
-├── 📁 api/                            # 🌐 FastAPI REST API
-│   ├── __init__.py
-│   └── main.py                        # 4 endpoints: /health, /model-info, /predict, /predict/batch
-│
-├── 📁 app/                            # 🖥️ Streamlit Dashboard
-│   ├── __init__.py
-│   └── dashboard.py                   # Real-time simulation with Plotly charts
-│
-├── 📁 monitoring/                     # 📊 Drift Detection
-│   └── drift_detection.py             # DriftDetector — KS-test per feature
-│
-├── 📁 notebooks/                      # 📓 Jupyter Notebooks
-│   ├── 01_eda.ipynb                   # Exploratory Data Analysis
-│   ├── 02_preprocessing.ipynb         # Preprocessing & Resampling
-│   ├── 03_modeling.ipynb              # Model Training & Evaluation
-│   └── 04_explainability.ipynb        # SHAP Explanations
-│
-├── 📁 tests/                          # 🧪 Test Suite
-│   ├── __init__.py
-│   ├── test_preprocessing.py          # 11 tests — split, scaling, resampling
-│   └── test_api.py                    # 7 tests — health, predict, batch, error cases
-│
-├── 📁 models/                         # 🤖 Saved model artifacts (gitignored)
-│   ├── xgboost.pkl                    # Trained XGBoost model (~500KB)
-│   ├── scaler.pkl                     # Fitted StandardScaler (~2KB)
-│   ├── threshold.txt                  # Optimal classification threshold
-│   └── best_model.pkl                 # Best performing model
-│
-├── 📁 .github/workflows/              # 🔄 CI/CD
-│   └── ci.yml                         # GitHub Actions — test on 3 Python versions + lint
-│
-├── Dockerfile                         # 🐳 Multi-stage Docker build
-├── docker-compose.yml                 # 🐳 Multi-service orchestration
-├── requirements.txt                   # 📦 Python dependencies (27 packages)
-├── run_pipeline.py                    # ▶️ Full pipeline runner (EDA → Explainability)
-├── train_and_compare.py               ▶️ Enhanced training + comparison charts
-├── architecture.md                    # 📐 Deep architecture documentation
-├── api-map.md                         # 📡 API endpoint documentation
-├── database-map.md                    # 🗄️ Data schema documentation
-├── dependency-graph.md               # 🔗 Module dependency documentation
-├── routes.md                          # 🗺️ Complete routes map
-├── memory.md                          # 🧠 Complete project memory for AI
-└── README.md                          # 📖 This file
+fraudlens/
+├── src/fraudlens/           # 🧠 Core ML pipeline
+│   ├── api/                 # FastAPI app, routers, DI providers
+│   ├── config/              # pydantic-settings config
+│   ├── data/                # Data loading, preprocessing
+│   ├── features/            # Feature engineering
+│   ├── models/              # Training, selection, anomaly detection
+│   ├── prediction/          # ModelLoader, FraudPredictor
+│   ├── explainability/      # ShapExplainer
+│   ├── llm/                 # CaseNarrator, RAG retriever
+│   ├── monitoring/          # Drift detection
+│   ├── persistence/         # SQLAlchemy models, migrations
+│   └── common/              # Logging, exceptions, enums
+├── app/                     # 🖥️ Streamlit Dashboard
+├── api/                     # 🌐 FastAPI routes & schemas
+├── infra/                   # 🐳 Docker, K8s, Terraform
+│   ├── docker/
+│   ├── k8s/                 # Deployment, Service, HPA, Ingress, ConfigMap
+├── tests/                   # 🧪 Test suite (248+ tests)
+├── docs/                    # 📚 Architecture docs, ADRs, model card
+├── notebooks/               # 📓 Exploratory notebooks
+└── .github/workflows/       # 🔄 CI/CD pipeline
 ```
 
 ---
 
-## :satellite: API Reference
+## 📡 API Reference
 
-### Base URL
+**Base URL:** `http://localhost:8000`  
+**Auth:** `X-API-Key` header (optional, set `FRAUDLENS_API_KEYS`)  
+**Docs:** [Swagger UI](http://localhost:8000/docs)  
 
-```
-http://localhost:8000
-```
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/health` & `/v1/health` | Per-dependency health check | No |
+| `GET` | `/model-info` | Model metadata | No |
+| `POST` | `/v1/predict` | Single prediction (optional `?explain=true`) | API Key |
+| `POST` | `/v1/predict/batch` | Batch predictions (no SHAP) | API Key |
+| `POST` | `/v1/explain` | SHAP + LLM narrative | API Key |
+| `POST` | `/v1/similar-cases` | RAG similar-case retrieval | API Key |
+| `POST` | `/v1/chat` | Analyst copilot chat | API Key |
+| `GET` | `/v1/auth/keys` | List API keys (admin only) | Admin Key |
+| `POST` | `/v1/auth/keys` | Generate API key (admin only) | Admin Key |
 
-### Interactive Documentation
+**Error Format:** RFC 7807 Problem Details — all errors include `type`, `title`, `status`, `detail`, and optional `errors` array.
 
-- **Swagger UI:** [`http://localhost:8000/docs`](http://localhost:8000/docs)
-- **OpenAPI Schema:** [`http://localhost:8000/openapi.json`](http://localhost:8000/openapi.json)
-
-### Endpoints
-
-#### `GET /health`
-
-Health check endpoint used by Docker healthchecks.
+### Health Check (per-dependency)
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8000/v1/health
 ```
 
 ```json
 {
-  "status": "healthy",
-  "model_loaded": true,
-  "version": "1.0.0"
+  "status": "degraded",
+  "version": "2.0.0",
+  "auth_enabled": false,
+  "dependencies": {
+    "model": {"status": "degraded", "detail": "not loaded"},
+    "database": {"status": "ok", "detail": "connected"},
+    "anomaly_detector": {"status": "degraded", "detail": "not loaded"},
+    "llm": {"status": "degraded", "detail": "API key not set"},
+    "case_narrator": {"status": "degraded", "detail": "not loaded"},
+    "rag_retriever": {"status": "degraded", "detail": "no index found"}
+  }
 }
 ```
 
-#### `GET /model-info`
-
-Get model metadata and configuration.
+### Prediction
 
 ```bash
-curl http://localhost:8000/model-info
-```
-
-```json
-{
-  "model_type": "XGBClassifier",
-  "threshold": 0.0298,
-  "n_features": 30,
-  "features": ["V1", "V2", ..., "V28", "Time", "Amount"],
-  "avg_fraud_loss": 150.0,
-  "review_cost": 5.0
-}
-```
-
-#### `POST /predict`
-
-Single transaction fraud prediction with **SHAP explanation**.
-
-```bash
-curl -X POST http://localhost:8000/predict \
+curl -X POST http://localhost:8000/v1/predict \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
   -d '{
-    "Time": 100000.0,
-    "Amount": 150.0,
+    "Time": 100000.0, "Amount": 150.0,
     "V1": -1.36, "V2": -0.07, "V3": 2.54, "V4": 1.38,
     "V5": -0.34, "V6": 0.46, "V7": 0.24, "V8": 0.10,
     "V9": 0.36, "V10": 0.09, "V11": -0.55, "V12": -0.62,
@@ -564,594 +366,106 @@ curl -X POST http://localhost:8000/predict \
   }'
 ```
 
-**Response:**
-
-```json
-{
-  "fraud_probability": 0.9234,
-  "decision": "FRAUD",
-  "threshold_used": 0.0298,
-  "is_fraud": true,
-  "explanation": {
-    "summary": "Flagged mainly due to: V14, V4, V12",
-    "top_features": [
-      {
-        "feature": "V14",
-        "value": -5.23,
-        "shap_value": 0.34,
-        "impact": "increases"
-      },
-      {
-        "feature": "V4",
-        "value": 4.12,
-        "shap_value": 0.22,
-        "impact": "increases"
-      },
-      {
-        "feature": "V12",
-        "value": -3.89,
-        "shap_value": 0.18,
-        "impact": "increases"
-      }
-    ]
-  },
-  "business_impact": {
-    "estimated_loss": 150.0,
-    "action": "FLAG for manual review",
-    "review_cost": 5.0
-  }
-}
-```
-
-#### `POST /predict/batch`
-
-Batch prediction (faster — SHAP explanations skipped for speed).
-
-```bash
-curl -X POST http://localhost:8000/predict/batch \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transactions": [
-      {"Time": 100000.0, "Amount": 150.0, "V1": -1.36, "V2": -0.07, ...},
-      {"Time": 200000.0, "Amount": 5000.0, "V1": -4.50, "V2": 0.33, ...}
-    ]
-  }'
-```
-
-**Response:**
-
-```json
-{
-  "predictions": [
-    {"fraud_probability": 0.12, "decision": "LEGITIMATE", "is_fraud": false},
-    {"fraud_probability": 0.87, "decision": "FRAUD", "is_fraud": true}
-  ],
-  "summary": {
-    "total": 2,
-    "flagged_fraud": 1,
-    "flagged_legitimate": 1,
-    "estimated_review_cost": 5.0
-  }
-}
-```
-
-### Python Client Example
-
-```python
-import requests
-import json
-
-# Single prediction
-response = requests.post(
-    "http://localhost:8000/predict",
-    json={
-        "Time": 100000.0,
-        "Amount": 150.0,
-        "V1": -1.36, "V2": -0.07, "V3": 2.54, "V4": 1.38,
-        "V5": -0.34, "V6": 0.46, "V7": 0.24, "V8": 0.10,
-        "V9": 0.36, "V10": 0.09, "V11": -0.55, "V12": -0.62,
-        "V13": -0.99, "V14": -0.31, "V15": 1.47, "V16": -0.47,
-        "V17": 0.21, "V18": 0.03, "V19": 0.40, "V20": 0.25,
-        "V21": -0.02, "V22": 0.28, "V23": -0.11, "V24": 0.07,
-        "V25": 0.13, "V26": -0.19, "V27": 0.13, "V28": 0.02
-    }
-)
-
-result = response.json()
-print(f"Fraud: {result['decision']} ({result['fraud_probability']:.1%})")
-print(f"Explanation: {result['explanation']['summary']}")
-print(f"Top factor: {result['explanation']['top_features'][0]['feature']}")
-```
-
-### Error Responses
-
-| Status Code | Scenario | Response |
-|-------------|----------|----------|
-| **200** | Success | Prediction returned |
-| **422** | Validation error (negative Amount, missing field) | `{"detail": [{"loc": ["body", "Amount"], "msg": "..."}]}` |
-| **500** | Model prediction failed | `{"detail": "Model prediction failed: ..."}` |
-| **503** | Service unavailable (model not loaded) | `{"detail": "Model not loaded"}` |
-
 ---
 
-## :desktop_computer: Dashboard
-
-The **Streamlit dashboard** provides a real-time transaction monitoring simulation.
-
-### Dashboard Features
-
-| Section | Description |
-|---------|-------------|
-| **Sidebar Controls** | Simulation speed, fraud rate, batch size, generate transactions, reset |
-| **Top Metrics Row** | Total transactions, actual fraud, flagged, net benefit, review costs |
-| **Transaction Feed** | Collapsible expanders — last 20 transactions with fraud/legit status |
-| **Probability Histogram** | Distribution of fraud probabilities (Plotly) |
-| **Cumulative Impact Chart** | Money saved vs lost vs review costs over time (Plotly area chart) |
-| **Business Impact Summary** | Final KPIs: fraud caught, missed, review costs, net benefit |
-
-### How It Works
-
-```python
-# Dashboard generates random transactions using test data samples
-# Each transaction is sent to the FastAPI /predict endpoint
-# Results are displayed in real-time with Plotly visualizations
-# Business metrics accumulate over the session
-
-# Key interaction:
-selected_transaction = generate_transaction(X_test_sample)
-result = requests.post(f"{API_URL}/predict", json=selected_transaction)
-update_dashboard(result)
-```
-
-
-
----
-
-## :bulb: Explainability
-
-The model doesn't just say "fraud" — it explains **why** using **SHAP (SHapley Additive exPlanations)**.
-
-### Why SHAP?
-
-| Requirement | SHAP Solution |
-|-------------|---------------|
-| Fraud analysts need to justify flags | Each prediction shows which features contributed |
-| Regulators demand explainable AI | SHAP is mathematically grounded in game theory |
-| Debugging model behavior | Global SHAP values show what the model learned |
-| Building trust | Analysts can verify model logic against their intuition |
-
-### Global Explanations (What the Model Learned)
-
-**Top 5 most important features for detecting fraud:**
-
-| Rank | Feature | Description | Impact |
-|------|---------|-------------|--------|
-| 1 | **V14** | PCA component #14 | Strongest fraud indicator |
-| 2 | **V4** | PCA component #4 | Second strongest |
-| 3 | **V12** | PCA component #12 | High fraud separation power |
-| 4 | **V10** | PCA component #10 | Moderate impact |
-| 5 | **V17** | PCA component #17 | Complementary signal |
-
-### Local Explanations (Per-Transaction)
-
-```python
-from src.predict import FraudPredictor
-
-predictor = FraudPredictor()
-predictor.load_model("models/xgboost.pkl")
-predictor.load_scaler("models/scaler.pkl")
-
-result = predictor.predict_single(transaction)
-print(result['explanation']['summary'])
-# Output: "Flagged mainly due to: V14, V4, V12"
-
-# Each explanation includes detailed SHAP values
-for feature in result['explanation']['top_features']:
-    print(f"  {feature['feature']:5s} = {feature['value']:+6.2f}  "
-          f"→ {feature['shap_value']:+5.2f} ({feature['impact']} fraud risk)")
-# Output:
-#   V14   =  -5.23  → +0.34 (increases fraud risk)
-#   V4    =  +4.12  → +0.22 (increases fraud risk)
-#   V12   =  -3.89  → +0.18 (increases fraud risk)
-```
-
----
-
-## :test_tube: Testing
-
-### Running Tests
+## 🧪 Testing
 
 ```bash
 # Run all tests
-pytest tests/ -v
+make test
 
-# Run with coverage
-pytest tests/ -v --cov=src --cov-report=term-missing
+# Coverage (85% target)
+make test-cov
 
-# Run specific test file
-pytest tests/test_preprocessing.py -v --tb=short
-pytest tests/test_api.py -v --tb=short
+# Integration tests
+make test-integration
+
+# OpenAPI contract tests
+make test-contract
+
+# Load tests (locust)
+make load-test
 ```
 
-### Test Coverage
+| Test Category | Coverage |
+|--------------|----------|
+| Unit tests | 248+ tests across 14 test modules |
+| Integration tests | End-to-end training→prediction pipeline |
+| Edge cases | NaN/Inf inputs, empty batches, boundary values |
+| Contract tests | OpenAPI schema consistency, endpoint existence |
+| Load tests | Locust scenarios for /predict and /predict/batch |
 
-| Test File | Tests | What's Covered |
-|-----------|-------|----------------|
-| `test_preprocessing.py` | 11 tests | Data splitting, stratification, scaling, resampling, edge cases |
-| `test_api.py` | 7 tests | Health check, single prediction, batch prediction, error handling |
+---
 
-### Key Test Cases
+## 🔒 Security
 
-```python
-# Ensuring train/test split preserves fraud ratio (stratification)
-def test_split_preserves_fraud_ratio():
-    """Test that both splits have similar fraud rates as original"""
-    ...
+| Feature | Status |
+|---------|--------|
+| API Key Auth (X-API-Key) | ✅ Implemented |
+| Rate Limiting (slowapi + Redis) | ✅ Implemented |
+| Input Validation (Pydantic) | ✅ All endpoints |
+| NaN/Inf Rejection | ✅ Explicitly with 422 |
+| SHA-256 Model Checksums | ✅ Auto-generated |
+| CORS Locked to Origins | ✅ No wildcard |
+| Security Headers | ✅ HSTS, CSP, X-Frame-Options, etc. |
+| Image Scanning (Trivy) | ✅ In CI pipeline |
+| Secrets via Environment | ✅ .env.example documented |
+| TLS Termination | ⏳ Via reverse proxy |
 
-# Ensuring NO DATA LEAKAGE — scaler fitted on train only
-def test_scaler_transform_no_leakage():
-    """Test that transform uses train-fitted scaler, not refit on test"""
-    ...
+---
 
-# Ensuring SMOTE resampling transforms correctly
-def test_smote_resampling_increases_minority():
-    """Test that SMOTE generates synthetic minority samples"""
-    ...
+## 🔄 CI/CD Pipeline
 
-# API smoke test
-def test_health_endpoint():
-    """Test health check returns 200"""
-    ...
-
-# Prediction response schema validation
-def test_predict_returns_correct_schema():
-    """Test prediction response contains all required fields"""
-    ...
+```
+  Push/PR → Lint (blocking) → Test (parallel, 85% cov)
+         → Build (multi-stage)
+         → Scan (Trivy, fail on CRITICAL/HIGH)
+         → Deploy (main only) → GHCR (latest, sha, semver)
 ```
 
 ---
 
-## :chart_with_upwards_trend: Monitoring
-
-### Data Drift Detection
-
-The `DriftDetector` monitors incoming transactions for **distribution shifts** that could degrade model performance.
-
-```python
-from monitoring.drift_detection import DriftDetector
-
-# Initialize with reference (training) data
-detector = DriftDetector(reference_data=X_train, threshold=0.05)
-
-# Detect drift in new transactions
-results = detector.detect_drift(new_incoming_data)
-
-# Generate human-readable report
-report = detector.generate_report(results)
-print(report)
-
-# Check if any features drifted
-if detector.has_drift(results):
-    print("⚠️ Drift detected! Model retraining recommended.")
-    drifted_features = [f for f, r in results.items() if r['drifted']]
-    print(f"Drifted features: {drifted_features}")
-```
-
-**How it works:**
-- Uses **Kolmogorov–Smirnov (KS) test** per feature
-- Compares new transaction distribution to training reference
-- Flags features with statistically significant distribution shift (p < 0.05)
-- Generates a comprehensive report with drift scores per feature
-
-### Business Impact Tracking
-
-The dashboard tracks real-time business metrics throughout the session:
-
-```
-📊 Session Business Impact:
-   Total Transactions Processed:  1,247
-   Actual Fraud Count:            3
-   Fraud Flagged:                 4 (3 correct + 1 false positive)
-   Fraud Caught (USD):            $450.00
-   Fraud Missed (USD):            $0.00
-   Review Costs (USD):            $20.00
-   ──────────────────────────────────────
-   Net Benefit (USD):             $430.00
-```
-
----
-
-## :hammer_and_wrench: CI/CD Pipeline
-
-### GitHub Actions Workflow
-
-The CI pipeline runs on **every push and pull request** to `main`/`master`:
-
-```yaml
-jobs:
-  test:
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11', '3.12']  # Multi-version testing
-    steps:
-      - Checkout → Setup Python → Cache pip → Install deps
-      - Run preprocessing tests (pytest)
-      - Run API tests (pytest)
-      - Run all tests with coverage (pytest --cov)
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - Checkout → Setup Python → Install linting tools
-      - black --check (formatting)
-      - isort --check-only (import sorting)
-      - flake8 (linting)
-```
-
----
-
----
-
-## 🤖 Beyond the Model: Traditional ML + LLM Architecture
-
-This project goes beyond a standard ML model by combining **traditional supervised learning for detection** with **LLM-powered explanation and interaction** — exactly the hybrid architecture real fraud teams are moving toward.
-
-### Three Layers of Intelligence
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                FRAUDLENS HYBRID ARCHITECTURE                │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Layer 1: Detection (Traditional ML)                        │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  XGBoost model (PR-AUC: 0.8810)                      │   │
-│  │  Isolation Forest (unsupervised anomaly detection)    │   │
-│  │  Business-cost-optimized threshold ($150 vs $5)       │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  Layer 2: Explanation (LLM Layer)                           │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  SHAP values → structured feature contributions      │   │
-│  │  ↓                                                    │   │
-│  │  LLM Case Narrator → Plain-English analyst narrative  │   │
-│  │  "Flagged due to unusual V14 and V4 at 3:14 AM..."   │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  Layer 3: Interaction (Copilot)                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  RAG Similar-Case Retrieval (FAISS)                  │   │
-│  │  Analyst Copilot Chat (tool-use enabled)              │   │
-│  │  "Why was #4821 flagged? Show me similar cases."     │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Why This Matters
-
-| Component | What It Does | Why It's Powerful |
-|-----------|-------------|-------------------|
-| **XGBoost + Isolation Forest** | Catches known + novel fraud patterns | Two complementary signals side by side in the UI |
-| **SHAP + LLM Narrator** | Turns 30 anonymized PCA features into a readable paragraph | A non-technical fraud analyst can act on it immediately |
-| **RAG Similar Cases** | Finds 3 most similar historical transactions (FAISS) | Gives analysts precedent to reason from — "This looks like the pattern from last month" |
-| **Analyst Copilot** | Natural-language chat with tool-use access to data | Analysts ask questions without SQL or Python knowledge |
-
-### What Sets This Apart
-
-Most fraud-detection portfolios stop at "here's a model with 99% accuracy." This project demonstrates:
-
-1. **Traditional ML for detection** — XGBoost catches known fraud patterns with measured business impact
-2. **Unsupervised anomaly for novelty** — Isolation Forest catches *new* fraud patterns the supervised model hasn't seen
-3. **LLM for explanation** — The case narrator translates SHAP values into analyst-readable English
-4. **RAG for reasoning** — Similar-case retrieval provides precedents for decision-making
-5. **Copilot for interaction** — Natural-language querying over the simulation data
-
-This is not just a model — it's a complete **human-in-the-loop fraud analysis system**.
-
----
-
-## 🖥️ Dashboard UI/UX
-
-The Streamlit dashboard is designed to look and function like a **real internal fraud-ops tool** (think: Stripe Radar or a bank's fraud analyst console), not a data science demo with stacked default widgets.
-
-### Design Decisions
-
-| Decision | Why |
-|----------|-----|
-| **Dark-mode theme** | Fraud-ops tools are typically dark (near-black `#0f0f1a` background) — reduces eye strain during long monitoring sessions |
-| **Inter font** | Clean sans-serif loaded via Google Fonts for professional typography |
-| **Custom metric cards** | Rounded corners, subtle shadows, accent-colored left borders, icon + value + delta — not raw `st.metric()` |
-| **Plotly for all charts** | Interactive hover tooltips, zoom, and theme-matched dark palette — not static matplotlib images |
-| **Status chips** | Colored pill badges (🟢 CLEARED / 🟡 UNDER REVIEW / 🔴 FLAGGED) at-a-glance |
-
-### Page Screenshots
-
-*(Replace these placeholders with actual screenshots from your deployment)*
-
-| Page | Description |
-|------|-------------|
-| **📡 Live Monitor** | Real-time transaction feed with running metrics, drift alerts, and interactive charts |
-| **🔍 Case Investigator** | Deep-dive into flagged transactions with SHAP force plots, LLM narratives, and RAG similar cases |
-| **📊 Model Performance** | PR-AUC comparison bars, multi-metric grouped charts, cost-threshold analysis, selection reasoning |
-| **🤖 Analyst Copilot** | Chat interface backed by Anthropic API with tool-use access to simulation data |
-
----
-
-## Resume & LinkedIn
-
-### 📄 Resume Bullet
-
-> **Built FraudLens**, a production-grade credit card fraud detection system combining XGBoost (PR-AUC: 0.8810) with LLM-powered explanation and interaction layers. Architected a FastAPI REST API serving SHAP-explained predictions, a real-time Streamlit dashboard with drift monitoring, and an AI analyst copilot with RAG-based similar-case retrieval. Optimized decision thresholds using a business cost function ($150/fraud vs $5/review), achieving 88% fraud capture and 97% loss reduction. Implemented MLflow experiment tracking, comprehensive test suite (12 modules), Docker deployment, and CI/CD pipeline.
-
-### 📝 LinkedIn Post Draft
-
-> **Beyond the model: Why I built an ML + LLM hybrid fraud detection system for my portfolio**
->
-> Most fraud detection portfolios stop at "here's a model with 99.8% accuracy." But in production, accuracy is nearly meaningless with 0.17% fraud rate. What actually matters:
->
-> 1️⃣ **PR-AUC over ROC-AUC** — The only honest metric for imbalanced data
-> 2️⃣ **Business cost optimization** — Our threshold of 0.0298 (not 0.5!) minimizes $150 fraud loss vs $5 review cost
-> 3️⃣ **Explainability** — SHAP + LLM narrator turns 30 PCA features into analyst-readable English
-> 4️⃣ **Anomaly detection** — Isolation Forest catches novel fraud patterns the supervised model hasn't seen
-> 5️⃣ **RAG similar cases** — FAISS-based retrieval of historical precedents for every flagged transaction
->
-> Built with: XGBoost, SHAP, FAISS, Anthropic API, FastAPI, Streamlit, MLflow, Docker
->
-> Check out the full repo (link in comments) — the dashboard simulates live transactions with drift alerts and an AI copilot that analysts can actually talk to.
->
-> #FraudDetection #MachineLearning #LLM #RAG #MLOps #DataScience #XGBoost #SHAP
-
-```dockerfile
-# Stage 1: Base Python environment
-FROM python:3.10-slim as base
-WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-
-# Stage 2: Dependencies
-FROM base as dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Stage 3: Application
-FROM dependencies as app
-COPY src/ api/ app/ monitoring/ tests/ ./ 
-COPY models/ ./models/
-EXPOSE 8000 8501
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Docker Compose Quick Reference
-
-```bash
-# Start all services
-docker-compose up --build
-
-# Start with MLflow (now started by default)
-docker-compose up --build  # MLflow is included by default
-
-# View logs
-docker-compose logs -f
-
-# Stop everything
-docker-compose down
-
-# Stop and clean volumes
-docker-compose down -v
-```
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| FastAPI API | `http://localhost:8000` | Fraud prediction endpoints |
-| API Docs | `http://localhost:8000/docs` | Swagger UI documentation |
-| Dashboard | `http://localhost:8501` | Real-time Streamlit dashboard |
-| MLflow | `http://localhost:5000` | Experiment tracking |
-
----
-
-## :warning: Technical Debt
-
-Known areas for improvement:
-
-1. **No automated data download** — User must manually download `creditcard.csv` from Kaggle
-2. **No authentication** — API and dashboard are open (intended for local development)
-3. **Session state limit** — Dashboard caps transaction history at 500, business metrics don't reset
-4. **Batch prediction skips SHAP** — Trade-off for speed, but batch responses lack explanations
-5. **Feature engineering underused** — `FeatureEngineer` exists but isn't integrated into the main pipeline
-6. **No rate limiting** — API has no request throttling
-7. **Streaming not implemented** — Simulated transactions; no real Kafka/streaming integration
-8. **Drift alerts in UI depend on simulation data** — Real drift detection requires actual production transactions
-
----
-
-## :compass: Future Roadmap
-
-| Priority | Feature | Description |
-|----------|---------|-------------|
-| 🔴 P0 | **Graph-based fraud detection** | Model transactions as a graph to catch fraud rings (community detection, suspicious clusters) |
-| 🔴 P0 | **Real-time streaming** | Kafka integration for live transaction scoring |
-| 🟡 P1 | **GAN/CTGAN** | Generative adversarial networks for more realistic synthetic minority samples |
-| 🟡 P1 | **Autoencoder baseline** | Unsupervised deep learning for anomaly detection (TensorFlow code ready, needs pipeline integration) |
-| 🟡 P1 | **A/B testing framework** | Compare model versions in production with statistical significance tests |
-| 🟢 P2 | **Customer fairness audit** | Analyze false-positive rates across customer demographics |
-| ✅ Done | **MLflow integration** | Now logs params, metrics, and model artifacts per training run; winning model auto-tagged |
-| 🟢 P2 | **Cloud deployment** | Deploy API to Render/Railway, dashboard to Streamlit Community Cloud |
-| 🟢 P2 | **API authentication** | API key-based auth for production deployment |
-
----
-
-## 💡 Key Learnings
-
-1. **PR-AUC > ROC-AUC** for imbalanced data — ROC-AUC looks artificially great at 99.8% imbalance. A random model can get 0.75 ROC-AUC but only 0.002 PR-AUC.
-
-2. **Split BEFORE resampling** — SMOTE on the full dataset leaks synthetic neighbors of test data, producing inflated and unrealistic performance scores.
-
-3. **Threshold matters enormously** — Default 0.5 is rarely optimal. Our cost-function-optimized threshold was **0.0298**, not 0.5. Using 0.5 would miss most fraud.
-
-4. **Explainability is essential** — Fraud analysts won't trust a black box. SHAP provides per-prediction "why" that builds trust and enables debugging.
-
-5. **Business metrics > academic metrics** — "Net dollars saved" resonates with stakeholders. Model accuracy is meaningless if it's not reducing fraud losses.
-
-## Tech Stack
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         TECH STACK                                  │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  🐍 Language:  Python 3.10+                                        │
-│                                                                     │
-│  🤖 ML:        XGBoost, LightGBM, scikit-learn, imbalanced-learn   │
-│                                                                     │
-│  📊 Explain:   SHAP (TreeExplainer)                                 │
-│                                                                     │
-│  🌐 API:       FastAPI + Pydantic v1                                │
-│                                                                     │
-│  🖥️ UI:        Streamlit + Plotly                                   │
-│                                                                     │
-│  📈 Vis:       Matplotlib, Seaborn, Plotly                          │
-│                                                                     │
-│  🔬 Monitor:   SciPy (KS-test) for drift detection                  │
-│                                                                     │
-│  📝 Track:     MLflow (optional)                                    │
-│                                                                     │
-│  🐳 Deploy:    Docker + docker-compose                              │
-│                                                                     │
-│  🧪 Test:      pytest + pytest-cov (12 test modules)                │
-│                                                                     │
-│  🔄 CI/CD:     GitHub Actions (3 Python versions, lint)             │
-│                                                                     │
-│  💾 Serialize: joblib (.pkl files)                                  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Dependencies (27 packages):**
-```
-pandas, numpy, scikit-learn, xgboost, lightgbm,
-imbalanced-learn, tensorflow, keras, shap,
-matplotlib, seaborn, plotly, umap-learn, scipy,
-fastapi, uvicorn, pydantic, httpx,
-streamlit, mlflow, joblib, evidently,
-pytest, pytest-cov, flake8, black, isort
-```
-
----
-
-## 📚 Further Documentation
+## 📚 Documentation
 
 | Document | Description |
 |----------|-------------|
-| [`architecture.md`](./architecture.md) | Detailed system architecture and component responsibilities |
-| [`api-map.md`](./api-map.md) | Complete API inventory with request/response schemas |
-| [`routes.md`](./routes.md) | All API routes with detailed examples |
-| [`database-map.md`](./database-map.md) | Data schema and file lifecycle documentation |
-| [`dependency-graph.md`](./dependency-graph.md) | Module dependency map and critical files |
-| [`memory.md`](./memory.md) | Complete project memory (single source of truth) |
+| [`architecture.md`](./architecture.md) | Detailed system architecture |
+| [`api-map.md`](./api-map.md) | Complete API inventory |
+| [`routes.md`](./routes.md) | All API routes with examples |
+| [`database-map.md`](./database-map.md) | Postgres schema & data flow |
+| [`memory.md`](./memory.md) | Complete project memory |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Release history & changelog |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Developer guide & coding standards |
+| [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community guidelines |
+| [`docs/adr/`](./docs/adr/) | Architecture Decision Records |
+| [`docs/MODEL_CARD.md`](./docs/MODEL_CARD.md) | Model card & evaluation |
+| [`docs/RESILIENCE.md`](./docs/RESILIENCE.md) | Error handling & circuit breaker docs |
+| [`SECURITY.md`](./SECURITY.md) | Security audit & checklist |
 
 ---
 
-## :scroll: License
+## 📅 Completed Phases
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| 0 | Baseline, rename, tooling | ✅ |
+| 1 | Security (auth, rate limiting, secrets) | ✅ |
+| 2 | Architecture & code quality refactor | ✅ |
+| 3 | Data layer (Postgres, Alembic, repos) | ✅ |
+| 4 | Performance (async SHAP, caching, load tests) | ✅ |
+| 5 | ML quality (Optuna, model card, eval) | ✅ |
+| 6 | API design (versioning, RFC 7807, pagination) | ✅ |
+| 7 | Frontend (live demo, spinners, API client) | ✅ |
+| 8 | Testing (85% coverage, integration, edge cases) | ✅ |
+| 9 | DevOps (CI/CD, K8s, multi-stage Docker) | ✅ |
+| 10 | Observability (logging, metrics, tracing) | ✅ |
+| 11 | Configuration (pydantic-settings) | ✅ |
+| 12 | Error handling & resilience | ✅ |
+| 13 | Documentation & portfolio polish | ✅ |
+
+---
+
+## 📄 License
 
 MIT License — see [LICENSE](LICENSE) for details.
 
@@ -1163,6 +477,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 *Reducing fraud, one transaction at a time.*
 
-[⬆ Back to top](#credit-card-fraud-detection)
+[⬆ Back to top](#fraudlens--credit-card-fraud-detection)
 
 </div>

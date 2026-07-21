@@ -11,9 +11,12 @@ dist/
 build/
 *.egg
 .eggs/
+*.parquet
 
 # ─── Environment ──────────────────────────────────────────────
 .env
+.env.local
+.env.production
 venv/
 .venv/
 env/
@@ -21,6 +24,13 @@ env/
 # ─── Data ──────────────────────────────────────────────────────
 data/raw/
 data/processed/
+data/interim/*
+data/external/*
+!data/interim/.gitkeep
+!data/external/.gitkeep
+data/*.csv
+data/*.pkl
+data/*.parquet
 Dataset/
 
 # ─── Models ──────────────────────────────────────────────────
@@ -32,14 +42,18 @@ models/rag_index/
 # ─── MLflow ──────────────────────────────────────────────────
 mlruns/
 mlflow.db
+fraudlens.db
 
 # ─── Reports ─────────────────────────────────────────────────
 reports/figures/
 reports/*.csv
 reports/*.json
+reports/*.html
+reports/*.pdf
 
 # ─── Monitoring ──────────────────────────────────────────────
 monitoring/*.json
+monitoring/drift_reports/
 
 # ─── IDE ─────────────────────────────────────────────────────
 .vscode/
@@ -51,16 +65,30 @@ monitoring/*.json
 # ─── OS ──────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
+nul
 
-# ─── Testing ─────────────────────────────────────────────────
+# ─── Testing & Coverage ──────────────────────────────────────
 .pytest_cache/
 .coverage
 htmlcov/
 .coverage.*
 *.log
+.hypothesis/
+.tox/
+.benchmarks/
 
 # ─── Jupyter ─────────────────────────────────────────────────
 .ipynb_checkpoints/
+
+# ─── Linter / Formatter Cache ────────────────────────────────
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ─── Docker ──────────────────────────────────────────────────
+.docker/
 
 # ─── Archived / Dead Code ────────────────────────────────────
 src/**/_archived_*
@@ -74,9 +102,5 @@ catboost_info/
 # ─── ML Model Formats (defensive) ───────────────────────────
 *.pth
 *.h5
-*.onnx
-
-# ─── Type Checking ──────────────────────────────────────────
-.mypy_cache/
-.dmypy.json
-dmypy.json
+*.pt
+*.ckpt

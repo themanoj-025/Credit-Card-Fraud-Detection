@@ -48,6 +48,58 @@ services:
     profiles:
       - prod
 
+  # ─── Jaeger (distributed tracing) ────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: fraudlens-jaeger
+    ports:
+      - "16686:16686"   # UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    networks:
+      - fraudlens-net
+
+  # ─── Prometheus (metrics scraping) ───────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: fraudlens-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - fraudlens-net
+
+  # ─── Grafana (metrics dashboards) ────────────────────────────
+  grafana:
+    image: grafana/grafana:10.3.0
+    container_name: fraudlens-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./infra/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json:ro
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/dashboard.json
+      - GF_INSTALL_PLUGINS=
+    restart: unless-stopped
+    networks:
+      - fraudlens-net
+    depends_on:
+      - prometheus
+
   # ─── FraudLens API ───────────────────────────────────────────
   api:
     build:

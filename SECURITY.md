@@ -28,20 +28,29 @@ The following items have been addressed in the project's security hardening:
 - [x] API key authentication via `X-API-Key` header (FastAPI `Depends()`)
 - [x] Two key tiers: `admin` and `readonly`
 - [x] Keys stored as SHA-256 hashes, never in plaintext
-- [x] Admin-only endpoints for key management
+- [x] Keys generated with `secrets.token_hex(24)` (cryptographically random)
+- [x] Admin-only endpoints for key management (`POST/GET /v1/auth/keys`)
+- [x] Admin key guarded by required `ADMIN_API_KEY` env var
 - [ ] OAuth2/JWT upgrade path documented in ADR
 
 ### Rate Limiting
 - [x] `slowapi` middleware on all endpoints
-- [x] Stricter limits on `/chat` (LLM cost protection) and `/predict/batch`
+- [x] Per-endpoint configurable limits:
+  - `/v1/predict`: 100/minute
+  - `/v1/predict/batch`: 30/minute
+  - `/v1/chat`: 20/minute (LLM cost protection)
+  - `/v1/explain`: 60/minute
+  - `/v1/auth/keys` POST: 10/hour (admin security)
 - [x] Redis-backed in production; in-memory fallback for dev
 - [x] Configurable via `REDIS_URL` environment variable
 
 ### Input Validation
 - [x] All endpoints use Pydantic models for request bodies
 - [x] Field-level validation: `Amount >= 0`, `Time` ranges
-- [x] NaN/Inf explicitly rejected with 422
-- [x] `min_length`/`max_length` constraints on batch inputs
+- [x] NaN/Inf explicitly rejected with 422 via custom Pydantic validators
+- [x] `min_length`/`max_length` constraints on batch inputs (1–1000)
+- [x] Batch prediction validates column ordering against model expectations
+- [x] Query parameter bounds checked (`top_k`, `limit`, `cursor`)
 
 ### Secrets Management
 - [x] Secrets loaded from environment variables / `.env` file
@@ -50,23 +59,41 @@ The following items have been addressed in the project's security hardening:
 - [ ] AWS Secrets Manager / Docker secrets documented for production
 
 ### Transport & Headers
-- [x] CORS restricted to explicit origins (no `*`)
+- [x] CORS restricted to explicit origins (no `*`):
+  - `http://localhost:8000`, `http://127.0.0.1:8000`
+  - `http://localhost:8501`, `http://127.0.0.1:8501`
 - [x] `X-Content-Type-Options: nosniff`
 - [x] `X-Frame-Options: DENY`
-- [x] `Strict-Transport-Security: max-age=31536000`
-- [x] `Cache-Control: no-store` on prediction responses
-- [x] `Content-Security-Policy: frame-ancestors 'none'`
+- [x] `X-XSS-Protection: 0` (modern CSP supersedes)
+- [x] `Strict-Transport-Security: max-age=31536000; includeSubDomains`
+- [x] `Cache-Control: no-store, no-cache, must-revalidate` on all responses
+- [x] `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
+- [x] `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- [x] `Referrer-Policy: strict-origin-when-cross-origin`
 - [ ] TLS termination via reverse proxy (Caddy/Nginx) in docker-compose
 
 ### Model Security
-- [x] SHA-256 checksum verification on model files
-- [x] Checksums auto-generated on first load
+- [x] SHA-256 checksum verification on model files (`ModelLoader._verify_checksum`)
+- [x] Checksums auto-generated on first load (`.pkl.sha256` file)
+- [x] ModelLoadError raised on checksum mismatch (tamper detection)
+- [x] Models loaded from a trusted, write-protected volume (`models/`)
 - [ ] ONNX export for safer serving path (future)
 
 ### Infrastructure
-- [ ] MLflow behind auth proxy
-- [ ] Container image scanning (Trivy/Grype) in CI
-- [ ] Secrets never baked into Docker images
+- [x] MLflow as opt-in `--profile training` (not exposed by default)
+- [x] Container image scanning (Trivy) in CI (fails on CRITICAL/HIGH)
+- [x] Secrets never baked into Docker images (passed via env vars)
+- [x] K8s Secret manifest templated (never committed with real values)
+- [x] K8s ingress TLS termination configured
+- [x] Multi-stage Docker: train stage excluded from serve image
+- [x] Docker HEALTHCHECK with reasonable intervals/timeouts
+
+### CI/CD Security
+- [x] Lint runs before tests (catches issues early)
+- [x] Tests run before build (fails fast)
+- [x] Trivy scan runs before deploy (prevents vulnerable images)
+- [x] Deploy only on main/master branch (not on PRs)
+- [x] GHCR as private registry with GITHUB_TOKEN auth
 
 ## Disclosure Policy
 

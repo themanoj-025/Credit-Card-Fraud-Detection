@@ -13,9 +13,13 @@ Security:
 - Rate limiting (slowapi + Redis)
 - CORS restricted to known origins
 - Security headers on all responses
+
+Observability:
+- Structured JSON logging (structlog) with correlation IDs
+- Prometheus metrics at /metrics
+- OpenTelemetry tracing exported to Jaeger
 """
 
-import logging
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -30,7 +34,14 @@ from slowapi.middleware import SlowAPIMiddleware
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# ─── Observability — initialize structlog before anything else ─────
+from api.logging_config import get_logger, setup_structlog
+
+setup_structlog()
+logger = get_logger(__name__)
+
 from api.auth import is_auth_enabled
+from api.metrics import setup_metrics
 from api.providers import (
     FraudPredictor,
     get_anomaly_detector,
@@ -49,9 +60,6 @@ from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever
 from src.fraudlens.models.anomaly import IsolationForestDetector
 from src.fraudlens.persistence import init_db
 from src.fraudlens.prediction.model_loader import ModelLoader
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-logger = logging.getLogger(__name__)
 
 
 # ─── Attempt to load optional dependencies ───────────────────────────────
@@ -146,11 +154,24 @@ async def lifespan(app: FastAPI):
     _try_load_rag_retriever(app)
     _try_load_copilot(app)
 
+    # Wire circuit breaker into case narrator
+    from api.exceptions import circuit_breaker
+    app.state.llm_circuit_breaker = circuit_breaker
+    case_narrator = getattr(app.state, "case_narrator", None)
+    if case_narrator is not None:
+        case_narrator.set_circuit_breaker(circuit_breaker)
+
+    # Update Prometheus gauges with current state
+    from api.metrics import ANOMALY_LOADED_GAUGE, LLM_AVAILABLE_GAUGE, MODEL_LOADED_GAUGE
+    MODEL_LOADED_GAUGE.set(1 if getattr(app.state, "predictor", None) is not None else 0)
+    ANOMALY_LOADED_GAUGE.set(1 if getattr(app.state, "anomaly_detector", None) is not None else 0)
+    LLM_AVAILABLE_GAUGE.set(1 if getattr(app.state, "copilot_client", None) is not None else 0)
+
     logger.info("FraudLens API ready")
     yield
 
 
-# ─── App Creation ────────────────────────────────────────────────────────
+# ─── App Creation (must be before any @app decorators) ───────────────────
 
 app = FastAPI(
     title="FraudLens API",
@@ -163,6 +184,25 @@ app = FastAPI(
 # Register rate limit error handler
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# ─── Correlation ID Middleware ─────────────────────────────────────────────
+
+@app.middleware("http")
+async def add_correlation_id(request, call_next):
+    """Inject X-Request-ID correlation ID into every request.
+
+    Reads from request header or generates a new one. Sets it in structlog
+    context vars and returns it in the response header.
+    """
+    from api.logging_config import generate_correlation_id, set_correlation_id
+
+    cid = request.headers.get("X-Request-ID", generate_correlation_id())
+    set_correlation_id(cid)
+
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = cid
+    return response
 
 # Register RFC 7807 error handlers
 from api.errors import register_error_handlers
@@ -211,6 +251,16 @@ app.include_router(predict.router)
 app.include_router(explain.router)
 app.include_router(similar_cases.router)
 app.include_router(chat.router)
+
+# ─── Observability: Metrics & Tracing (AFTER all routes are registered) ──
+
+# Setup Prometheus metrics
+setup_metrics(app)
+logger.info("Prometheus metrics enabled at /metrics")
+
+# Setup OpenTelemetry tracing (must be after routes for auto-instrumentation)
+from api.tracing import setup_tracing
+setup_tracing(app)
 
 
 @app.get("/health")
