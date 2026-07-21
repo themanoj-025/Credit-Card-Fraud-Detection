@@ -2,10 +2,11 @@
 FraudLens — Hyperparameter Optimization Tests (HPO)
 
 Tests for HyperparameterOptimizer in models/hpo.py.
-Uses mocked optuna to avoid expensive real optimization runs.
+Uses mocked optuna (via sys.modules) to avoid expensive real optimization
+runs and to prevent Windows urllib3 threading issues from real optuna import.
 """
 
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -27,10 +28,16 @@ def sample_data():
 
 
 @pytest.fixture
-def mock_optuna_study():
-    """Create a mocked optuna study for testing."""
-    study = MagicMock()
-    study.best_params = {
+def mock_optuna_module():
+    """
+    Create a fully mocked optuna module.
+
+    Prevents real optuna import (which causes urllib3/threading hangs
+    on Windows) while providing all attributes tune_xgboost/tune_lightgbm
+    access: create_study, samplers, TPESampler, etc.
+    """
+    optuna = MagicMock()
+    optuna.create_study.return_value.best_params = {
         "n_estimators": 300,
         "max_depth": 8,
         "learning_rate": 0.05,
@@ -39,12 +46,11 @@ def mock_optuna_study():
         "min_child_weight": 3,
         "gamma": 1.0,
     }
-    study.best_value = 0.85
-    study.best_trials = []
-    # Mock trials_dataframe
+    optuna.create_study.return_value.best_value = 0.85
+    optuna.create_study.return_value.best_trials = []
     trials_df = pd.DataFrame({"value": [0.8, 0.85, 0.82]})
-    study.trials_dataframe.return_value = trials_df
-    return study
+    optuna.create_study.return_value.trials_dataframe.return_value = trials_df
+    return optuna
 
 
 class TestHyperparameterOptimizer:
@@ -111,19 +117,70 @@ class TestHyperparameterOptimizer:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    @patch("optuna.create_study")
-    def test_tune_xgboost_success(self, mock_create_study, sample_data, mock_optuna_study):
-        """Test tune_xgboost with mocked optuna returns best params."""
+    @patch.dict("sys.modules", {"optuna": MagicMock()})
+    def test_tune_xgboost_optuna_not_installed(self, sample_data):
+        """Test tune_xgboost fallback when optuna is not available."""
         X, y = sample_data
-        mock_create_study.return_value = mock_optuna_study
+        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
 
-        patch_cv = patch.object(
-            HyperparameterOptimizer, "_cv_score", return_value=0.85
-        )
+        params = optimizer.tune_xgboost(X, y)
 
-        with patch_cv:
-            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-            params = optimizer.tune_xgboost(X, y)
+        assert params["n_estimators"] == 200
+        assert params["max_depth"] == 6
+
+    @patch.dict("sys.modules", {"optuna": MagicMock()})
+    def test_tune_lightgbm_optuna_not_installed(self, sample_data):
+        """Test tune_lightgbm fallback when optuna is not available."""
+        X, y = sample_data
+        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+
+        params = optimizer.tune_lightgbm(X, y)
+
+        assert params["n_estimators"] == 200
+        assert params["is_unbalance"] is True
+
+    @patch.dict("sys.modules", {"optuna": MagicMock()})
+    def test_tune_catboost_optuna_not_installed(self, sample_data):
+        """Test tune_catboost fallback when optuna/catboost is not available."""
+        X, y = sample_data
+        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+
+        params = optimizer.tune_catboost(X, y)
+
+        assert params["iterations"] == 200
+        assert params["depth"] == 6
+
+    def test_get_trials_dataframe_no_study(self):
+        """Test get_trials_dataframe returns None when no study exists."""
+        optimizer = HyperparameterOptimizer()
+        assert optimizer.get_trials_dataframe() is None
+
+    def test_tune_xgboost_with_mocked_optuna(self, sample_data, mock_optuna_module):
+        """
+        Test tune_xgboost with mock optuna to verify param assembly.
+
+        Uses patch.dict to inject a fake optuna into sys.modules so
+        'import optuna' inside the function body returns our mock.
+        """
+        X, y = sample_data
+        mock_optuna_module.create_study.return_value.best_params = {
+            "n_estimators": 300,
+            "max_depth": 8,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.9,
+            "min_child_weight": 3,
+            "gamma": 1.0,
+        }
+        mock_optuna_module.create_study.return_value.best_value = 0.85
+
+        with patch.dict("sys.modules", {"optuna": mock_optuna_module}):
+            patch_cv = patch.object(
+                HyperparameterOptimizer, "_cv_score", return_value=0.85
+            )
+            with patch_cv:
+                optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+                params = optimizer.tune_xgboost(X, y)
 
         assert params["n_estimators"] == 300
         assert params["max_depth"] == 8
@@ -132,43 +189,46 @@ class TestHyperparameterOptimizer:
         assert params["random_state"] == 42
         assert optimizer.best_score == 0.85
 
-    @patch("optuna.create_study")
-    def test_tune_lightgbm_success(self, mock_create_study, sample_data, mock_optuna_study):
-        """Test tune_lightgbm with mocked optuna returns best params."""
+    def test_tune_lightgbm_with_mocked_optuna(self, sample_data, mock_optuna_module):
+        """Test tune_lightgbm with mock optuna to verify param assembly."""
         X, y = sample_data
-        mock_create_study.return_value = mock_optuna_study
+        mock_optuna_module.create_study.return_value.best_params = {
+            "n_estimators": 250,
+            "max_depth": 8,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.9,
+            "min_child_samples": 20,
+            "num_leaves": 63,
+            "reg_alpha": 0.01,
+            "reg_lambda": 0.01,
+        }
+        mock_optuna_module.create_study.return_value.best_value = 0.82
 
-        patch_cv = patch.object(
-            HyperparameterOptimizer, "_cv_score", return_value=0.82
-        )
-
-        with patch_cv:
-            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-            params = optimizer.tune_lightgbm(X, y)
+        with patch.dict("sys.modules", {"optuna": mock_optuna_module}):
+            patch_cv = patch.object(
+                HyperparameterOptimizer, "_cv_score", return_value=0.82
+            )
+            with patch_cv:
+                optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+                params = optimizer.tune_lightgbm(X, y)
 
         assert params["n_estimators"] == 250
         assert params["is_unbalance"] is True
         assert params["random_state"] == 42
         assert optimizer.best_score == 0.82
 
-    def test_get_trials_dataframe_no_study(self):
-        """Test get_trials_dataframe returns None when no study exists."""
-        optimizer = HyperparameterOptimizer()
-        assert optimizer.get_trials_dataframe() is None
-
-    @patch("optuna.create_study")
-    def test_get_trials_dataframe_with_study(self, mock_create_study, sample_data, mock_optuna_study):
+    def test_get_trials_dataframe_with_study(self, sample_data, mock_optuna_module):
         """Test get_trials_dataframe returns DataFrame after tuning."""
         X, y = sample_data
-        mock_create_study.return_value = mock_optuna_study
 
-        patch_cv = patch.object(
-            HyperparameterOptimizer, "_cv_score", return_value=0.85
-        )
-
-        with patch_cv:
-            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-            optimizer.tune_xgboost(X, y)
+        with patch.dict("sys.modules", {"optuna": mock_optuna_module}):
+            patch_cv = patch.object(
+                HyperparameterOptimizer, "_cv_score", return_value=0.85
+            )
+            with patch_cv:
+                optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+                optimizer.tune_xgboost(X, y)
 
         df = optimizer.get_trials_dataframe()
         assert df is not None
