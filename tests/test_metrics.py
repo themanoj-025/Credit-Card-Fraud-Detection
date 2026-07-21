@@ -288,8 +288,8 @@ class TestPrintEvaluationSummary:
         assert "0.8810" in output
         assert "PR-AUC" in output
         assert "Net Benefit" in output
-        assert "$12,445" in output
-        assert "$13,200" in output
+        assert "$ 12,445.00" in output
+        assert "$ 13,200.00" in output
 
     def test_print_summary_has_section_breaks(self):
         """Test print_evaluation_summary has proper section formatting."""

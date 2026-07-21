@@ -5,7 +5,7 @@ FraudLens — Feedback Repository
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import Integer, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import FeedbackModel
@@ -57,7 +57,7 @@ class FeedbackRepository(BaseRepository[FeedbackModel]):
         """Get feedback statistics."""
         stmt = select(
             func.count(FeedbackModel.id).label("total"),
-            func.sum(func.cast(FeedbackModel.confirmed_fraud, type(1))).label(
+            func.sum(func.cast(FeedbackModel.confirmed_fraud, Integer())).label(
                 "confirmed_fraud"
             ),
         )

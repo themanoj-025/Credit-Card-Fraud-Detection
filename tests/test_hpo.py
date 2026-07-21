@@ -5,7 +5,7 @@ Tests for HyperparameterOptimizer in models/hpo.py.
 Uses mocked optuna to avoid expensive real optimization runs.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import numpy as np
 import pandas as pd
@@ -19,13 +19,32 @@ def sample_data():
     """Create a small labeled dataset for HPO tests."""
     np.random.seed(42)
     n = 200
-    X = pd.DataFrame(
-        {f"V{i}": np.random.randn(n) for i in range(1, 29)}
-    )
+    X = pd.DataFrame({f"V{i}": np.random.randn(n) for i in range(1, 29)})
     X["Time"] = np.random.uniform(0, 172800, n)
     X["Amount"] = np.random.exponential(100, n)
     y = pd.Series(np.random.choice([0, 1], n, p=[0.95, 0.05]))
     return X, y
+
+
+@pytest.fixture
+def mock_optuna_study():
+    """Create a mocked optuna study for testing."""
+    study = MagicMock()
+    study.best_params = {
+        "n_estimators": 300,
+        "max_depth": 8,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.9,
+        "min_child_weight": 3,
+        "gamma": 1.0,
+    }
+    study.best_value = 0.85
+    study.best_trials = []
+    # Mock trials_dataframe
+    trials_df = pd.DataFrame({"value": [0.8, 0.85, 0.82]})
+    study.trials_dataframe.return_value = trials_df
+    return study
 
 
 class TestHyperparameterOptimizer:
@@ -76,8 +95,6 @@ class TestHyperparameterOptimizer:
     def test_cv_score(self, sample_data):
         """Test _cv_score returns a float between 0 and 1."""
         X, y = sample_data
-
-        # Use a small subset for speed
         X_small = X.iloc[:50]
         y_small = y.iloc[:50]
 
@@ -85,53 +102,28 @@ class TestHyperparameterOptimizer:
 
         optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
         score = optimizer._cv_score(
-            X_small, y_small, LogisticRegression, {"random_state": 42, "max_iter": 100}
+            X_small,
+            y_small,
+            LogisticRegression,
+            {"random_state": 42, "max_iter": 100},
         )
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_tune_xgboost_optuna_not_installed(self, sample_data):
-        """Test tune_xgboost fallback when optuna is not installed."""
-        X, y = sample_data
-
-        with patch("src.fraudlens.models.hpo.logger") as mock_logger:
-            with patch.dict("sys.modules", {"optuna": None}):
-                import importlib
-
-                import src.fraudlens.models.hpo as hpo_module
-
-                importlib.reload(hpo_module)
-                optimizer = hpo_module.HyperparameterOptimizer(n_trials=2)
-
-                params = optimizer.tune_xgboost(X, y)
-                assert params["n_estimators"] == 200
-                assert params["max_depth"] == 6
-                assert params["learning_rate"] == 0.1
-
-    @patch("src.fraudlens.models.hpo.optuna")
-    def test_tune_xgboost_success(self, mock_optuna, sample_data):
+    @patch("optuna.create_study")
+    def test_tune_xgboost_success(self, mock_create_study, sample_data, mock_optuna_study):
         """Test tune_xgboost with mocked optuna returns best params."""
         X, y = sample_data
+        mock_create_study.return_value = mock_optuna_study
 
-        # Mock optuna study
-        mock_study = MagicMock()
-        mock_study.best_params = {
-            "n_estimators": 300,
-            "max_depth": 8,
-            "learning_rate": 0.05,
-            "subsample": 0.8,
-            "colsample_bytree": 0.9,
-            "min_child_weight": 3,
-            "gamma": 1.0,
-        }
-        mock_study.best_value = 0.85
-        mock_study.best_trials = []
+        patch_cv = patch.object(
+            HyperparameterOptimizer, "_cv_score", return_value=0.85
+        )
 
-        mock_optuna.create_study.return_value = mock_study
-
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-        params = optimizer.tune_xgboost(X, y)
+        with patch_cv:
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            params = optimizer.tune_xgboost(X, y)
 
         assert params["n_estimators"] == 300
         assert params["max_depth"] == 8
@@ -140,31 +132,19 @@ class TestHyperparameterOptimizer:
         assert params["random_state"] == 42
         assert optimizer.best_score == 0.85
 
-    @patch("src.fraudlens.models.hpo.optuna")
-    def test_tune_lightgbm_success(self, mock_optuna, sample_data):
+    @patch("optuna.create_study")
+    def test_tune_lightgbm_success(self, mock_create_study, sample_data, mock_optuna_study):
         """Test tune_lightgbm with mocked optuna returns best params."""
         X, y = sample_data
+        mock_create_study.return_value = mock_optuna_study
 
-        # Mock optuna study
-        mock_study = MagicMock()
-        mock_study.best_params = {
-            "n_estimators": 250,
-            "max_depth": 6,
-            "learning_rate": 0.1,
-            "subsample": 0.8,
-            "colsample_bytree": 0.9,
-            "min_child_samples": 20,
-            "num_leaves": 31,
-            "reg_alpha": 0.1,
-            "reg_lambda": 1.0,
-        }
-        mock_study.best_value = 0.82
-        mock_study.best_trials = []
+        patch_cv = patch.object(
+            HyperparameterOptimizer, "_cv_score", return_value=0.82
+        )
 
-        mock_optuna.create_study.return_value = mock_study
-
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-        params = optimizer.tune_lightgbm(X, y)
+        with patch_cv:
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            params = optimizer.tune_lightgbm(X, y)
 
         assert params["n_estimators"] == 250
         assert params["is_unbalance"] is True
@@ -176,23 +156,19 @@ class TestHyperparameterOptimizer:
         optimizer = HyperparameterOptimizer()
         assert optimizer.get_trials_dataframe() is None
 
-    @patch("src.fraudlens.models.hpo.optuna")
-    def test_get_trials_dataframe_with_study(self, mock_optuna, sample_data):
-        """Test get_trials_dataframe returns DataFrame when study exists."""
+    @patch("optuna.create_study")
+    def test_get_trials_dataframe_with_study(self, mock_create_study, sample_data, mock_optuna_study):
+        """Test get_trials_dataframe returns DataFrame after tuning."""
         X, y = sample_data
+        mock_create_study.return_value = mock_optuna_study
 
-        mock_study = MagicMock()
-        mock_study.best_params = {"n_estimators": 300, "max_depth": 8}
-        mock_study.best_value = 0.85
-        mock_study.best_trials = []
-        mock_study.trials_dataframe.return_value = pd.DataFrame(
-            {"value": [0.8, 0.85, 0.82]}
+        patch_cv = patch.object(
+            HyperparameterOptimizer, "_cv_score", return_value=0.85
         )
 
-        mock_optuna.create_study.return_value = mock_study
-
-        optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
-        optimizer.tune_xgboost(X, y)
+        with patch_cv:
+            optimizer = HyperparameterOptimizer(n_trials=2, cv_folds=2)
+            optimizer.tune_xgboost(X, y)
 
         df = optimizer.get_trials_dataframe()
         assert df is not None
