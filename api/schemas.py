@@ -4,13 +4,17 @@ FraudLens API Schemas
 Pydantic models for request validation and response serialization.
 """
 
+import math
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class TransactionInput(BaseModel):
-    """Single transaction to predict."""
+    """Single transaction to predict.
+
+    Rejects NaN and Infinity values explicitly with custom validators.
+    """
 
     Time: float = Field(..., description="Transaction time in seconds")
     Amount: float = Field(..., ge=0, description="Transaction amount ($)")
@@ -42,6 +46,15 @@ class TransactionInput(BaseModel):
     V26: float = Field(default=0.0, description="PCA component V26")
     V27: float = Field(default=0.0, description="PCA component V27")
     V28: float = Field(default=0.0, description="PCA component V28")
+
+    @validator("Amount")
+    def amount_must_be_finite(cls, v):
+        """Validate Amount is finite and non-negative."""
+        if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+            raise ValueError("Amount must be a finite number (not NaN/Inf)")
+        if isinstance(v, (int, float)) and v < 0:
+            raise ValueError("Amount must be non-negative")
+        return v
 
 
 class BatchInput(BaseModel):
