@@ -114,6 +114,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - KAGGLE_USERNAME=${KAGGLE_USERNAME:-}
+      - KAGGLE_KEY=${KAGGLE_KEY:-}
       - DATABASE_URL=postgresql+asyncpg://fraudlens:fraudlens_dev@postgres:5432/fraudlens
       - REDIS_URL=redis://redis:6379/0
     healthcheck:
@@ -126,6 +128,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    command: >
+      sh -c 'python -c "from src.fraudlens.data.download import ensure_data_ready; ensure_data_ready()" && uvicorn api.main:app --host 0.0.0.0 --port 8000'
     networks:
       - fraudlens-net
   # ─── Streamlit Dashboard ────────────────────────────────────
