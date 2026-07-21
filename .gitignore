@@ -22,7 +22,9 @@ venv/
 env/
 
 # ─── Data ──────────────────────────────────────────────────────
-data/raw/
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/*.dvc
 data/processed/
 data/interim/*
 data/external/*
