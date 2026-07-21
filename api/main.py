@@ -229,15 +229,16 @@ async def health():
     db_initialized = True  # Assume ok — init failures logged at startup
 
     # Build per-dependency breakdown
+    model_ok = pred is not None and hasattr(pred, 'model') and pred.model is not None
     dependencies = {
         "model": {
-            "status": "ok" if pred is not None and pred.model is not None else "degraded",
+            "status": "ok" if model_ok else "degraded",
             "detail": f"{type(pred.model).__name__} (threshold={pred.threshold:.4f})"
-            if pred is not None and pred.model is not None else "not loaded",
+            if model_ok else "not loaded",
         },
         "database": {
             "status": "ok" if db_initialized else "error",
-            "detail": db_initialized,
+            "detail": "connected" if db_initialized else "disconnected",
         },
         "anomaly_detector": {
             "status": "ok" if anomaly_det else "degraded",

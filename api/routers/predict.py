@@ -137,6 +137,15 @@ async def predict_batch(
         transactions = [t.dict() for t in batch.transactions]
         X = pd.DataFrame(transactions)
 
+        # Reorder columns to match model's expected feature order
+        # TransactionInput defines Time/Amount before V1-V28, but model
+        # expects V1-V28 first. This prevents train/serve skew.
+        if pred.feature_names:
+            missing = [f for f in pred.feature_names if f not in X.columns]
+            if missing:
+                raise HTTPException(status_code=422, detail=f"Missing features: {missing}")
+            X = X[pred.feature_names]
+
         results = pred.predict_batch(X)
 
         predictions = []

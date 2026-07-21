@@ -40,12 +40,14 @@ class TestEndpointExistence:
     """Contract: all required API endpoints must exist."""
 
     def test_all_required_endpoints_exist(self, app):
-        """Test that essential health endpoints exist.
+        """Test that required endpoints are registered.
 
-        Full endpoint list depends on model loading and test environment.
+        Checks that all expected routes are discoverable.
+        POST routes depend on model loading and may return 503 at runtime,
+        but the route itself should be registered at import time.
         """
         routes = self._get_registered_routes(app)
-        for endpoint in _ESSENTIAL_ENDPOINTS:
+        for endpoint in _REQUIRED_ENDPOINTS:
             assert endpoint in routes, (
                 f"Required endpoint '{endpoint}' not found in registered routes. "
                 f"Available routes: {sorted(routes)}"
