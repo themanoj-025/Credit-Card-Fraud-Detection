@@ -26,16 +26,12 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# Expected checksum for the real creditcard.csv (SHA-256)
-# This is a placeholder — update with the actual checksum after first download
-_REAL_DATA_CHECKSUM: Optional[str] = None
-
 # Target path
 _DATA_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "raw" / "creditcard.csv"
 
 # Synthetic dataset parameters (mimics real creditcard.csv statistics)
-_SYNTHETIC_N_ROWS = 5000
-_SYNTHETIC_FRAUD_RATE = 0.017  # ~1.7% fraud (close to real 0.172%)
+_SYNTHETIC_N_ROWS = 10000
+_SYNTHETIC_FRAUD_RATE = 0.00172  # 0.172% fraud (matches real dataset)
 _SYNTHETIC_N_FEATURES = 28  # V1-V28
 
 
@@ -68,7 +64,8 @@ def _download_from_kaggle(target_path: Path) -> bool:
     if not _kaggle_available():
         logger.info(
             "Kaggle credentials not found. Set KAGGLE_USERNAME and KAGGLE_KEY. "
-            "See: https://github.com/Kaggle/kaggle-api#api-credentials"
+            "See: https://github.com/Kaggle/kaggle-api#api-credentials. "
+            "Falling back to synthetic dataset."
         )
         return False
 
