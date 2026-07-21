@@ -5,21 +5,6 @@ FastAPI Depends() providers for shared services.
 Replaces the global mutable state pattern in api/state.py
 with a proper DI approach using app.state + Depends().
 
-Usage:
-    @router.post("/predict")
-    async def predict(
-        predictor: FraudPredictor = Depends(get_predictor),
-        ...
-    ):
-"""
-
-"""
-FraudLens API — Dependency Injection Providers
-
-FastAPI Depends() providers for shared services.
-Replaces the global mutable state pattern in api/state.py
-with a proper DI approach using app.state + Depends().
-
 All getter functions accept an optional `request` parameter so they
 work both as plain function calls (backward-compatible) and as
 FastAPI Depends() injections.
@@ -38,12 +23,11 @@ import time
 from typing import Dict, Optional
 
 import numpy as np
+import pandas as pd
 from fastapi import Request
 
 from src.fraudlens.explainability.shap_explainer import ShapExplainer
 from src.fraudlens.prediction.model_loader import ModelLoader
-
-logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
@@ -224,8 +208,6 @@ class FraudPredictor:
                 self._shap_initialized = True
 
             # Convert back to DataFrame for SHAP (it expects one)
-            import pandas as pd
-
             X_df = pd.DataFrame(X, columns=self.feature_names)
             explanation = self.shap_explainer.explain(
                 X_df, self.feature_names, transaction

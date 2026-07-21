@@ -52,9 +52,7 @@ class TestBaseRepository:
     async def test_get_found(self, mock_session):
         """Test get returns instance when found."""
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = PredictionModel(
-            decision="FRAUD"
-        )
+        mock_result.scalar_one_or_none.return_value = PredictionModel(decision="FRAUD")
         mock_session.execute = AsyncMock(return_value=mock_result)
 
         repo = BaseRepository(mock_session, PredictionModel)

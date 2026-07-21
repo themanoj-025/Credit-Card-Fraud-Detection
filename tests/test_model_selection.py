@@ -15,18 +15,22 @@ from src.fraudlens.models.model_selection import ModelSelector
 @pytest.fixture
 def comparison_data():
     """Create a mock comparison DataFrame with two models."""
-    return pd.DataFrame({
-        "Model": ["LogisticRegression", "XGBoost"],
-        "PR-AUC": [0.75, 0.88],
-        "ROC-AUC": [0.85, 0.93],
-        "F1": [0.65, 0.78],
-    })
+    return pd.DataFrame(
+        {
+            "Model": ["LogisticRegression", "XGBoost"],
+            "PR-AUC": [0.75, 0.88],
+            "ROC-AUC": [0.85, 0.93],
+            "F1": [0.65, 0.78],
+        }
+    )
 
 
 class _SimpleModel:
     """A simple pickle-able model stub for testing."""
+
     def __init__(self, name: str):
         self.name = name
+
     def predict(self, X):
         return [0] * len(X)
 
@@ -97,10 +101,12 @@ class TestModelSelector:
 
     def test_select_with_lower_is_better(self, trained_models):
         """Test select picks lowest metric when higher_is_better is False."""
-        data = pd.DataFrame({
-            "Model": ["ModelA", "ModelB"],
-            "mse": [0.5, 0.3],
-        })
+        data = pd.DataFrame(
+            {
+                "Model": ["ModelA", "ModelB"],
+                "mse": [0.5, 0.3],
+            }
+        )
         models = {"ModelA": MagicMock(), "ModelB": MagicMock()}
         selector = ModelSelector(metric="mse", higher_is_better=False)
         result = selector.select(data, models)
@@ -124,17 +130,21 @@ class TestModelSelector:
 
     def test_select_single_model(self, trained_models):
         """Test select works with only one model."""
-        data = pd.DataFrame({
-            "Model": ["OnlyModel"],
-            "PR-AUC": [0.82],
-        })
+        data = pd.DataFrame(
+            {
+                "Model": ["OnlyModel"],
+                "PR-AUC": [0.82],
+            }
+        )
         single_model = {"OnlyModel": MagicMock()}
         selector = ModelSelector(metric="PR-AUC")
         result = selector.select(data, single_model)
 
         assert result["best_model_name"] == "OnlyModel"
 
-    def test_select_reasoning_includes_description(self, comparison_data, trained_models):
+    def test_select_reasoning_includes_description(
+        self, comparison_data, trained_models
+    ):
         """Test reasoning includes the selection rule description."""
         selector = ModelSelector(metric="PR-AUC")
         result = selector.select(comparison_data, trained_models)
@@ -148,11 +158,13 @@ class TestModelSelector:
         with pytest.raises(ValueError, match="No selection result"):
             selector.save_best_model()
 
-    def test_save_best_model_creates_file(self, comparison_data, trained_models, tmp_path):
+    def test_save_best_model_creates_file(
+        self, comparison_data, trained_models, tmp_path
+    ):
         """Test save_best_model writes a pickle file."""
         save_path = str(tmp_path / "best_model.pkl")
         selector = ModelSelector(metric="PR-AUC")
-        result = selector.select(comparison_data, trained_models)
+        _result = selector.select(comparison_data, trained_models)
 
         with patch("src.fraudlens.models.model_selection.Path.mkdir"):
             actual_path = selector.save_best_model(path=save_path)

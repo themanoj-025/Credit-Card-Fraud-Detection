@@ -98,7 +98,7 @@ class TestFraudPreprocessor:
         preprocessor.fit_scale(X_train)
 
         # Transform test
-        X_test_scaled = preprocessor.transform_scale(X_test)
+        _X_test_scaled = preprocessor.transform_scale(X_test)
 
         # The scaler is the same object — verify it exists and has been fitted
         assert preprocessor.scaler is not None
@@ -144,7 +144,7 @@ class TestFraudPreprocessor:
         preprocessor = FraudPreprocessor(
             test_size=0.2, random_state=42, scale_features=False
         )
-        data = preprocessor.full_preprocess(sample_data)
+        _data = preprocessor.full_preprocess(sample_data)
 
         scaler = preprocessor.scaler
         assert scaler is None

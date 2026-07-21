@@ -29,7 +29,10 @@ class TestTrainingToPredictionPipeline:
     def test_train_and_predict_produces_valid_probas(self, trained_model):
         """Test that training a model and predicting yields valid probabilities."""
         model, trainer = trained_model
-        X, y = trainer.training_results["logistic_regression"].get("n_samples", 0), None
+        _X, _y = (
+            trainer.training_results["logistic_regression"].get("n_samples", 0),
+            None,
+        )
 
         # Generate test data
         X_test = pd.DataFrame({f"V{i}": np.random.randn(50) for i in range(1, 29)})

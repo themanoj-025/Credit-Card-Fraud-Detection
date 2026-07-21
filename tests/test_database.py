@@ -18,6 +18,7 @@ class TestDatabaseEngine:
         with patch.dict("os.environ", {}, clear=True):
             # Re-import to pick up default
             import importlib
+
             from src.fraudlens.persistence import database as db
 
             importlib.reload(db)
@@ -30,6 +31,7 @@ class TestDatabaseEngine:
             {"DATABASE_URL": "postgresql+asyncpg://user:pass@localhost:5432/fraudlens"},
         ):
             import importlib
+
             from src.fraudlens.persistence import database as db
 
             importlib.reload(db)
@@ -97,6 +99,7 @@ class TestInitDb:
         project's default fraudlens.db file.
         """
         import importlib
+
         from src.fraudlens.persistence import database as db
 
         # Override DB URL to use temp file
@@ -104,8 +107,6 @@ class TestInitDb:
         temp_url = f"sqlite+aiosqlite:///{db_path}"
         with patch.dict("os.environ", {"DATABASE_URL": temp_url}):
             importlib.reload(db)
-            with patch.object(
-                db.Base.metadata, "create_all"
-            ) as mock_create_all:
+            with patch.object(db.Base.metadata, "create_all") as mock_create_all:
                 await db.init_db()
                 mock_create_all.assert_called_once()

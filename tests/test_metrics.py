@@ -6,6 +6,7 @@ Uses synthetic data for reproducible metrics calculations.
 """
 
 import matplotlib
+
 matplotlib.use("Agg")  # Non-interactive backend for testing
 
 import numpy as np
@@ -164,7 +165,10 @@ class TestFraudEvaluator:
             "net_benefit_usd": 4700,
         }
         result = evaluator.evaluate_model(
-            y_true, y_proba, threshold=0.5, model_name="TestModel",
+            y_true,
+            y_proba,
+            threshold=0.5,
+            model_name="TestModel",
             business_cost=biz_cost,
         )
 
@@ -197,12 +201,21 @@ class TestFraudEvaluator:
         y_true, predictions, thresholds, business_costs = multiple_models_data
         evaluator = FraudEvaluator()
 
-        comparison = evaluator.compare_models(y_true, predictions, thresholds, business_costs)
+        comparison = evaluator.compare_models(
+            y_true, predictions, thresholds, business_costs
+        )
 
         expected_columns = [
-            "Model", "Threshold", "PR-AUC", "ROC-AUC", "F1",
-            "Precision", "Recall", "Net Benefit ($)",
-            "Fraud Caught ($)", "Missed Fraud ($)",
+            "Model",
+            "Threshold",
+            "PR-AUC",
+            "ROC-AUC",
+            "F1",
+            "Precision",
+            "Recall",
+            "Net Benefit ($)",
+            "Fraud Caught ($)",
+            "Missed Fraud ($)",
         ]
         for col in expected_columns:
             assert col in comparison.columns
@@ -233,7 +246,7 @@ class TestFraudEvaluator:
         evaluator = FraudEvaluator()
 
         save_path = str(tmp_path / "pr_curve.png")
-        fig = evaluator.plot_precision_recall_curve(y_true, predictions, save_path)
+        _fig = evaluator.plot_precision_recall_curve(y_true, predictions, save_path)
 
         assert (tmp_path / "pr_curve.png").exists()
 

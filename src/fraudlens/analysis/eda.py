@@ -467,7 +467,7 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
 
     # Derive pairplot palette from existing COLORS/LABELS (avoid duplicating hex values)
     pairplot_colors = {v: COLORS[k] for k, v in LABELS.items()}
-    g = sns.pairplot(
+    _g = sns.pairplot(
         df_plot,
         hue="Class",
         palette=pairplot_colors,

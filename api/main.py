@@ -222,7 +222,7 @@ async def add_correlation_id(request, call_next):
 
 
 # Register RFC 7807 error handlers
-from api.errors import register_error_handlers
+from api.errors import register_error_handlers  # noqa: E402
 
 register_error_handlers(app)
 
@@ -285,7 +285,7 @@ setup_metrics(app)
 logger.info("Prometheus metrics enabled at /metrics")
 
 # Setup OpenTelemetry tracing (must be after routes for auto-instrumentation)
-from api.tracing import setup_tracing
+from api.tracing import setup_tracing  # noqa: E402
 
 setup_tracing(app)
 

@@ -5,7 +5,6 @@ Covers DataLoader class: load, get_basic_stats, get_column_info,
 get_class_distribution, sample_transaction, and the convenience load_data function.
 """
 
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -116,7 +115,9 @@ class TestDataLoaderStats:
         assert "amount_max" in stats
         assert "time_range" in stats
         assert stats["n_samples"] == 200
-        assert stats["n_features"] == 30  # V1-V28 + Time + Amount = 30 features, minus Class in shape[1]-1
+        assert (
+            stats["n_features"] == 30
+        )  # V1-V28 + Time + Amount = 30 features, minus Class in shape[1]-1
 
     def test_get_column_info(self, sample_csv_data, tmp_path):
         """Test column info returns expected DataFrame."""
@@ -208,7 +209,9 @@ class TestDataLoaderEdgeCases:
 
     def test_empty_dataframe(self, tmp_path):
         """Test handling of empty CSV."""
-        empty_df = pd.DataFrame(columns=[f"V{i}" for i in range(1, 29)] + ["Time", "Amount", "Class"])
+        empty_df = pd.DataFrame(
+            columns=[f"V{i}" for i in range(1, 29)] + ["Time", "Amount", "Class"]
+        )
         csv_path = tmp_path / "empty.csv"
         empty_df.to_csv(csv_path, index=False)
 

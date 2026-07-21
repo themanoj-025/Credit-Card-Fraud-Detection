@@ -140,7 +140,7 @@ class TestModelPersistence:
         X, y = small_dataset
         trainer = FraudTrainer(models_to_train=["logistic_regression"])
         trainer.train_model("logistic_regression", X, y)
-        original_model = trainer.trained_models["logistic_regression"]
+        _original_model = trainer.trained_models["logistic_regression"]
         with tempfile.TemporaryDirectory() as tmpdir:
             path = trainer.save_model("logistic_regression", f"{tmpdir}/lr.pkl")
             trainer2 = FraudTrainer()

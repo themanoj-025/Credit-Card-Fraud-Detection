@@ -178,7 +178,7 @@ class TestErrorResponseContract:
         """Test that 404 errors follow RFC 7807."""
         response = client.get("/nonexistent-route")
         assert response.status_code == 404
-        data = response.json()
+        _data = response.json()
         # FastAPI's default 404 handler may or may not produce RFC 7807
         # But we should at least get a response
         assert response.status_code == 404

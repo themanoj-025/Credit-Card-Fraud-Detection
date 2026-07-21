@@ -15,6 +15,7 @@ from typing import List, Optional
 
 import joblib
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from src.fraudlens.config import ALL_FEATURES, MODELS_DIR, SCALE_FEATURES

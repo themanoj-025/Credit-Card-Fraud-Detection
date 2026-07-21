@@ -278,7 +278,7 @@ class FraudTrainer:
             return
         try:
             mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-            with mlflow.start_run(run_name=f"{name}_cv") as run:
+            with mlflow.start_run(run_name=f"{name}_cv") as _run:  # noqa: F841
                 mlflow.log_param("model_name", name)
                 mlflow.log_param("type", "cross_validation")
                 mlflow.log_metric("cv_mean_score", cv_results["mean_score"])

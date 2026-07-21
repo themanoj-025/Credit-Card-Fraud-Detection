@@ -280,7 +280,7 @@ def show() -> None:
 
         # ─── Update Charts ────────────────────────────────────────────────
         if st.session_state.transactions:
-            df = pd.DataFrame(st.session_state.transactions)
+            _df = pd.DataFrame(st.session_state.transactions)
 
             # Probability distribution
             prob_vals = [

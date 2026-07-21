@@ -86,7 +86,8 @@ class DataLoader:
             "amount_max": round(float(df["Amount"].max()), 2) if n_total > 0 else 0.0,
             "time_range": (
                 (int(df["Time"].min()), int(df["Time"].max()))
-                if n_total > 0 else (0, 0)
+                if n_total > 0
+                else (0, 0)
             ),
             "avg_fraud_loss": self.avg_fraud_loss,
             "review_cost": self.review_cost,
