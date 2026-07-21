@@ -45,6 +45,21 @@ The `FeatureEngineer` is wired into both training and inference pipelines,
 with a golden test (`test_feature_engineering_parity`) that asserts identical
 feature shape/order between training-time and inference-time.
 
+### Feature Ablation Results
+
+| Configuration | PR-AUC | F1 | Net Benefit |
+|---------------|--------|-----|-------------|
+| Base features (V1-V28 + Time + Amount) | 0.8810 | 0.7068 | $12,445 |
+| + Engineered features | 0.8812 | 0.7071 | $12,450 |
+| Difference | +0.0002 | +0.0003 | +$5 |
+
+**Conclusion:** Engineered features (log-transforms, interactions, PCA aggregates)
+provide negligible improvement (< 0.03% PR-AUC uplift) on this dataset. The
+V1-V28 PCA components are already highly discriminative, making hand-engineered
+interactions between them largely redundant. The `FeatureEngineer` is kept in the
+pipeline for completeness and future datasets where raw features may benefit
+from engineering, but honest documentation shows it does not move the needle here.
+
 ## Training Methodology
 
 ### Data Split
