@@ -9,7 +9,7 @@
 [![XGBoost](https://img.shields.io/badge/XGBoost-1.7%2B-orange.svg)](https://xgboost.readthedocs.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![PR-AUC](https://img.shields.io/badge/PR--AUC-0.8810-success.svg)](https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/coverage-80%25-yellow.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **A production-grade credit card fraud detection system** that catches **88% of fraud** while minimizing false positives — with **SHAP explainability**, **LLM-powered case narration**, **RAG-based similar case retrieval**, and an **AI analyst copilot**. Fully containerized with CI/CD, K8s manifests, and Postgres persistence.
@@ -437,9 +437,10 @@ make load-test
 | [`CHANGELOG.md`](./CHANGELOG.md) | Release history & changelog |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Developer guide & coding standards |
 | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community guidelines |
-| [`docs/adr/`](./docs/adr/) | Architecture Decision Records |
+| [`docs/adr/`](./docs/adr/) | Architecture Decision Records (13 decisions) |
 | [`docs/MODEL_CARD.md`](./docs/MODEL_CARD.md) | Model card & evaluation |
 | [`docs/RESILIENCE.md`](./docs/RESILIENCE.md) | Error handling & circuit breaker docs |
+| [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) | System design interview writeup |
 | [`SECURITY.md`](./SECURITY.md) | Security audit & checklist |
 
 ---

@@ -47,6 +47,7 @@ mlflow.db
 fraudlens.db
 
 # ─── Reports ─────────────────────────────────────────────────
+reports/
 reports/figures/
 reports/*.csv
 reports/*.json
@@ -82,6 +83,9 @@ htmlcov/
 
 # ─── Jupyter ─────────────────────────────────────────────────
 .ipynb_checkpoints/
+
+# ─── DVC Temp Files ──────────────────────────────────────────
+.dvc/tmp/*
 
 # ─── Linter / Formatter Cache ────────────────────────────────
 .ruff_cache/

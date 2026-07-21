@@ -223,12 +223,12 @@ No module-level `_predictor = None` patterns exist.
 | **5** | ML Quality | FeatureEngineer wired into train.py, Optuna tuning, LLM eval harness, docs/MODEL_CARD.md |
 | **6** | API Design | `/v1/` versioning, RFC 7807 errors, cursor pagination, per-dependency health check, OpenAPI spec |
 | **7** | Frontend | Shared api_client.py (retries, timeouts), case_investigator uses real API, !important CSS fixed, loading spinners |
-| **8** | Testing | conftest.py fixtures, integration tests, NaN/Inf edge cases, OpenAPI contract tests, 85% coverage target |
+| **8** | Testing | conftest.py fixtures, integration tests, NaN/Inf edge cases, OpenAPI contract tests, 80% coverage (305+ tests) |
 | **9** | DevOps | Multi-stage Docker (~400MB serve image), CI/CD (lint→test→build→scan→deploy), K8s manifests, Trivy scan |
-| **10** | Observability | 🔜 |
-| **11** | Configuration | 🔜 |
-| **12** | Error Handling | 🔜 |
-| **13** | Docs & Polish | 🔜 |
+| **10** | Observability | structlog JSON logging with correlation IDs, Prometheus metrics (prediction/SHAP/LLM latency histograms), Grafana dashboard (13 panels), Jaeger tracing via OpenTelemetry |
+| **11** | Configuration | pydantic-settings BaseSettings with env-driven config, feature flags (`FEATURE_LLM_NARRATOR`, etc.), `.env.example` |
+| **12** | Error Handling | tenacity retries on Anthropic calls, circuit breaker pattern, honest fallback narratives, typed exception handling, LOG_RESPONSE_BODY sanitization |
+| **13** | Docs & Polish | CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, ADRs in docs/adr/, tagged releases |
 
 ---
 
@@ -279,18 +279,27 @@ No module-level `_predictor = None` patterns exist.
 
 ---
 
-## 10. Known Technical Debt
+## 10. Known Technical Debt & Remaining Gaps
+
+### Addressed (done during Phases 10-13)
+
+- ✅ **Structured logging** — now uses `structlog` with correlation IDs
+- ✅ **Prometheus metrics** — `prometheus-fastapi-instrumentator` installed, metrics emitted
+- ✅ **OpenTelemetry tracing** — Jaeger integration with FastAPI auto-instrumentation
+- ✅ **pydantic-settings** — `config.py` migrated to `BaseSettings` with env-driven config
+- ✅ **Retry/backoff on LLM calls** — `tenacity` retries on Anthropic API
+- ✅ **Circuit breaker** — degraded state caching when LLM is down
+- ✅ **Feature flags** — `FEATURE_LLM_NARRATOR`, `FEATURE_ANOMALY_SCORE`, etc.
+
+### Still Open
 
 1. **No automated data download** — user must manually download `creditcard.csv` from Kaggle
-2. **Feature engineering underused** — `FeatureEngineer` exists but isn't integrated into the main pipeline
-3. **Autoencoder not trained** — IsolationForestDetector is the only anomaly detector; AutoencoderDetector is untrained
-4. **No database-backed rate limiting** — slowapi uses in-memory by default (Redis for production)
-5. **No structured logging** — still using `logging` module instead of `structlog`
-6. **No Prometheus metrics** — no request/response metrics emitted
-7. **No OpenTelemetry tracing** — no distributed tracing
-8. **Config still hardcoded** — `config.py` constants not yet migrated to `pydantic-settings`
-9. **No retry/backoff on LLM calls** — Anthropic calls can fail without recovery
-10. **No circuit breaker** — LLM outage affects all `/explain` requests
+2. **Feature engineering underused** — `FeatureEngineer` exists and is wired but not critical for current accuracy
+3. **Autoencoder not trained** — IsolationForestDetector is the primary anomaly detector; AutoencoderDetector has TF dependency
+4. **Coverage gap** — 80% coverage (target 85%). Remaining gaps in EDA (54%), HPO (62%), LLM modules (~60-70%)
+5. **No database-backed rate limiting out of box** — slowapi uses in-memory by default; Redis configurable
+6. **Cost tracking** — no real-time tracking of Anthropic API costs per prediction request
+7. **No automated retraining** — feedback loop is manual (CLI command); not triggered automatically
 
 ---
 
