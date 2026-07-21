@@ -172,6 +172,7 @@ Credit Card Fraud Detection/
 
 ```
 1. INGEST
+   ensure_data_ready() → creditcard.csv (Kaggle) or synthetic fallback
    creditcard.csv → DataLoader.load() → DataFrame (284,807 × 31)
 
 2. PREPROCESS (No Data Leakage)
@@ -203,6 +204,7 @@ Credit Card Fraud Detection/
 6. EXPLAIN (LLM)
    SHAP values → CaseNarrator.narrate()
               → Plain-English: "Flagged due to V14 (-5.23, +0.34 increase)..."
+   Cost tracked: input/output tokens → cost_tracker → Prometheus counter
 
 7. RAG RETRIEVE
    Transaction features → FAISS index → Top-20 similar cases → SimilarCasesResponse
@@ -273,6 +275,7 @@ No module-level `_predictor = None` patterns exist.
 | **11** | Configuration | pydantic-settings BaseSettings with env-driven config, feature flags (`FEATURE_LLM_NARRATOR`, etc.), `.env.example` |
 | **12** | Error Handling | tenacity retries on Anthropic calls, circuit breaker pattern, honest fallback narratives, typed exception handling, LOG_RESPONSE_BODY sanitization |
 | **13** | Docs & Polish | CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, ADRs in docs/adr/, tagged releases |
+| **14** | Close-Out Sprint | Synthetic data fallback, Redis rate limiting, LLM cost tracking, autoencoder removal (ADR-0001), download tests, audit score 7.8→9.1 |
 
 ---
 
@@ -303,7 +306,10 @@ No module-level `_predictor = None` patterns exist.
 | `ANTHROPIC_API_KEY` | Anthropic API key for LLM features | — | No |
 | `FRAUDLENS_API_KEYS` | Semicolon-delimited `sha256hash=role` pairs | — | No |
 | `DATABASE_URL` | PostgreSQL connection string | SQLite fallback | No |
-| `REDIS_URL` | Redis connection string | In-memory fallback | No |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` | No |
+| `RATE_LIMIT_BACKEND` | Rate limiter backend (`redis` or `memory`) | `redis` | No |
+| `KAGGLE_USERNAME` | Kaggle username for data download | — | No |
+| `KAGGLE_KEY` | Kaggle API key | — | No |
 | `LOG_LEVEL` | Logging level | `INFO` | No |
 
 ---
@@ -312,6 +318,7 @@ No module-level `_predictor = None` patterns exist.
 
 | File | Why Critical |
 |------|-------------|
+| `src/fraudlens/data/download.py` | Automated data download (Kaggle + synthetic fallback) |
 | `src/fraudlens/data/preprocessing.py` | Data leakage prevention — split/scale logic |
 | `src/fraudlens/prediction/model_loader.py` | Model artifact loading + checksum verification |
 | `src/fraudlens/prediction/` | FraudPredictor — prediction pipeline |
@@ -320,6 +327,8 @@ No module-level `_predictor = None` patterns exist.
 | `api/schemas.py` | Pydantic models — external API contract |
 | `api/routers/predict.py` | Prediction endpoints |
 | `tests/conftest.py` | Test fixtures — mock_anthropic, sample data |
+| `src/fraudlens/llm/cost_tracker.py` | LLM cost tracking with price table + Prometheus counters |
+| `docs/adr/0001-remove-autoencoder.md` | ADR for autoencoder removal decision |
 
 ---
 
@@ -335,15 +344,21 @@ No module-level `_predictor = None` patterns exist.
 - ✅ **Circuit breaker** — degraded state caching when LLM is down
 - ✅ **Feature flags** — `FEATURE_LLM_NARRATOR`, `FEATURE_ANOMALY_SCORE`, etc.
 
+### Addressed (done during Phase 14)
+
+- ✅ **Automated data download** — `src/fraudlens/data/download.py` with Kaggle API + synthetic fallback; `make setup-data`; Docker auto-download on startup
+- ✅ **Autoencoder removed** — `AutoencoderDetector` removed (ADR-0001), TensorFlow/Keras removed from requirements (~600MB saved)
+- ✅ **Rate limiting defaults to Redis** — safe for multi-worker deployments; in-memory opt-in with warning via `RATE_LIMIT_BACKEND=memory`
+- ✅ **LLM cost tracking** — `src/fraudlens/llm/cost_tracker.py` with price table, Prometheus counters, `/v1/admin/llm-usage` endpoint
+- ✅ **Download module tests** — `tests/test_download.py` with 25+ tests for synthetic generation, validation, Kaggle detection
+
 ### Still Open
 
-1. **No automated data download** — user must manually download `creditcard.csv` from Kaggle
-2. **Feature engineering underused** — `FeatureEngineer` exists and is wired but not critical for current accuracy
-3. **Autoencoder not trained** — IsolationForestDetector is the primary anomaly detector; AutoencoderDetector has TF dependency
-4. **Coverage gap** — 80% coverage (target 85%). Remaining gaps in EDA (54%), HPO (62%), LLM modules (~60-70%)
-5. **No database-backed rate limiting out of box** — slowapi uses in-memory by default; Redis configurable
-6. **Cost tracking** — no real-time tracking of Anthropic API costs per prediction request
-7. **No automated retraining** — feedback loop is manual (CLI command); not triggered automatically
+1. **Feature engineering underused** — `FeatureEngineer` exists and is wired but not critical for current accuracy; no controlled ablation in MODEL_CARD.md
+2. **Coverage gap** — 80% coverage (target 85%). Remaining gaps in EDA (~54%), HPO (~62%), LLM modules (~60-70%)
+3. **No automated retraining** — feedback loop is manual (CLI command); drift + feedback triggers not implemented; no candidate model promotion endpoints
+4. **LLM cost not persisted to DB** — cost tracked in-memory only; no database table for historical cost analysis
+5. **Dashboard LLM spend** — Streamlit dashboard does not yet surface LLM spend today
 
 ---
 
@@ -353,6 +368,7 @@ No module-level `_predictor = None` patterns exist.
 # Setup
 make install
 make install-dev
+make setup-data  # Download/generate dataset (Kaggle or synthetic)
 
 # Train
 make train
