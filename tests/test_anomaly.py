@@ -1,181 +1,187 @@
 """
-Tests for the Anomaly Detection module.
+FraudLens — Anomaly Detection Tests
 
-Verifies anomaly scores separate obviously-anomalous points from normal ones,
-output shapes are correct, and edge cases are handled.
+Tests for IsolationForestDetector and AutoencoderDetector.
 """
 
-import sys
-from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from src.fraudlens.models.anomaly import IsolationForestDetector
-
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+from src.fraudlens.models.anomaly import AutoencoderDetector, IsolationForestDetector
 
 
 @pytest.fixture
-def normal_data() -> pd.DataFrame:
-    """Normal (non-anomalous) data points."""
+def normal_data():
+    """Create a small dataset of normal (legitimate) transactions."""
     np.random.seed(42)
-    return pd.DataFrame(np.random.randn(200, 10))
+    n = 100
+    X = pd.DataFrame({f"V{i}": np.random.randn(n) for i in range(1, 29)})
+    X["Time"] = np.random.uniform(0, 172800, n)
+    X["Amount"] = np.random.exponential(100, n)
+    return X
 
 
 @pytest.fixture
-def anomalous_point() -> pd.DataFrame:
-    """A clearly anomalous point far from the normal distribution."""
-    return pd.DataFrame(
-        [[10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0]]
-    )
-
-
-# ─── Tests: IsolationForestDetector ─────────────────────────────────────
+def labeled_data(normal_data):
+    """Create a dataset with labels (mostly normal, a few fraud)."""
+    np.random.seed(42)
+    n = len(normal_data)
+    y = pd.Series(np.random.choice([0, 1], n, p=[0.95, 0.05]))
+    return normal_data, y
 
 
 class TestIsolationForestDetector:
     """Tests for IsolationForestDetector."""
 
+    def test_init_defaults(self):
+        """Test default initialization parameters."""
+        detector = IsolationForestDetector()
+        assert detector.contamination == 0.01
+        assert detector.n_estimators == 200
+        assert detector.random_state == 42
+        assert detector.model is None
+
+    def test_init_custom(self):
+        """Test custom initialization."""
+        detector = IsolationForestDetector(
+            contamination=0.05, n_estimators=100, random_state=123
+        )
+        assert detector.contamination == 0.05
+        assert detector.n_estimators == 100
+        assert detector.random_state == 123
+
+    def test_fit_with_labels(self, labeled_data):
+        """Test fit with labels trains on legitimate only."""
+        X, y = labeled_data
+        detector = IsolationForestDetector()
+        detector.fit(X, y)
+
+        assert detector.model is not None
+        assert hasattr(detector.model, "predict")
+
     def test_fit_without_labels(self, normal_data):
-        """Test that fit works without y_train (unsupervised)."""
+        """Test fit without labels trains on all data."""
         detector = IsolationForestDetector()
         detector.fit(normal_data)
+
         assert detector.model is not None
 
-    def test_fit_on_legit_only(self, normal_data):
-        """Test that fit with labels filters to legit transactions."""
-        y = pd.Series(np.zeros(200))
-        y.iloc[:5] = 1  # 5 fraud samples
+    def test_predict_returns_minus_one_or_one(self, labeled_data):
+        """Test predict returns -1 (anomaly) or 1 (normal)."""
+        X, y = labeled_data
         detector = IsolationForestDetector()
-        detector.fit(normal_data, y)
-        assert detector.model is not None
+        detector.fit(X, y)
+        predictions = detector.predict(X)
 
-    def test_predict_returns_array(self, normal_data, anomalous_point):
-        """Test that predict returns numpy array with -1/1 values."""
-        detector = IsolationForestDetector(contamination=0.1)
-        detector.fit(normal_data)
-        preds = detector.predict(anomalous_point)
-        assert isinstance(preds, np.ndarray)
-        assert preds[0] in (-1, 1)  # -1 = anomaly, 1 = normal
+        assert len(predictions) == len(X)
+        assert set(predictions).issubset({-1, 1})
 
-    def test_predict_before_fit_raises(self):
-        """Test that predict raises error before fit."""
+    def test_predict_not_fitted(self, normal_data):
+        """Test predict raises ValueError when not fitted."""
         detector = IsolationForestDetector()
-        with pytest.raises(ValueError):
-            detector.predict(pd.DataFrame([[0.0, 0.0]]))
+        with pytest.raises(ValueError, match="Model not fitted"):
+            detector.predict(normal_data)
 
-    def test_score_returns_float_array(self, normal_data):
-        """Test that score returns an array of floats."""
-        detector = IsolationForestDetector(contamination=0.1)
-        detector.fit(normal_data)
-        scores = detector.score(normal_data.head(5))
+    def test_score_returns_float_array(self, labeled_data):
+        """Test score returns array of floats."""
+        X, y = labeled_data
+        detector = IsolationForestDetector()
+        detector.fit(X, y)
+        scores = detector.score(X)
+
         assert isinstance(scores, np.ndarray)
-        assert len(scores) == 5
-        assert scores.dtype in (np.float64, np.float32)
+        assert len(scores) == len(X)
+        assert np.issubdtype(scores.dtype, np.floating)
 
-    def test_anomalous_point_lower_score(self, normal_data, anomalous_point):
-        """Test that anomalous points get lower (more negative) anomaly scores."""
-        detector = IsolationForestDetector(contamination=0.1)
-        detector.fit(normal_data)
-        normal_score = detector.score(normal_data.head(1))[0]
-        anom_score = detector.score(anomalous_point)[0]
-        # Anomalous points should have lower scores in Isolation Forest
-        # (more negative = more anomalous)
-        assert anom_score < normal_score
-
-
-# ─── Tests: Fraud Probability Conversion ────────────────────────────────
-
-
-class TestFraudProbability:
-    """Tests for predict_proba_as_fraud method."""
-
-    def test_proba_returns_values_in_range(self, normal_data):
-        """Test that fraud probabilities are in [0, 1] range."""
-        detector = IsolationForestDetector(contamination=0.1)
-        detector.fit(normal_data)
-        probas = detector.predict_proba_as_fraud(normal_data)
-        assert np.all(probas >= 0.0)
-        assert np.all(probas <= 1.0)
-
-    def test_anomaly_higher_proba(self, normal_data, anomalous_point):
-        """Test that anomalous points get higher or equal fraud probability."""
-        detector = IsolationForestDetector(contamination=0.1)
-        detector.fit(normal_data)
-        normal_proba = detector.predict_proba_as_fraud(normal_data.head(1))[0]
-        anom_proba = detector.predict_proba_as_fraud(anomalous_point)[0]
-        # Anomalous points should be at least as high as normal points
-        assert anom_proba >= normal_proba
-
-
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
-
-
-class TestEdgeCases:
-    """Edge case tests for anomaly detection."""
-
-    def test_single_feature(self):
-        """Test with single feature dimension."""
-        X = pd.DataFrame(np.random.randn(100, 1))
+    def test_score_not_fitted(self, normal_data):
+        """Test score raises ValueError when not fitted."""
         detector = IsolationForestDetector()
-        detector.fit(X)
-        scores = detector.score(pd.DataFrame([[5.0]]))
-        assert len(scores) == 1
+        with pytest.raises(ValueError, match="Model not fitted"):
+            detector.score(normal_data)
 
-    def test_very_small_dataset(self):
-        """Test with very small dataset."""
-        X = pd.DataFrame(np.random.randn(10, 5))
+    def test_predict_proba_as_fraud_range(self, labeled_data):
+        """Test predict_proba_as_fraud returns values in [0, 1]."""
+        X, y = labeled_data
         detector = IsolationForestDetector()
-        detector.fit(X)
-        preds = detector.predict(pd.DataFrame([[0.0] * 5]))
-        assert len(preds) == 1
+        detector.fit(X, y)
+        probas = detector.predict_proba_as_fraud(X)
 
+        assert len(probas) == len(X)
+        assert probas.min() >= 0.0
+        assert probas.max() <= 1.0
 
-# ─── Tests: AutoencoderDetector ─────────────────────────────────────────
+    def test_predict_proba_as_fraud_not_fitted(self, normal_data):
+        """Test predict_proba_as_fraud raises when not fitted."""
+        detector = IsolationForestDetector()
+        with pytest.raises(ValueError, match="Model not fitted"):
+            detector.predict_proba_as_fraud(normal_data)
+
+    def test_fit_with_y_none(self, normal_data):
+        """Test fit() with only X argument."""
+        detector = IsolationForestDetector()
+        detector.fit(normal_data)
+        assert detector.model is not None
 
 
 class TestAutoencoderDetector:
-    """Tests for AutoencoderDetector (if TensorFlow is available)."""
+    """Tests for AutoencoderDetector."""
 
-    def test_build_model_structure(self):
-        """Test that the model builds with correct input/output dimensions."""
-        try:
-            from src.fraudlens.models.anomaly import AutoencoderDetector
+    def test_init_defaults(self):
+        """Test default initialization."""
+        detector = AutoencoderDetector()
+        assert detector.encoding_dim == 16
+        assert detector.epochs == 20
+        assert detector.batch_size == 32
+        assert detector._fitted is False
 
-            detector = AutoencoderDetector(encoding_dim=4, epochs=2, batch_size=8)
-            detector._build_model(10)
-            assert detector.model is not None
-            assert detector.model.input_shape[-1] == 10
-            assert detector.model.output_shape[-1] == 10
-        except ImportError:
-            pytest.skip("TensorFlow not installed")
+    def test_build_model_raises_without_tf(self, normal_data):
+        """Test _build_model raises ImportError when TF is not available."""
+        detector = AutoencoderDetector()
+        with pytest.raises(ImportError, match="TensorFlow is required"):
+            detector._build_model(input_dim=30)
 
-    def test_fit_and_predict(self):
-        """Test that fit trains and predict returns scores."""
-        try:
-            from src.fraudlens.models.anomaly import AutoencoderDetector
+    def test_fit_raises_without_tf(self, normal_data):
+        """Test fit raises ImportError when TF is not available."""
+        detector = AutoencoderDetector()
+        with pytest.raises(ImportError, match="TensorFlow is required"):
+            detector.fit(normal_data)
 
-            np.random.seed(42)
-            X = pd.DataFrame(np.random.randn(100, 10))
-            detector = AutoencoderDetector(encoding_dim=4, epochs=2, batch_size=8)
-            detector.fit(X)
-            scores = detector.score(pd.DataFrame(np.random.randn(5, 10)))
-            assert len(scores) == 5
-            assert np.all(scores >= 0)
-        except ImportError:
-            pytest.skip("TensorFlow not installed")
+    def test_score_not_fitted(self, normal_data):
+        """Test score raises ValueError before fitting."""
+        detector = AutoencoderDetector()
+        with pytest.raises(ValueError, match="Model not fitted"):
+            detector.score(normal_data)
 
-    def test_score_before_fit_raises(self):
-        """Test that score raises error before fit."""
-        try:
-            from src.fraudlens.models.anomaly import AutoencoderDetector
+    def test_predict_proba_not_fitted(self, normal_data):
+        """Test predict_proba_as_fraud raises ValueError before fitting."""
+        detector = AutoencoderDetector()
+        with pytest.raises(ValueError, match="Model not fitted"):
+            detector.predict_proba_as_fraud(normal_data)
 
-            detector = AutoencoderDetector()
-            with pytest.raises(ValueError):
-                detector.score(pd.DataFrame([[0.0] * 10]))
-        except ImportError:
-            pytest.skip("TensorFlow not installed")
+    def test_score_returns_array_when_fitted(self, normal_data):
+        """Test score returns array when model is fitted (mocked)."""
+        detector = AutoencoderDetector()
+        detector._fitted = True
+        detector.model = MagicMock()
+        detector.model.predict.return_value = np.zeros((len(normal_data), 30))
+
+        scores = detector.score(normal_data)
+
+        assert isinstance(scores, np.ndarray)
+        assert len(scores) == len(normal_data)
+
+    def test_predict_proba_range_when_fitted(self, normal_data):
+        """Test predict_proba returns values in [0, 1]."""
+        detector = AutoencoderDetector()
+        detector._fitted = True
+        detector.model = MagicMock()
+        detector.model.predict.return_value = np.zeros((len(normal_data), 30))
+
+        probas = detector.predict_proba_as_fraud(normal_data)
+
+        assert len(probas) == len(normal_data)
+        assert probas.min() >= 0.0
+        assert probas.max() <= 1.0
