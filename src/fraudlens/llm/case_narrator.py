@@ -24,6 +24,7 @@ from tenacity import (
 )
 
 from src.fraudlens.config import LLM_MAX_TOKENS, LLM_MODEL, LLM_TEMPERATURE
+from src.fraudlens.llm.cost_tracker import cost_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -128,9 +129,22 @@ class CaseNarrator:
         )
 
         try:
-            narrative = self._call_llm_with_retry(prompt)
+            response = self._call_llm_with_response(prompt)
             if self._circuit_breaker is not None:
                 self._circuit_breaker.record_success()
+
+            # Track cost from response usage
+            if hasattr(response, "usage") and response.usage is not None:
+                input_tok = getattr(response.usage, "input_tokens", 0)
+                output_tok = getattr(response.usage, "output_tokens", 0)
+                cost_tracker.record_call(
+                    model=self.model,
+                    input_tokens=input_tok,
+                    output_tokens=output_tok,
+                    endpoint="narrate",
+                )
+
+            narrative = response.content[0].text.strip()
             logger.info("LLM narrative generated (%d chars)", len(narrative))
             return narrative
         except Exception as e:
@@ -141,18 +155,17 @@ class CaseNarrator:
                 shap_explanation, fraud_probability, is_fraud
             )
 
-    def _call_llm_with_retry(self, prompt: str) -> str:
-        """Make the LLM call with tenacity retry logic."""
+    def _call_llm_with_response(self, prompt: str):
+        """Make the LLM call with tenacity retry logic, returning the full response."""
 
         @_LLM_RETRY
-        def _do_call() -> str:
-            response = self._client.messages.create(
+        def _do_call():
+            return self._client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return response.content[0].text.strip()
 
         return _do_call()
 
