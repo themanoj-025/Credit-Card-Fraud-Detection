@@ -14,7 +14,11 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 
-from src.fraudlens.config import IFOREST_CONTAMINATION, IFOREST_N_ESTIMATORS, RANDOM_STATE
+from src.fraudlens.config import (
+    IFOREST_CONTAMINATION,
+    IFOREST_N_ESTIMATORS,
+    RANDOM_STATE,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -148,9 +152,7 @@ class AutoencoderDetector:
         try:
             from tensorflow.keras import layers, models
         except ImportError:
-            logger.warning(
-                "TensorFlow/Keras not installed. Autoencoder unavailable."
-            )
+            logger.warning("TensorFlow/Keras not installed. Autoencoder unavailable.")
             raise ImportError(
                 "TensorFlow is required for AutoencoderDetector. "
                 "Install with: pip install tensorflow"
@@ -164,7 +166,9 @@ class AutoencoderDetector:
         autoencoder.compile(optimizer="adam", loss="mse")
         self.model = autoencoder
 
-    def fit(self, X_train: pd.DataFrame, y_train: Optional[pd.Series] = None) -> "AutoencoderDetector":
+    def fit(
+        self, X_train: pd.DataFrame, y_train: Optional[pd.Series] = None
+    ) -> "AutoencoderDetector":
         """
         Fit autoencoder on training data.
 

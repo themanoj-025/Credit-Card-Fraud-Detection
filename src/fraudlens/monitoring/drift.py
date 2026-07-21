@@ -118,13 +118,15 @@ class DriftDetector:
         if warnings:
             logger.info("WARNING drift detected in: %s", warnings)
 
-        self.drift_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "n_samples": len(new_data),
-            "n_critical": len(critical),
-            "n_warnings": len(warnings),
-            "results": results,
-        })
+        self.drift_history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "n_samples": len(new_data),
+                "n_critical": len(critical),
+                "n_warnings": len(warnings),
+                "results": results,
+            }
+        )
 
         return results
 
@@ -185,7 +187,9 @@ class DriftDetector:
 
         return "\n".join(lines)
 
-    def save_report(self, results: Dict[str, Dict], path: str = "reports/drift_report.json") -> None:
+    def save_report(
+        self, results: Dict[str, Dict], path: str = "reports/drift_report.json"
+    ) -> None:
         """Save drift report to JSON file."""
         report = {
             "timestamp": datetime.now().isoformat(),
@@ -199,7 +203,9 @@ class DriftDetector:
         logger.info("Drift report saved to %s", path)
 
 
-def simulate_drift(reference: pd.DataFrame, drift_magnitude: float = 0.5) -> pd.DataFrame:
+def simulate_drift(
+    reference: pd.DataFrame, drift_magnitude: float = 0.5
+) -> pd.DataFrame:
     """
     Simulate data drift by shifting distributions.
 

@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.fraudlens.config import ALL_FEATURES
 from src.fraudlens.data.preprocessing import FraudPreprocessor, Resampler
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def sample_data() -> pd.DataFrame:
@@ -41,6 +41,7 @@ def sample_data() -> pd.DataFrame:
 
 
 # ─── Tests: FraudPreprocessor ─────────────────────────────────────────────
+
 
 class TestFraudPreprocessor:
     """Tests for FraudPreprocessor class."""
@@ -117,13 +118,19 @@ class TestFraudPreprocessor:
     def test_split_without_stratification(self):
         """Test that splitting works without stratify when classes are too sparse."""
         import warnings
+
         # Very small dataset - use manual split without stratification
-        small_df = pd.DataFrame({**{f"V{i}": [0, 1, 2, 3, 4] for i in range(1, 29)},
-                                  "Time": [0, 100, 200, 300, 400],
-                                  "Amount": [10, 20, 30, 40, 50],
-                                  "Class": [0, 0, 1, 0, 0]})
+        small_df = pd.DataFrame(
+            {
+                **{f"V{i}": [0, 1, 2, 3, 4] for i in range(1, 29)},
+                "Time": [0, 100, 200, 300, 400],
+                "Amount": [10, 20, 30, 40, 50],
+                "Class": [0, 0, 1, 0, 0],
+            }
+        )
         # Manually split since stratify requires >= 2 samples per class
         from sklearn.model_selection import train_test_split
+
         feature_cols = [f"V{i}" for i in range(1, 29)] + ["Time", "Amount"]
         X = small_df[feature_cols]
         y = small_df["Class"]
@@ -135,7 +142,9 @@ class TestFraudPreprocessor:
 
     def test_scaler_disabled(self, sample_data: pd.DataFrame):
         """Test that scale_features=False skips scaling."""
-        preprocessor = FraudPreprocessor(test_size=0.2, random_state=42, scale_features=False)
+        preprocessor = FraudPreprocessor(
+            test_size=0.2, random_state=42, scale_features=False
+        )
         data = preprocessor.full_preprocess(sample_data)
 
         scaler = preprocessor.scaler
@@ -143,6 +152,7 @@ class TestFraudPreprocessor:
 
 
 # ─── Tests: Resampler ────────────────────────────────────────────────────
+
 
 class TestResampler:
     """Tests for Resampler class."""
@@ -179,7 +189,9 @@ class TestResampler:
         assert len(X_res) == len(data["X_train"])
         assert X_res.equals(data["X_train"])
 
-    def test_multiple_strategies_produce_different_sizes(self, sample_data: pd.DataFrame):
+    def test_multiple_strategies_produce_different_sizes(
+        self, sample_data: pd.DataFrame
+    ):
         """Test that different strategies produce different dataset sizes."""
         preprocessor = FraudPreprocessor(test_size=0.2, random_state=42)
         data = preprocessor.full_preprocess(sample_data)
@@ -206,7 +218,9 @@ class TestResampler:
         data = preprocessor.full_preprocess(sample_data)
 
         resampler = Resampler(random_state=42)
-        X_res, y_res = resampler.resample(data["X_train"], data["y_train"], "class_weight")
+        X_res, y_res = resampler.resample(
+            data["X_train"], data["y_train"], "class_weight"
+        )
 
         assert len(X_res) == len(data["X_train"])
         assert list(y_res) == list(data["y_train"])

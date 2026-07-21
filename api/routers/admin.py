@@ -24,12 +24,14 @@ router = APIRouter(prefix="/v1/auth", tags=["admin"])
 
 class GenerateKeyRequest(BaseModel):
     """Request to generate a new API key."""
+
     role: str = "readonly"  # "admin" or "readonly"
     description: str = ""
 
 
 class GeneratedKey(BaseModel):
     """Response containing a newly generated API key."""
+
     api_key: str
     role: str
     description: str
@@ -38,6 +40,7 @@ class GeneratedKey(BaseModel):
 
 class KeyListResponse(BaseModel):
     """Response listing all configured API keys (hashes only)."""
+
     keys: List[Dict[str, str]]
     count: int
 

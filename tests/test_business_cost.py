@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def calculator() -> BusinessCostCalculator:
@@ -51,14 +51,36 @@ def realistic_predictions() -> tuple:
 @pytest.fixture
 def sample_probabilities() -> tuple:
     """Sample probabilities for threshold testing."""
-    y_true = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-    y_proba = np.array([0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.6, 0.8,
-                        0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99])
+    y_true = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    y_proba = np.array(
+        [
+            0.01,
+            0.02,
+            0.05,
+            0.1,
+            0.15,
+            0.2,
+            0.3,
+            0.4,
+            0.6,
+            0.8,
+            0.1,
+            0.3,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.85,
+            0.9,
+            0.95,
+            0.99,
+        ]
+    )
     return y_true, y_proba
 
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
+
 
 class TestCalculatorInit:
     """Tests for BusinessCostCalculator initialization."""
@@ -78,6 +100,7 @@ class TestCalculatorInit:
 
 # ─── Tests: Cost Computation ─────────────────────────────────────────────
 
+
 class TestComputeBusinessCost:
     """Tests for compute_business_cost method."""
 
@@ -92,8 +115,8 @@ class TestComputeBusinessCost:
         assert cost["false_negatives"] == 0
         assert cost["fraud_caught_usd"] == 600.0  # 4 * 150
         assert cost["fraud_missed_usd"] == 0.0
-        assert cost["review_costs_usd"] == 20.0   # 4 * 5
-        assert cost["net_benefit_usd"] == 580.0    # 600 - 20
+        assert cost["review_costs_usd"] == 20.0  # 4 * 5
+        assert cost["net_benefit_usd"] == 580.0  # 600 - 20
 
     def test_worst_predictions(self, calculator, worst_predictions):
         """Test cost with worst predictions (all wrong)."""
@@ -105,9 +128,9 @@ class TestComputeBusinessCost:
         assert cost["true_negatives"] == 0
         assert cost["false_negatives"] == 4
         assert cost["fraud_caught_usd"] == 0.0
-        assert cost["fraud_missed_usd"] == 600.0   # 4 * 150
-        assert cost["review_costs_usd"] == 20.0    # 4 * 5
-        assert cost["net_benefit_usd"] == -20.0    # 0 - 20
+        assert cost["fraud_missed_usd"] == 600.0  # 4 * 150
+        assert cost["review_costs_usd"] == 20.0  # 4 * 5
+        assert cost["net_benefit_usd"] == -20.0  # 0 - 20
 
     def test_realistic_predictions(self, calculator, realistic_predictions):
         """Test cost with realistic mixed predictions."""
@@ -131,10 +154,10 @@ class TestComputeBusinessCost:
         assert cost["false_positives"] == 1
         assert cost["true_negatives"] == 4
         assert cost["false_negatives"] == 1
-        assert cost["fraud_caught_usd"] == 600.0   # 4 * 150
-        assert cost["fraud_missed_usd"] == 150.0   # 1 * 150
-        assert cost["review_costs_usd"] == 25.0    # (4+1) * 5
-        assert cost["net_benefit_usd"] == 575.0    # 600 - 25
+        assert cost["fraud_caught_usd"] == 600.0  # 4 * 150
+        assert cost["fraud_missed_usd"] == 150.0  # 1 * 150
+        assert cost["review_costs_usd"] == 25.0  # (4+1) * 5
+        assert cost["net_benefit_usd"] == 575.0  # 600 - 25
 
     def test_cost_dict_structure(self, calculator, perfect_predictions):
         """Test that cost dictionary has all required keys."""
@@ -142,10 +165,15 @@ class TestComputeBusinessCost:
         cost = calculator.compute_business_cost(y_true, y_pred)
 
         required_keys = [
-            "true_positives", "false_positives",
-            "true_negatives", "false_negatives",
-            "fraud_caught_usd", "fraud_missed_usd",
-            "review_costs_usd", "net_benefit_usd", "total_cost_usd"
+            "true_positives",
+            "false_positives",
+            "true_negatives",
+            "false_negatives",
+            "fraud_caught_usd",
+            "fraud_missed_usd",
+            "review_costs_usd",
+            "net_benefit_usd",
+            "total_cost_usd",
         ]
         for key in required_keys:
             assert key in cost, f"Missing key: {key}"
@@ -169,7 +197,7 @@ class TestComputeBusinessCost:
 
         assert cost["true_positives"] == 5
         assert cost["false_negatives"] == 0
-        assert cost["fraud_caught_usd"] == 750.0   # 5 * 150
+        assert cost["fraud_caught_usd"] == 750.0  # 5 * 150
         assert cost["fraud_missed_usd"] == 0.0
 
     def test_custom_costs(self):
@@ -179,18 +207,21 @@ class TestComputeBusinessCost:
         y_pred = np.array([0, 1, 0])
         cost = calc.compute_business_cost(y_true, y_pred)
 
-        assert cost["fraud_caught_usd"] == 300.0   # 1 * 300
-        assert cost["fraud_missed_usd"] == 300.0   # 1 * 300
-        assert cost["review_costs_usd"] == 10.0    # 1 * 10
-        assert cost["net_benefit_usd"] == 290.0    # 300 - 10
+        assert cost["fraud_caught_usd"] == 300.0  # 1 * 300
+        assert cost["fraud_missed_usd"] == 300.0  # 1 * 300
+        assert cost["review_costs_usd"] == 10.0  # 1 * 10
+        assert cost["net_benefit_usd"] == 290.0  # 300 - 10
 
 
 # ─── Tests: Threshold Optimization ───────────────────────────────────────
 
+
 class TestFindOptimalThreshold:
     """Tests for find_optimal_threshold method."""
 
-    def test_optimal_threshold_is_between_0_and_1(self, calculator, sample_probabilities):
+    def test_optimal_threshold_is_between_0_and_1(
+        self, calculator, sample_probabilities
+    ):
         """Test that optimal threshold is in valid range."""
         y_true, y_proba = sample_probabilities
         threshold, cost = calculator.find_optimal_threshold(y_true, y_proba)
@@ -232,7 +263,9 @@ class TestFindOptimalThreshold:
     def test_custom_n_thresholds(self, calculator, sample_probabilities):
         """Test with custom number of thresholds to evaluate."""
         y_true, y_proba = sample_probabilities
-        threshold, cost = calculator.find_optimal_threshold(y_true, y_proba, n_thresholds=50)
+        threshold, cost = calculator.find_optimal_threshold(
+            y_true, y_proba, n_thresholds=50
+        )
 
         assert 0.0 <= threshold <= 1.0
         assert "total_cost_usd" in cost
@@ -257,6 +290,7 @@ class TestFindOptimalThreshold:
 
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
+
 
 class TestEdgeCases:
     """Edge case tests for BusinessCostCalculator."""
@@ -309,6 +343,7 @@ class TestEdgeCases:
 
 # ─── Tests: Cost Values are Reasonable ───────────────────────────────────
 
+
 class TestCostReasonableness:
     """Tests that cost values make business sense."""
 
@@ -355,6 +390,7 @@ class TestCostReasonableness:
 
 # ─── Tests: Smoke Tests for Additional Methods ──────────────────────────
 
+
 class TestSmokeAdditionalMethods:
     """Smoke tests for evaluate_all_thresholds and plot_cost_vs_threshold."""
 
@@ -376,6 +412,7 @@ class TestSmokeAdditionalMethods:
     def test_plot_cost_vs_threshold(self, calculator):
         """Test that plot_cost_vs_threshold returns a figure."""
         import matplotlib
+
         matplotlib.use("Agg")
 
         y_true = np.array([0, 0, 0, 0, 1, 1, 1, 1])
@@ -384,5 +421,6 @@ class TestSmokeAdditionalMethods:
         fig = calculator.plot_cost_vs_threshold(y_true, y_proba, model_name="test")
 
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)

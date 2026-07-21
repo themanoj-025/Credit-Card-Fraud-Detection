@@ -25,6 +25,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExport
 # OTLP exporter is optional — gracefully degrade if not installed
 try:
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
     _HAS_OTLP = True
 except ImportError:
     OTLPSpanExporter = None  # type: ignore
@@ -33,6 +34,7 @@ except ImportError:
 # FastAPI instrumentation is optional
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     _HAS_FASTAPI_INSTR = True
 except ImportError:
     FastAPIInstrumentor = None  # type: ignore
@@ -42,9 +44,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Configuration ──────────────────────────────────────────────────────
 
-OTLP_ENDPOINT = os.environ.get(
-    "OTLP_ENDPOINT", "http://jaeger:4317"
-)
+OTLP_ENDPOINT = os.environ.get("OTLP_ENDPOINT", "http://jaeger:4317")
 SERVICE_NAME = os.environ.get("OTEL_SERVICE_NAME", "fraudlens-api")
 TRACE_ENABLED = os.environ.get("ENABLE_TRACING", "true").lower() == "true"
 TRACE_CONSOLE = os.environ.get("TRACE_CONSOLE", "false").lower() == "true"
@@ -70,11 +70,13 @@ def setup_tracing(app: object) -> Optional[TracerProvider]:
         return None
 
     # Create resource with service metadata
-    resource = Resource.create({
-        "service.name": SERVICE_NAME,
-        "service.version": "2.0.0",
-        "deployment.environment": os.environ.get("ENVIRONMENT", "development"),
-    })
+    resource = Resource.create(
+        {
+            "service.name": SERVICE_NAME,
+            "service.version": "2.0.0",
+            "deployment.environment": os.environ.get("ENVIRONMENT", "development"),
+        }
+    )
 
     # Create tracer provider
     tracer_provider = TracerProvider(resource=resource)
@@ -83,9 +85,7 @@ def setup_tracing(app: object) -> Optional[TracerProvider]:
     if _HAS_OTLP and OTLPSpanExporter is not None:
         try:
             otlp_exporter = OTLPSpanExporter(endpoint=OTLP_ENDPOINT, insecure=True)
-            tracer_provider.add_span_processor(
-                BatchSpanProcessor(otlp_exporter)
-            )
+            tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
             logger.info("OTLP trace exporter configured: %s", OTLP_ENDPOINT)
         except Exception as e:
             logger.warning("Failed to configure OTLP exporter: %s", e)
@@ -94,9 +94,7 @@ def setup_tracing(app: object) -> Optional[TracerProvider]:
 
     # Add console exporter for local debugging
     if TRACE_CONSOLE:
-        tracer_provider.add_span_processor(
-            BatchSpanProcessor(ConsoleSpanExporter())
-        )
+        tracer_provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
         logger.info("Console trace exporter enabled")
 
     # Set the global tracer provider

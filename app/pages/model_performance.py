@@ -47,52 +47,74 @@ def show() -> None:
             "```bash\npython run_pipeline.py\n```"
         )
         # Show placeholder data
-        comparison = pd.DataFrame({
-            "Model": ["XGBoost", "Random Forest", "Logistic Regression", "LightGBM", "Isolation Forest"],
-            "PR-AUC": [0.8810, 0.8352, 0.7159, 0.0428, 0.0981],
-            "ROC-AUC": [0.9724, 0.9836, 0.9722, 0.9054, 0.9489],
-            "F1": [0.7068, 0.5641, 0.6214, 0.0890, 0.1243],
-            "Precision": [0.5828, 0.4112, 0.4780, 0.0470, 0.0680],
-            "Recall": [0.8980, 0.8980, 0.8878, 0.8571, 0.7245],
-            "Net Benefit ($)": [12445, 12130, 12140, 3655, 5430],
-        })
+        comparison = pd.DataFrame(
+            {
+                "Model": [
+                    "XGBoost",
+                    "Random Forest",
+                    "Logistic Regression",
+                    "LightGBM",
+                    "Isolation Forest",
+                ],
+                "PR-AUC": [0.8810, 0.8352, 0.7159, 0.0428, 0.0981],
+                "ROC-AUC": [0.9724, 0.9836, 0.9722, 0.9054, 0.9489],
+                "F1": [0.7068, 0.5641, 0.6214, 0.0890, 0.1243],
+                "Precision": [0.5828, 0.4112, 0.4780, 0.0470, 0.0680],
+                "Recall": [0.8980, 0.8980, 0.8878, 0.8571, 0.7245],
+                "Net Benefit ($)": [12445, 12130, 12140, 3655, 5430],
+            }
+        )
 
     # ─── Key Metrics ──────────────────────────────────────────────────
     best_row = comparison.iloc[0]
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🏆 Best Model</span>
             <div style="color:#e0e0e0;font-size:24px;font-weight:700;">{best_row['Model']}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
     with col2:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="background:#1a1a2e;border:1px solid #38ef7d33;border-left:4px solid #38ef7d;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🎯 PR-AUC</span>
             <div style="color:#38ef7d;font-size:24px;font-weight:700;">{best_row['PR-AUC']:.4f}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
     with col3:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="background:#1a1a2e;border:1px solid #667eea33;border-left:4px solid #667eea;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🔄 F1 Score</span>
             <div style="color:#667eea;font-size:24px;font-weight:700;">{best_row['F1']:.4f}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
     with col4:
         net = best_row.get("Net Benefit ($)", 0)
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="background:#1a1a2e;border:1px solid #ff6b6b33;border-left:4px solid #ff6b6b;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">💰 Net Benefit</span>
             <div style="color:#ff6b6b;font-size:24px;font-weight:700;">${net:,.0f}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
     # ─── Comparison Table ──────────────────────────────────────────────
     st.markdown("<h3>Model Comparison Table</h3>", unsafe_allow_html=True)
-    styled = comparison.style.background_gradient(subset=["PR-AUC", "ROC-AUC", "F1"], cmap="RdYlGn")
+    styled = comparison.style.background_gradient(
+        subset=["PR-AUC", "ROC-AUC", "F1"], cmap="RdYlGn"
+    )
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
     # ─── PR-AUC Bar Chart ────────────────────────────────────────────
@@ -123,13 +145,15 @@ def show() -> None:
     fig2 = go.Figure()
     for metric in metrics_to_plot:
         if metric in comparison.columns:
-            fig2.add_trace(go.Bar(
-                name=metric,
-                x=comparison["Model"],
-                y=comparison[metric],
-                text=[f"{v:.3f}" for v in comparison[metric]],
-                textposition="auto",
-            ))
+            fig2.add_trace(
+                go.Bar(
+                    name=metric,
+                    x=comparison["Model"],
+                    y=comparison[metric],
+                    text=[f"{v:.3f}" for v in comparison[metric]],
+                    textposition="auto",
+                )
+            )
     fig2.update_layout(
         title="All Metrics by Model",
         barmode="group",
@@ -150,7 +174,8 @@ def show() -> None:
 
     # ─── Cost vs Threshold ────────────────────────────────────────────
     st.markdown("<h3>Cost vs. Decision Threshold</h3>", unsafe_allow_html=True)
-    st.markdown("""
+    st.markdown(
+        """
     <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:8px;padding:16px;margin:8px 0;">
         <p style="color:#e0e0e0;">
         The default threshold of <strong>0.5</strong> is rarely optimal for fraud detection.
@@ -165,11 +190,14 @@ def show() -> None:
         legitimate transaction ($5).
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # ─── Selection Reasoning ──────────────────────────────────────────
     st.markdown("<h3>📝 Auto-Selection Reasoning</h3>", unsafe_allow_html=True)
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="background:#1a1a2e;border:1px solid #667eea33;border-left:4px solid #667eea;border-radius:8px;padding:16px;">
         <p style="color:#e0e0e0;line-height:1.6;">
         <strong>Selection Rule:</strong> Model with highest PR-AUC is selected as best.<br><br>
@@ -180,4 +208,6 @@ def show() -> None:
         <strong>Threshold:</strong> Optimized using the business cost function at $150/fraud vs $5/review.
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

@@ -34,11 +34,13 @@ logger = logging.getLogger(__name__)
 # Domain-Specific Exceptions (inherit from HTTPException for correct status)
 # ═════════════════════════════════════════════════════════════════════════
 
+
 class ModelNotLoadedError(HTTPException):
     """Raised when the ML model is not loaded in the current app state.
 
     Automatically produces HTTP 503 Service Unavailable.
     """
+
     def __init__(self, detail: str = "Fraud detection model not loaded"):
         super().__init__(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
@@ -49,6 +51,7 @@ class LLMServiceUnavailable(HTTPException):
     Automatically produces HTTP 503. Callers should fall back to
     template-based narratives rather than failing the entire request.
     """
+
     def __init__(self, detail: str = "LLM service unavailable"):
         super().__init__(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
@@ -58,9 +61,16 @@ class PredictionError(HTTPException):
 
     Automatically produces HTTP 500 Internal Server Error.
     """
-    def __init__(self, detail: str = "Model prediction failed", original: Optional[Exception] = None):
+
+    def __init__(
+        self,
+        detail: str = "Model prediction failed",
+        original: Optional[Exception] = None,
+    ):
         self.original = original
-        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+        )
 
 
 class RetrieverUnavailable(HTTPException):
@@ -68,6 +78,7 @@ class RetrieverUnavailable(HTTPException):
 
     Automatically produces HTTP 503.
     """
+
     def __init__(self, detail: str = "Case retriever not initialized"):
         super().__init__(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
@@ -77,14 +88,18 @@ class InvalidInputError(HTTPException):
 
     Automatically produces HTTP 422.
     """
+
     def __init__(self, detail: str = "Invalid input", errors: Optional[list] = None):
         self.errors = errors or []
-        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
+        )
 
 
 # ═════════════════════════════════════════════════════════════════════════
 # Circuit Breaker for LLM Calls
 # ═════════════════════════════════════════════════════════════════════════
+
 
 class LLMCircuitBreaker:
     """Simple circuit breaker for LLM API calls.

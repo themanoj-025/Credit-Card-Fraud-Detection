@@ -17,16 +17,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.explainability.shap_utils import FraudPredictor
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def simple_model():
     """A simple trained RandomForest for testing."""
     np.random.seed(42)
-    X = pd.DataFrame(
-        {f"V{i}": np.random.randn(200) for i in range(1, 29)}
-    )
+    X = pd.DataFrame({f"V{i}": np.random.randn(200) for i in range(1, 29)})
     X["Time"] = np.random.uniform(0, 172800, 200)
     X["Amount"] = np.random.exponential(100, 200)
     y = (X["V14"] < -2).astype(int)  # Signal based on V14
@@ -58,6 +56,7 @@ def sample_transaction():
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
 
+
 class TestFraudPredictorInit:
     """Tests for FraudPredictor initialization."""
 
@@ -81,6 +80,7 @@ class TestFraudPredictorInit:
 
 
 # ─── Tests: Prediction ─────────────────────────────────────────────────
+
 
 class TestPrediction:
     """Tests for predict_single and predict_batch."""
@@ -127,7 +127,9 @@ class TestPrediction:
         """Test that a transaction with strong V14 signal gets higher probability."""
         result = predictor.predict_single(sample_transaction, return_shap=False)
         # V14 = -5 is a strong fraud signal — should be > 0.5
-        assert result["fraud_probability"] >= 0.3  # Not guaranteed >0.5 with small model
+        assert (
+            result["fraud_probability"] >= 0.3
+        )  # Not guaranteed >0.5 with small model
 
     def test_predict_legitimate_low_probability(self, predictor):
         """Test that a normal transaction gets low probability."""
@@ -140,6 +142,7 @@ class TestPrediction:
 
 
 # ─── Tests: SHAP Explanation ────────────────────────────────────────────
+
 
 class TestShapExplanation:
     """Tests for SHAP explanation content."""
@@ -183,6 +186,7 @@ class TestShapExplanation:
 
 # ─── Tests: Format Explanation ─────────────────────────────────────────
 
+
 class TestFormatExplanation:
     """Tests for _format_explanation method."""
 
@@ -207,6 +211,7 @@ class TestFormatExplanation:
 
 # ─── Tests: Global Feature Importance ───────────────────────────────────
 
+
 class TestGlobalImportance:
     """Tests for get_global_feature_importance."""
 
@@ -224,4 +229,7 @@ class TestGlobalImportance:
         _, X = simple_model
         importance = predictor.get_global_feature_importance(X.head(50))
         for i in range(len(importance) - 1):
-            assert importance.iloc[i]["mean_abs_shap"] >= importance.iloc[i + 1]["mean_abs_shap"]
+            assert (
+                importance.iloc[i]["mean_abs_shap"]
+                >= importance.iloc[i + 1]["mean_abs_shap"]
+            )

@@ -107,8 +107,11 @@ class BusinessCostCalculator:
                 best_threshold = threshold
                 best_metrics = cost
 
-        logger.info("Optimal threshold: %.4f (Net benefit: $%.2f)",
-                     best_threshold, best_metrics["net_benefit_usd"])
+        logger.info(
+            "Optimal threshold: %.4f (Net benefit: $%.2f)",
+            best_threshold,
+            best_metrics["net_benefit_usd"],
+        )
         return best_threshold, best_metrics
 
     def plot_cost_vs_threshold(
@@ -136,13 +139,25 @@ class BusinessCostCalculator:
         fig, ax = plt.subplots(figsize=(10, 6))
 
         ax.plot(thresholds, costs, label="Total Cost ($)", linewidth=2, color="red")
-        ax.plot(thresholds, benefits, label="Net Benefit ($)", linewidth=2, color="green")
-        ax.axvline(x=0.5, color="gray", linestyle="--", alpha=0.7,
-                   label="Default threshold (0.5)")
+        ax.plot(
+            thresholds, benefits, label="Net Benefit ($)", linewidth=2, color="green"
+        )
+        ax.axvline(
+            x=0.5,
+            color="gray",
+            linestyle="--",
+            alpha=0.7,
+            label="Default threshold (0.5)",
+        )
 
         optimal_t, _ = self.find_optimal_threshold(y_true, y_proba)
-        ax.axvline(x=optimal_t, color="blue", linestyle="--", alpha=0.7,
-                   label=f"Optimal threshold ({optimal_t:.4f})")
+        ax.axvline(
+            x=optimal_t,
+            color="blue",
+            linestyle="--",
+            alpha=0.7,
+            label=f"Optimal threshold ({optimal_t:.4f})",
+        )
 
         ax.set_xlabel("Threshold", fontsize=12)
         ax.set_ylabel("USD ($)", fontsize=12)

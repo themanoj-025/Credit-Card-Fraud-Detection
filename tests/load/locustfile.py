@@ -55,9 +55,7 @@ class FraudPredictionUser(HttpUser):
             name="/predict",
         ) as response:
             if response.status_code not in (200, 503):
-                response.failure(
-                    f"Unexpected status: {response.status_code}"
-                )
+                response.failure(f"Unexpected status: {response.status_code}")
 
     @task(2)  # 20% of requests — single prediction with SHAP
     def predict_single_with_explain(self) -> None:
@@ -71,9 +69,7 @@ class FraudPredictionUser(HttpUser):
             name="/predict (explain)",
         ) as response:
             if response.status_code not in (200, 503):
-                response.failure(
-                    f"Unexpected status: {response.status_code}"
-                )
+                response.failure(f"Unexpected status: {response.status_code}")
 
     @task(1)  # 10% of requests — batch prediction
     def predict_batch(self) -> None:
@@ -87,6 +83,4 @@ class FraudPredictionUser(HttpUser):
             name="/predict/batch",
         ) as response:
             if response.status_code not in (200, 503):
-                response.failure(
-                    f"Unexpected status: {response.status_code}"
-                )
+                response.failure(f"Unexpected status: {response.status_code}")

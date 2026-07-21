@@ -5,7 +5,7 @@ FraudLens — Drift Event Repository
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import DriftEventModel
@@ -56,9 +56,11 @@ class DriftEventRepository(BaseRepository[DriftEventModel]):
         feature_name: Optional[str] = None,
     ) -> List[DriftEventModel]:
         """Get events since a timestamp, optionally for a specific feature."""
-        stmt = select(DriftEventModel).where(
-            DriftEventModel.created_at >= since
-        ).order_by(DriftEventModel.created_at.desc())
+        stmt = (
+            select(DriftEventModel)
+            .where(DriftEventModel.created_at >= since)
+            .order_by(DriftEventModel.created_at.desc())
+        )
         if feature_name:
             stmt = stmt.where(DriftEventModel.feature_name == feature_name)
         result = await self.session.execute(stmt)

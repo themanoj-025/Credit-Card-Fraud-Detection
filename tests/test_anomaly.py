@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.models.anomaly import IsolationForestDetector
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def normal_data() -> pd.DataFrame:
@@ -29,10 +29,13 @@ def normal_data() -> pd.DataFrame:
 @pytest.fixture
 def anomalous_point() -> pd.DataFrame:
     """A clearly anomalous point far from the normal distribution."""
-    return pd.DataFrame([[10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0]])
+    return pd.DataFrame(
+        [[10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0, 10.0, -10.0]]
+    )
 
 
 # ─── Tests: IsolationForestDetector ─────────────────────────────────────
+
 
 class TestIsolationForestDetector:
     """Tests for IsolationForestDetector."""
@@ -87,6 +90,7 @@ class TestIsolationForestDetector:
 
 # ─── Tests: Fraud Probability Conversion ────────────────────────────────
 
+
 class TestFraudProbability:
     """Tests for predict_proba_as_fraud method."""
 
@@ -110,6 +114,7 @@ class TestFraudProbability:
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
 
+
 class TestEdgeCases:
     """Edge case tests for anomaly detection."""
 
@@ -131,6 +136,7 @@ class TestEdgeCases:
 
 
 # ─── Tests: AutoencoderDetector ─────────────────────────────────────────
+
 
 class TestAutoencoderDetector:
     """Tests for AutoencoderDetector (if TensorFlow is available)."""

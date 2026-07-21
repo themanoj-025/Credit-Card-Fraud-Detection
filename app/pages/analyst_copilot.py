@@ -53,7 +53,8 @@ def show() -> None:
 
     # ─── System Status ────────────────────────────────────────────────
     has_api_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="display:flex;gap:16px;margin-bottom:16px;">
         <div style="background:#1a1a2e;border:1px solid {'#38ef7d33' if api_available else '#3a1a1a'};border-radius:8px;padding:8px 12px;">
             <span style="color:{'#38ef7d' if api_available else '#ff6b6b'};font-size:12px;font-weight:600;">
@@ -66,7 +67,9 @@ def show() -> None:
             </span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # ─── Example Queries ─────────────────────────────────────────────
     if not st.session_state.get("copilot_messages"):
@@ -93,7 +96,9 @@ def show() -> None:
 
     # Display chat history
     for msg in st.session_state.copilot_messages:
-        with st.chat_message(msg["role"], avatar="🧑‍💼" if msg["role"] == "user" else "🤖"):
+        with st.chat_message(
+            msg["role"], avatar="🧑‍💼" if msg["role"] == "user" else "🤖"
+        ):
             st.markdown(msg["content"])
 
     # Chat input
@@ -115,12 +120,18 @@ def _send_message(prompt: str) -> None:
     response = _get_copilot_response(prompt, st.session_state.copilot_history)
 
     if response:
-        st.session_state.copilot_messages.append({"role": "assistant", "content": response})
-        st.session_state.copilot_history.append({"role": "assistant", "content": response})
+        st.session_state.copilot_messages.append(
+            {"role": "assistant", "content": response}
+        )
+        st.session_state.copilot_history.append(
+            {"role": "assistant", "content": response}
+        )
     else:
         # Fallback response when API is unavailable
         fallback = _get_fallback_response(prompt)
-        st.session_state.copilot_messages.append({"role": "assistant", "content": fallback})
+        st.session_state.copilot_messages.append(
+            {"role": "assistant", "content": fallback}
+        )
 
 
 def _get_fallback_response(prompt: str) -> str:

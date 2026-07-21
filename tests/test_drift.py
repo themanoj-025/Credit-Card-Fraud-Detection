@@ -16,29 +16,33 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.monitoring.drift import DriftDetector, simulate_drift
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def reference_data() -> pd.DataFrame:
     """Normal reference distribution."""
     np.random.seed(42)
-    return pd.DataFrame({
-        "V1": np.random.randn(1000),
-        "V14": np.random.randn(1000),
-        "Amount": np.random.exponential(100, 1000),
-    })
+    return pd.DataFrame(
+        {
+            "V1": np.random.randn(1000),
+            "V14": np.random.randn(1000),
+            "Amount": np.random.exponential(100, 1000),
+        }
+    )
 
 
 @pytest.fixture
 def drifted_data() -> pd.DataFrame:
     """Data with a shifted distribution."""
     np.random.seed(42)
-    return pd.DataFrame({
-        "V1": np.random.randn(1000) + 2.0,  # Shifted mean
-        "V14": np.random.randn(1000) * 3.0,  # Different variance
-        "Amount": np.random.exponential(200, 1000),  # Different scale
-    })
+    return pd.DataFrame(
+        {
+            "V1": np.random.randn(1000) + 2.0,  # Shifted mean
+            "V14": np.random.randn(1000) * 3.0,  # Different variance
+            "Amount": np.random.exponential(200, 1000),  # Different scale
+        }
+    )
 
 
 @pytest.fixture
@@ -52,6 +56,7 @@ def detector(reference_data) -> DriftDetector:
 
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
+
 
 class TestDetectorInit:
     """Tests for DriftDetector initialization."""
@@ -77,6 +82,7 @@ class TestDetectorInit:
 
 
 # ─── Tests: Drift Detection ─────────────────────────────────────────────
+
 
 class TestDetectDrift:
     """Tests for detect_drift method."""
@@ -115,6 +121,7 @@ class TestDetectDrift:
 
 # ─── Tests: Drift Score ─────────────────────────────────────────────────
 
+
 class TestDriftScore:
     """Tests for get_overall_drift_score method."""
 
@@ -143,6 +150,7 @@ class TestDriftScore:
 
 # ─── Tests: Report Generation ───────────────────────────────────────────
 
+
 class TestReport:
     """Tests for generate_report method."""
 
@@ -163,6 +171,7 @@ class TestReport:
 
 
 # ─── Tests: Drift History ───────────────────────────────────────────────
+
 
 class TestDriftHistory:
     """Tests for drift history tracking."""
@@ -185,6 +194,7 @@ class TestDriftHistory:
 
 # ─── Tests: simulate_drift ───────────────────────────────────────────────
 
+
 class TestSimulateDrift:
     """Tests for simulate_drift helper function."""
 
@@ -205,10 +215,13 @@ class TestSimulateDrift:
         """Test that zero magnitude returns nearly original data."""
         drifted = simulate_drift(reference_data, drift_magnitude=0.0)
         # Should be very close to original
-        assert np.allclose(drifted["Amount"].mean(), reference_data["Amount"].mean(), rtol=0.1)
+        assert np.allclose(
+            drifted["Amount"].mean(), reference_data["Amount"].mean(), rtol=0.1
+        )
 
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
+
 
 class TestEdgeCases:
     """Edge case tests for DriftDetector."""

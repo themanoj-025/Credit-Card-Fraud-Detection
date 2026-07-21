@@ -88,4 +88,6 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("Database tables created/verified (engine=%s)", _DATABASE_URL.split("://")[0])
+    logger.info(
+        "Database tables created/verified (engine=%s)", _DATABASE_URL.split("://")[0]
+    )

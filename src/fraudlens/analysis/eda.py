@@ -101,7 +101,8 @@ def plot_class_imbalance(df: pd.DataFrame) -> plt.Figure:
     # Add annotation about imbalance ratio
     ratio = class_counts[0] / class_counts[1]
     ax.text(
-        0.5, 0.92,
+        0.5,
+        0.92,
         f"Imbalance Ratio: {ratio:.0f}:1 (Legitimate : Fraud)",
         transform=ax.transAxes,
         fontsize=12,
@@ -139,14 +140,18 @@ def plot_amount_distribution(df: pd.DataFrame) -> plt.Figure:
 
     # Box plot
     ax2 = axes[1]
-    bp_data = [df[df["Class"] == 0]["Amount"].clip(upper=500),
-               df[df["Class"] == 1]["Amount"].clip(upper=500)]
-    bp = ax2.boxplot(bp_data, tick_labels=[LABELS[0], LABELS[1]],
-                     patch_artist=True, widths=0.5)
+    bp_data = [
+        df[df["Class"] == 0]["Amount"].clip(upper=500),
+        df[df["Class"] == 1]["Amount"].clip(upper=500),
+    ]
+    bp = ax2.boxplot(
+        bp_data, tick_labels=[LABELS[0], LABELS[1]], patch_artist=True, widths=0.5
+    )
     bp["boxes"][0].set_facecolor(COLORS["legitimate"])
     bp["boxes"][1].set_facecolor(COLORS["fraud"])
-    ax2.set_title("Amount Distribution (Box Plot, capped at $500)",
-                   fontsize=15, fontweight="bold")
+    ax2.set_title(
+        "Amount Distribution (Box Plot, capped at $500)", fontsize=15, fontweight="bold"
+    )
     ax2.set_ylabel("Transaction Amount ($)", fontsize=13)
 
     # Add statistics annotations
@@ -176,8 +181,11 @@ def plot_time_distribution(df: pd.DataFrame) -> plt.Figure:
         ax.hist(subset, bins=48, alpha=0.8, color=color, edgecolor="white")
         ax.set_xlabel("Time (hours)", fontsize=13)
         ax.set_ylabel("Frequency", fontsize=13)
-        ax.set_title(f"{label} Transactions Over Time (n={len(subset):,})",
-                      fontsize=15, fontweight="bold")
+        ax.set_title(
+            f"{label} Transactions Over Time (n={len(subset):,})",
+            fontsize=15,
+            fontweight="bold",
+        )
         ax.axvline(x=12, color="gray", linestyle="--", alpha=0.5, label="Noon")
         ax.legend(fontsize=11)
 
@@ -192,9 +200,11 @@ def plot_tsne_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
     # Sample for speed
     if len(df) > sample_size:
         fraud_idx = df[df["Class"] == 1].index
-        legit_idx = df[df["Class"] == 0].sample(
-            n=sample_size - len(fraud_idx), random_state=42
-        ).index
+        legit_idx = (
+            df[df["Class"] == 0]
+            .sample(n=sample_size - len(fraud_idx), random_state=42)
+            .index
+        )
         sample_idx = sorted(np.concatenate([fraud_idx, legit_idx]))
         df_sample = df.loc[sample_idx]
     else:
@@ -204,7 +214,14 @@ def plot_tsne_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
     X = df_sample[PCA_FEATURES].fillna(0).values
     y = df_sample["Class"].values
 
-    tsne = TSNE(n_components=2, random_state=42, perplexity=30, max_iter=1000, verbose=0, learning_rate='auto')
+    tsne = TSNE(
+        n_components=2,
+        random_state=42,
+        perplexity=30,
+        max_iter=1000,
+        verbose=0,
+        learning_rate="auto",
+    )
     X_tsne = tsne.fit_transform(X)
 
     fig, ax = plt.subplots(figsize=(12, 10))
@@ -213,9 +230,13 @@ def plot_tsne_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
         color = COLORS["legitimate"] if cls == 0 else COLORS["fraud"]
         label = LABELS[cls]
         ax.scatter(
-            X_tsne[mask, 0], X_tsne[mask, 1],
-            c=color, label=f"{label} (n={mask.sum():,})",
-            alpha=0.6, s=5 if cls == 0 else 20, edgecolors="none",
+            X_tsne[mask, 0],
+            X_tsne[mask, 1],
+            c=color,
+            label=f"{label} (n={mask.sum():,})",
+            alpha=0.6,
+            s=5 if cls == 0 else 20,
+            edgecolors="none",
         )
 
     ax.set_title("t-SNE Projection of V1-V28 Features", fontsize=18, fontweight="bold")
@@ -236,9 +257,11 @@ def plot_umap_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
         # Sample for speed
         if len(df) > sample_size:
             fraud_idx = df[df["Class"] == 1].index
-            legit_idx = df[df["Class"] == 0].sample(
-                n=sample_size - len(fraud_idx), random_state=42
-            ).index
+            legit_idx = (
+                df[df["Class"] == 0]
+                .sample(n=sample_size - len(fraud_idx), random_state=42)
+                .index
+            )
             sample_idx = sorted(np.concatenate([fraud_idx, legit_idx]))
             df_sample = df.loc[sample_idx]
         else:
@@ -248,7 +271,9 @@ def plot_umap_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
         X = df_sample[PCA_FEATURES].fillna(0).values
         y = df_sample["Class"].values
 
-        reducer = umap.UMAP(n_components=2, random_state=42, n_neighbors=30, min_dist=0.1)
+        reducer = umap.UMAP(
+            n_components=2, random_state=42, n_neighbors=30, min_dist=0.1
+        )
         X_umap = reducer.fit_transform(X)
 
         fig, ax = plt.subplots(figsize=(12, 10))
@@ -257,12 +282,18 @@ def plot_umap_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
             color = COLORS["legitimate"] if cls == 0 else COLORS["fraud"]
             label = LABELS[cls]
             ax.scatter(
-                X_umap[mask, 0], X_umap[mask, 1],
-                c=color, label=f"{label} (n={mask.sum():,})",
-                alpha=0.6, s=5 if cls == 0 else 20, edgecolors="none",
+                X_umap[mask, 0],
+                X_umap[mask, 1],
+                c=color,
+                label=f"{label} (n={mask.sum():,})",
+                alpha=0.6,
+                s=5 if cls == 0 else 20,
+                edgecolors="none",
             )
 
-        ax.set_title("UMAP Projection of V1-V28 Features", fontsize=18, fontweight="bold")
+        ax.set_title(
+            "UMAP Projection of V1-V28 Features", fontsize=18, fontweight="bold"
+        )
         ax.set_xlabel("UMAP Component 1", fontsize=13)
         ax.set_ylabel("UMAP Component 2", fontsize=13)
         ax.legend(fontsize=12, markerscale=3)
@@ -273,8 +304,15 @@ def plot_umap_projection(df: pd.DataFrame, sample_size: int = 10000) -> plt.Figu
     except ImportError:
         print("  [SKIP] UMAP not installed. Install with: pip install umap-learn")
         fig, ax = plt.subplots(figsize=(8, 4))
-        ax.text(0.5, 0.5, "UMAP not available\nInstall: pip install umap-learn",
-                ha="center", va="center", fontsize=14, transform=ax.transAxes)
+        ax.text(
+            0.5,
+            0.5,
+            "UMAP not available\nInstall: pip install umap-learn",
+            ha="center",
+            va="center",
+            fontsize=14,
+            transform=ax.transAxes,
+        )
         return fig
 
 
@@ -287,13 +325,23 @@ def plot_correlation_heatmap(df: pd.DataFrame) -> plt.Figure:
     cmap = sns.diverging_palette(250, 10, as_cmap=True)
 
     sns.heatmap(
-        corr, mask=mask, cmap=cmap, center=0,
-        square=True, linewidths=0.5, cbar_kws={"shrink": 0.75},
-        ax=ax, vmin=-1, vmax=1,
-        xticklabels=True, yticklabels=True,
+        corr,
+        mask=mask,
+        cmap=cmap,
+        center=0,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={"shrink": 0.75},
+        ax=ax,
+        vmin=-1,
+        vmax=1,
+        xticklabels=True,
+        yticklabels=True,
     )
 
-    ax.set_title("Feature Correlation Heatmap (V1-V28)", fontsize=18, fontweight="bold", pad=20)
+    ax.set_title(
+        "Feature Correlation Heatmap (V1-V28)", fontsize=18, fontweight="bold", pad=20
+    )
     ax.tick_params(axis="both", labelsize=8)
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
@@ -316,10 +364,12 @@ def _get_feature_importances(df: pd.DataFrame) -> pd.DataFrame:
 
     rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
     rf.fit(X, y)
-    _FEATURE_IMPORTANCE_CACHE = pd.DataFrame({
-        "feature": PCA_FEATURES,
-        "importance": rf.feature_importances_,
-    }).sort_values("importance", ascending=False)
+    _FEATURE_IMPORTANCE_CACHE = pd.DataFrame(
+        {
+            "feature": PCA_FEATURES,
+            "importance": rf.feature_importances_,
+        }
+    ).sort_values("importance", ascending=False)
 
     return _FEATURE_IMPORTANCE_CACHE
 
@@ -350,12 +400,17 @@ def plot_feature_separability(df: pd.DataFrame) -> plt.Figure:
         bp["medians"][0].set_color("white")
         bp["medians"][1].set_color("white")
 
-        ax.set_title(f"{feature} (importance={importances.iloc[idx]['importance']:.4f})",
-                      fontsize=13, fontweight="bold")
+        ax.set_title(
+            f"{feature} (importance={importances.iloc[idx]['importance']:.4f})",
+            fontsize=13,
+            fontweight="bold",
+        )
         ax.tick_params(axis="x", labelsize=10)
         ax.grid(True, alpha=0.3)
 
-    fig.suptitle("Top 6 Features — Class Separability", fontsize=16, fontweight="bold", y=1.02)
+    fig.suptitle(
+        "Top 6 Features — Class Separability", fontsize=16, fontweight="bold", y=1.02
+    )
     plt.tight_layout()
     return fig
 
@@ -373,14 +428,17 @@ def plot_feature_distributions(df: pd.DataFrame) -> plt.Figure:
         for cls in [0, 1]:
             subset = df[df["Class"] == cls][feature]
             color = COLORS["legitimate"] if cls == 0 else COLORS["fraud"]
-            ax.hist(subset, bins=50, alpha=0.6, color=color,
-                    label=LABELS[cls], density=True)
+            ax.hist(
+                subset, bins=50, alpha=0.6, color=color, label=LABELS[cls], density=True
+            )
         ax.set_title(feature, fontsize=14, fontweight="bold")
         ax.tick_params(axis="both", labelsize=10)
         if idx == 0:
             ax.legend(fontsize=11)
 
-    fig.suptitle("Top 9 Feature Distributions by Class", fontsize=16, fontweight="bold", y=1.02)
+    fig.suptitle(
+        "Top 9 Feature Distributions by Class", fontsize=16, fontweight="bold", y=1.02
+    )
     plt.tight_layout()
     return fig
 
@@ -392,9 +450,11 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
     # Sample for speed
     if len(df) > sample_size:
         fraud_idx = df[df["Class"] == 1].index
-        legit_idx = df[df["Class"] == 0].sample(
-            n=sample_size - len(fraud_idx), random_state=42
-        ).index
+        legit_idx = (
+            df[df["Class"] == 0]
+            .sample(n=sample_size - len(fraud_idx), random_state=42)
+            .index
+        )
         sample_idx = sorted(np.concatenate([fraud_idx, legit_idx]))
         df_sample = df.loc[sample_idx]
     else:
@@ -426,6 +486,7 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
 
 # ─── Main Pipeline ────────────────────────────────────────────────────────
 
+
 def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     """
     Run the complete EDA pipeline, saving all figures.
@@ -448,7 +509,9 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
         df = _load_data()
     except FileNotFoundError as e:
         print(f"\n  ❌ {e}")
-        print("  Download the dataset from: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud")
+        print(
+            "  Download the dataset from: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
+        )
         print("  Place it at: data/raw/creditcard.csv")
         return
 
@@ -494,6 +557,7 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     }
 
     import json
+
     summary_path = REPORTS_DIR / "eda_summary.json"
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(summary_path, "w") as f:
@@ -503,5 +567,7 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
     run_eda()

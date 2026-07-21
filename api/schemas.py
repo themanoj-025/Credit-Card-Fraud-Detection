@@ -154,9 +154,7 @@ class CursorPagination(BaseModel):
         False, description="Whether there are more results available"
     )
     limit: int = Field(..., description="Maximum results per page")
-    total: Optional[int] = Field(
-        None, description="Total number of results (if known)"
-    )
+    total: Optional[int] = Field(None, description="Total number of results (if known)")
 
 
 class SimilarCasesResponse(BaseModel):
@@ -187,10 +185,16 @@ class HealthResponse(BaseModel):
 class FeedbackCreate(BaseModel):
     """Request to submit feedback on a prediction."""
 
-    prediction_id: str = Field(..., description="UUID of the prediction to provide feedback on")
+    prediction_id: str = Field(
+        ..., description="UUID of the prediction to provide feedback on"
+    )
     confirmed_fraud: bool = Field(..., description="Whether the analyst confirms fraud")
-    analyst_notes: Optional[str] = Field(None, max_length=2000, description="Analyst notes")
-    reviewed_by: Optional[str] = Field(None, max_length=128, description="Analyst identifier")
+    analyst_notes: Optional[str] = Field(
+        None, max_length=2000, description="Analyst notes"
+    )
+    reviewed_by: Optional[str] = Field(
+        None, max_length=128, description="Analyst identifier"
+    )
 
 
 class FeedbackResponse(BaseModel):

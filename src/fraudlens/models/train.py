@@ -24,9 +24,9 @@ from src.fraudlens.config import (
     CROSS_VALIDATION_FOLDS,
     CROSS_VALIDATION_SCORING,
     DEFAULT_MODELS,
-    MODELS_DIR,
     MLFLOW_EXPERIMENT_NAME,
     MLFLOW_TRACKING_URI,
+    MODELS_DIR,
     RANDOM_STATE,
 )
 
@@ -167,13 +167,16 @@ class FraudTrainer:
         # Try to load CatBoost — graceful fallback if not installed
         try:
             from catboost import CatBoostClassifier
+
             self.configs["catboost"]["model_class"] = CatBoostClassifier
         except ImportError:
             logger.info("CatBoost not installed. Removing from configs.")
             if "catboost" in self.configs:
                 del self.configs["catboost"]
 
-        self.models_to_train = [m for m in (models_to_train or DEFAULT_MODELS) if m in self.configs]
+        self.models_to_train = [
+            m for m in (models_to_train or DEFAULT_MODELS) if m in self.configs
+        ]
         self.trained_models: Dict[str, Any] = {}
         self.training_results: Dict[str, Dict] = {}
         self.use_feature_engineering = use_feature_engineering
@@ -195,13 +198,15 @@ class FraudTrainer:
             return X
 
         from src.fraudlens.features.engineering import FeatureEngineer
+
         self.feature_engineer = FeatureEngineer(
             create_interactions=True, create_bins=True
         )
         X_eng = self.feature_engineer.transform(X)
         logger.info(
             "Feature engineering applied: %d → %d features",
-            X.shape[1], X_eng.shape[1],
+            X.shape[1],
+            X_eng.shape[1],
         )
         return X_eng
 
@@ -235,8 +240,16 @@ class FraudTrainer:
 
                 # Log training metadata
                 mlflow.log_param("model_name", name)
-                n_samples = len(self.training_results.get(name, {}).get("n_samples", 0)) if name in self.training_results else 0
-                n_features = len(self.training_results.get(name, {}).get("n_features", 0)) if name in self.training_results else 0
+                n_samples = (
+                    len(self.training_results.get(name, {}).get("n_samples", 0))
+                    if name in self.training_results
+                    else 0
+                )
+                n_features = (
+                    len(self.training_results.get(name, {}).get("n_features", 0))
+                    if name in self.training_results
+                    else 0
+                )
                 mlflow.log_param("n_samples", n_samples)
                 mlflow.log_param("n_features", n_features)
                 mlflow.log_metric("train_time_s", round(train_time, 2))
@@ -244,15 +257,20 @@ class FraudTrainer:
                 # Log the model artifact
                 try:
                     import sklearn
+
                     mlflow.sklearn.log_model(model, artifact_path="model")
                 except Exception:
-                    import joblib
                     import tempfile
+
+                    import joblib
+
                     with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
                         joblib.dump(model, f.name)
                         mlflow.log_artifact(f.name, artifact_path="model")
 
-                logger.info("  MLflow run logged: %s (tagged as %s)", run.info.run_id, name)
+                logger.info(
+                    "  MLflow run logged: %s (tagged as %s)", run.info.run_id, name
+                )
         except Exception as e:
             logger.warning("  MLflow logging failed for %s: %s", name, e)
 
@@ -399,9 +417,7 @@ class FraudTrainer:
                 params["scale_pos_weight"] = self._compute_scale_pos_weight(y)
 
             model = config["model_class"](**params)
-            skf = StratifiedKFold(
-                n_splits=cv, shuffle=True, random_state=RANDOM_STATE
-            )
+            skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=RANDOM_STATE)
             scores = cross_val_score(model, X, y, cv=skf, scoring=scoring)
 
             cv_result = {

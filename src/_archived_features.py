@@ -4,10 +4,11 @@ Feature Engineering Module
 Creates additional features from the base dataset to improve model performance.
 """
 
-import pandas as pd
-import numpy as np
-from typing import List, Optional
 import logging
+from typing import List, Optional
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 

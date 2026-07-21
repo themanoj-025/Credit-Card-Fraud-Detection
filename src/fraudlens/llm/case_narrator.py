@@ -79,6 +79,7 @@ class CaseNarrator:
         """Initialize the Anthropic client."""
         try:
             from anthropic import Anthropic
+
             self._client = Anthropic(api_key=self.api_key)
         except ImportError:
             logger.error(
@@ -110,15 +111,21 @@ class CaseNarrator:
             Plain-English narrative string
         """
         if not self.api_key:
-            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
+            return self._fallback_narrative(
+                shap_explanation, fraud_probability, is_fraud
+            )
 
         # Check circuit breaker before attempting LLM call
         if self._circuit_breaker is not None and self._circuit_breaker.is_open():
             logger.warning("Circuit breaker open — skipping LLM call")
-            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
+            return self._fallback_narrative(
+                shap_explanation, fraud_probability, is_fraud
+            )
 
         self._init_client()
-        prompt = self._build_prompt(transaction, fraud_probability, shap_explanation, is_fraud)
+        prompt = self._build_prompt(
+            transaction, fraud_probability, shap_explanation, is_fraud
+        )
 
         try:
             narrative = self._call_llm_with_retry(prompt)
@@ -130,10 +137,13 @@ class CaseNarrator:
             logger.warning("LLM call failed after retries: %s", e)
             if self._circuit_breaker is not None:
                 self._circuit_breaker.record_failure()
-            return self._fallback_narrative(shap_explanation, fraud_probability, is_fraud)
+            return self._fallback_narrative(
+                shap_explanation, fraud_probability, is_fraud
+            )
 
     def _call_llm_with_retry(self, prompt: str) -> str:
         """Make the LLM call with tenacity retry logic."""
+
         @_LLM_RETRY
         def _do_call() -> str:
             response = self._client.messages.create(
@@ -158,7 +168,9 @@ class CaseNarrator:
         features_str = json.dumps(top_features, indent=2)
         amount = transaction.get("Amount", "N/A")
         time_val = transaction.get("Time", "N/A")
-        hour = round((float(time_val) % 86400) / 3600, 1) if time_val != "N/A" else "N/A"
+        hour = (
+            round((float(time_val) % 86400) / 3600, 1) if time_val != "N/A" else "N/A"
+        )
 
         return f"""You are a fraud analysis assistant. Given transaction details and SHAP values, write a short, plain-English paragraph explaining this transaction.
 
@@ -192,23 +204,22 @@ Be specific, concise, and avoid technical jargon. Write as if for a non-technica
         """
         top = shap_explanation[:3] if shap_explanation else []
         top_features_str = ", ".join(
-            f"{f['feature']} ({f.get('value', f.get('shap_value', 0)):.2f}, {f['impact']})" for f in top
+            f"{f['feature']} ({f.get('value', f.get('shap_value', 0)):.2f}, {f['impact']})"
+            for f in top
         )
 
         prefix = "[Automated summary — narrative generation unavailable] "
 
         if is_fraud:
             narrative = (
-                prefix
-                + f"Transaction flagged as potentially fraudulent "
+                prefix + f"Transaction flagged as potentially fraudulent "
                 f"({fraud_probability:.1%} confidence). "
                 f"Top indicators: {top_features_str}. "
                 f"Recommended action: manual review by a fraud analyst."
             )
         else:
             narrative = (
-                prefix
-                + f"Transaction appears legitimate "
+                prefix + f"Transaction appears legitimate "
                 f"({1-fraud_probability:.1%} confidence). "
                 f"No strong fraud indicators detected."
             )

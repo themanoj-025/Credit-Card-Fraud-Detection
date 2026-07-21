@@ -10,26 +10,28 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.models.model_selection import ModelSelector
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def comparison_df() -> pd.DataFrame:
     """A model comparison table for testing."""
-    return pd.DataFrame({
-        "Model": ["Logistic Regression", "Random Forest", "XGBoost"],
-        "PR-AUC": [0.72, 0.84, 0.88],
-        "ROC-AUC": [0.97, 0.98, 0.97],
-        "F1": [0.62, 0.56, 0.71],
-        "Net Benefit ($)": [12140, 12130, 12445],
-    })
+    return pd.DataFrame(
+        {
+            "Model": ["Logistic Regression", "Random Forest", "XGBoost"],
+            "PR-AUC": [0.72, 0.84, 0.88],
+            "ROC-AUC": [0.97, 0.98, 0.97],
+            "F1": [0.62, 0.56, 0.71],
+            "Net Benefit ($)": [12140, 12130, 12445],
+        }
+    )
 
 
 @pytest.fixture
@@ -44,10 +46,13 @@ def trained_models() -> dict:
 
 # ─── Tests ────────────────────────────────────────────────────────────────
 
+
 class TestModelSelector:
     """Tests for ModelSelector class."""
 
-    def test_selects_highest_pr_auc(self, comparison_df: pd.DataFrame, trained_models: dict):
+    def test_selects_highest_pr_auc(
+        self, comparison_df: pd.DataFrame, trained_models: dict
+    ):
         """Test that selector picks the model with highest PR-AUC."""
         selector = ModelSelector(metric="PR-AUC", higher_is_better=True)
         result = selector.select(comparison_df, trained_models)
@@ -55,7 +60,9 @@ class TestModelSelector:
         assert result["best_model_name"] == "XGBoost"
         assert result["metric_value"] == 0.88
 
-    def test_selects_lowest_value(self, comparison_df: pd.DataFrame, trained_models: dict):
+    def test_selects_lowest_value(
+        self, comparison_df: pd.DataFrame, trained_models: dict
+    ):
         """Test with higher_is_better=False picks the lowest value."""
         selector = ModelSelector(metric="PR-AUC", higher_is_better=False)
         result = selector.select(comparison_df, trained_models)
@@ -70,20 +77,26 @@ class TestModelSelector:
         ranking = result["ranking"]
         assert ranking["PR-AUC"].iloc[0] >= ranking["PR-AUC"].iloc[-1]
 
-    def test_raises_error_for_missing_metric(self, comparison_df: pd.DataFrame, trained_models: dict):
+    def test_raises_error_for_missing_metric(
+        self, comparison_df: pd.DataFrame, trained_models: dict
+    ):
         """Test that missing metric column raises ValueError."""
         selector = ModelSelector(metric="non_existent")
         with pytest.raises(ValueError):
             selector.select(comparison_df, trained_models)
 
-    def test_raises_error_for_missing_model(self, comparison_df: pd.DataFrame, trained_models: dict):
+    def test_raises_error_for_missing_model(
+        self, comparison_df: pd.DataFrame, trained_models: dict
+    ):
         """Test that missing model in trained_models raises KeyError."""
         bad_models = {"Wrong Model": LogisticRegression()}
         selector = ModelSelector(metric="PR-AUC")
         with pytest.raises(KeyError):
             selector.select(comparison_df, bad_models)
 
-    def test_reasoning_includes_winner(self, comparison_df: pd.DataFrame, trained_models: dict):
+    def test_reasoning_includes_winner(
+        self, comparison_df: pd.DataFrame, trained_models: dict
+    ):
         """Test that reasoning string mentions the winner."""
         selector = ModelSelector(metric="PR-AUC")
         result = selector.select(comparison_df, trained_models)

@@ -85,9 +85,7 @@ class FraudPreprocessor:
         logger.info(
             "Train set: %d samples (%d fraud)", len(X_train), int(y_train.sum())
         )
-        logger.info(
-            "Test set: %d samples (%d fraud)", len(X_test), int(y_test.sum())
-        )
+        logger.info("Test set: %d samples (%d fraud)", len(X_test), int(y_test.sum()))
 
         return X_train, X_test, y_train, y_test
 
@@ -105,9 +103,7 @@ class FraudPreprocessor:
             return X_train
 
         X_scaled = X_train.copy()
-        X_scaled[SCALE_FEATURES] = self.scaler.fit_transform(
-            X_train[SCALE_FEATURES]
-        )
+        X_scaled[SCALE_FEATURES] = self.scaler.fit_transform(X_train[SCALE_FEATURES])
         self._is_fitted = True
 
         logger.info("Scaler fitted on training data: %s", SCALE_FEATURES)

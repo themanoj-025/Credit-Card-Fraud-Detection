@@ -10,8 +10,8 @@ Usage:
     from api.main import app  # or just use limiter directly
 """
 
-import os
 import logging
+import os
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 redis_url = os.environ.get("REDIS_URL", "")
 if redis_url:
     from slowapi import RedisStorage
+
     limiter = Limiter(key_func=get_remote_address, storage_uri=redis_url)
     logger.info("Rate limiter using Redis: %s", redis_url)
 else:

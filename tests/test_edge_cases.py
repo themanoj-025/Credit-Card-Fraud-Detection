@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from api.schemas import TransactionInput
 
-
 # ─── NaN/Inf Tests (at Pydantic model level) ────────────────────────────
+
 
 class TestNanInfAtModelLevel:
     """NaN/Inf tested at Pydantic model level (JSON can't serialize these)."""
@@ -123,6 +123,7 @@ class TestModelBoundaries:
     def test_threshold_at_zero(self):
         """At threshold=0, all probabilities are FRAUD (p >= 0)."""
         import numpy as np
+
         probas = np.array([0.0, 0.1, 0.5, 0.9, 1.0])
         threshold = 0.0
         decisions = ["FRAUD" if p >= threshold else "LEGITIMATE" for p in probas]
@@ -131,15 +132,23 @@ class TestModelBoundaries:
     def test_threshold_at_one(self):
         """At threshold=1, only p=1.0 is FRAUD, everything else is LEGITIMATE."""
         import numpy as np
+
         probas = np.array([0.0, 0.1, 0.5, 0.9, 1.0])
         threshold = 1.0
         decisions = ["FRAUD" if p >= threshold else "LEGITIMATE" for p in probas]
         # Only the last probability (1.0) should be FRAUD at threshold 1.0
-        assert decisions == ["LEGITIMATE", "LEGITIMATE", "LEGITIMATE", "LEGITIMATE", "FRAUD"]
+        assert decisions == [
+            "LEGITIMATE",
+            "LEGITIMATE",
+            "LEGITIMATE",
+            "LEGITIMATE",
+            "FRAUD",
+        ]
 
     def test_threshold_just_above_one(self):
         """At threshold > 1, nothing is FRAUD."""
         import numpy as np
+
         probas = np.array([0.0, 0.1, 0.5, 0.9, 1.0])
         threshold = 1.01
         decisions = ["FRAUD" if p >= threshold else "LEGITIMATE" for p in probas]

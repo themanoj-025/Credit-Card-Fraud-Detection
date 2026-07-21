@@ -5,11 +5,12 @@ Makes predictions with SHAP-based explanations.
 Provides per-transaction interpretability for fraud analysts.
 """
 
-import pandas as pd
-import numpy as np
-from typing import Dict, Any, Optional, List, Tuple
-import joblib
 import logging
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
+import numpy as np
+import pandas as pd
 import shap
 
 logger = logging.getLogger(__name__)

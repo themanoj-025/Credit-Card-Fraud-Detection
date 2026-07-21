@@ -61,8 +61,8 @@ from src.fraudlens.models.anomaly import IsolationForestDetector
 from src.fraudlens.persistence import init_db
 from src.fraudlens.prediction.model_loader import ModelLoader
 
-
 # ─── Attempt to load optional dependencies ───────────────────────────────
+
 
 def _try_load_copilot(app: FastAPI):
     """Try to load Anthropic client for copilot features."""
@@ -70,6 +70,7 @@ def _try_load_copilot(app: FastAPI):
     if api_key:
         try:
             from anthropic import Anthropic
+
             app.state.copilot_client = Anthropic(api_key=api_key)
             logger.info("Analyst Copilot initialized")
         except ImportError:
@@ -104,6 +105,7 @@ def _try_load_rag_retriever(app: FastAPI):
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load models and dependencies on startup into app.state."""
@@ -112,7 +114,9 @@ async def lifespan(app: FastAPI):
     if is_auth_enabled():
         logger.info("API key authentication enabled")
     else:
-        logger.warning("API key authentication DISABLED — set FRAUDLENS_API_KEYS to enable")
+        logger.warning(
+            "API key authentication DISABLED — set FRAUDLENS_API_KEYS to enable"
+        )
 
     # Initialize database
     try:
@@ -126,9 +130,13 @@ async def lifespan(app: FastAPI):
         model_loader = ModelLoader(verify_checksum=True)
         model_loader.load_all()
         shap_explainer = ShapExplainer()
-        predictor = FraudPredictor(model_loader=model_loader, shap_explainer=shap_explainer)
+        predictor = FraudPredictor(
+            model_loader=model_loader, shap_explainer=shap_explainer
+        )
         app.state.predictor = predictor
-        logger.info("Model loaded successfully (threshold=%.4f)", model_loader.threshold)
+        logger.info(
+            "Model loaded successfully (threshold=%.4f)", model_loader.threshold
+        )
     except Exception as e:
         logger.warning("Failed to load model: %s", e)
         app.state.predictor = None
@@ -138,6 +146,7 @@ async def lifespan(app: FastAPI):
         anomaly_path = MODELS_DIR / "anomaly_detector.pkl"
         if anomaly_path.exists():
             import joblib
+
             app.state.anomaly_detector = joblib.load(anomaly_path)
             logger.info("Anomaly detector loaded")
         else:
@@ -156,16 +165,28 @@ async def lifespan(app: FastAPI):
 
     # Wire circuit breaker into case narrator
     from api.exceptions import circuit_breaker
+
     app.state.llm_circuit_breaker = circuit_breaker
     case_narrator = getattr(app.state, "case_narrator", None)
     if case_narrator is not None:
         case_narrator.set_circuit_breaker(circuit_breaker)
 
     # Update Prometheus gauges with current state
-    from api.metrics import ANOMALY_LOADED_GAUGE, LLM_AVAILABLE_GAUGE, MODEL_LOADED_GAUGE
-    MODEL_LOADED_GAUGE.set(1 if getattr(app.state, "predictor", None) is not None else 0)
-    ANOMALY_LOADED_GAUGE.set(1 if getattr(app.state, "anomaly_detector", None) is not None else 0)
-    LLM_AVAILABLE_GAUGE.set(1 if getattr(app.state, "copilot_client", None) is not None else 0)
+    from api.metrics import (
+        ANOMALY_LOADED_GAUGE,
+        LLM_AVAILABLE_GAUGE,
+        MODEL_LOADED_GAUGE,
+    )
+
+    MODEL_LOADED_GAUGE.set(
+        1 if getattr(app.state, "predictor", None) is not None else 0
+    )
+    ANOMALY_LOADED_GAUGE.set(
+        1 if getattr(app.state, "anomaly_detector", None) is not None else 0
+    )
+    LLM_AVAILABLE_GAUGE.set(
+        1 if getattr(app.state, "copilot_client", None) is not None else 0
+    )
 
     logger.info("FraudLens API ready")
     yield
@@ -176,7 +197,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="FraudLens API",
     description="Production-grade credit card fraud detection with SHAP explainability, "
-                "LLM case narration, and RAG-based similar case retrieval.",
+    "LLM case narration, and RAG-based similar case retrieval.",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -187,6 +208,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # ─── Correlation ID Middleware ─────────────────────────────────────────────
+
 
 @app.middleware("http")
 async def add_correlation_id(request, call_next):
@@ -204,8 +226,10 @@ async def add_correlation_id(request, call_next):
     response.headers["X-Request-ID"] = cid
     return response
 
+
 # Register RFC 7807 error handlers
 from api.errors import register_error_handlers
+
 register_error_handlers(app)
 
 # ─── CORS (locked to explicit origins) ────────────────────────────────────
@@ -230,6 +254,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 # ─── Security Headers ────────────────────────────────────────────────────
 
+
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     """Add security headers to every response."""
@@ -238,11 +263,18 @@ async def add_security_headers(request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-XSS-Protection"] = "0"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = (
+        "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    )
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'none'; frame-ancestors 'none';"
+    )
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     return response
+
 
 # ─── Routes (with optional auth) ─────────────────────────────────────────
 
@@ -260,6 +292,7 @@ logger.info("Prometheus metrics enabled at /metrics")
 
 # Setup OpenTelemetry tracing (must be after routes for auto-instrumentation)
 from api.tracing import setup_tracing
+
 setup_tracing(app)
 
 
@@ -279,12 +312,15 @@ async def health():
     db_initialized = True  # Assume ok — init failures logged at startup
 
     # Build per-dependency breakdown
-    model_ok = pred is not None and hasattr(pred, 'model') and pred.model is not None
+    model_ok = pred is not None and hasattr(pred, "model") and pred.model is not None
     dependencies = {
         "model": {
             "status": "ok" if model_ok else "degraded",
-            "detail": f"{type(pred.model).__name__} (threshold={pred.threshold:.4f})"
-            if model_ok else "not loaded",
+            "detail": (
+                f"{type(pred.model).__name__} (threshold={pred.threshold:.4f})"
+                if model_ok
+                else "not loaded"
+            ),
         },
         "database": {
             "status": "ok" if db_initialized else "error",
@@ -339,4 +375,5 @@ async def model_info():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)

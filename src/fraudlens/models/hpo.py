@@ -18,14 +18,15 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import average_precision_score
+from sklearn.model_selection import StratifiedKFold
 
 logger = logging.getLogger(__name__)
 
 # Optional MLflow
 try:
     import mlflow
+
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
@@ -136,7 +137,9 @@ class HyperparameterOptimizer:
             params = {
                 "n_estimators": trial.suggest_int("n_estimators", 100, 500, step=50),
                 "max_depth": trial.suggest_int("max_depth", 3, 12),
-                "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                "learning_rate": trial.suggest_float(
+                    "learning_rate", 0.01, 0.3, log=True
+                ),
                 "subsample": trial.suggest_float("subsample", 0.6, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
                 "min_child_weight": trial.suggest_int("min_child_weight", 1, 10),
@@ -149,7 +152,10 @@ class HyperparameterOptimizer:
             }
             return self._cv_score(X, y, XGBClassifier, params)
 
-        logger.info("Starting XGBoost hyperparameter optimization (%d trials)...", n_trials or self.n_trials)
+        logger.info(
+            "Starting XGBoost hyperparameter optimization (%d trials)...",
+            n_trials or self.n_trials,
+        )
         start_time = time.time()
 
         study = optuna.create_study(
@@ -178,7 +184,9 @@ class HyperparameterOptimizer:
 
         logger.info(
             "XGBoost HPO complete: best PR-AUC = %.4f (%d trials in %.1fs)",
-            self.best_score, n_trials or self.n_trials, elapsed,
+            self.best_score,
+            n_trials or self.n_trials,
+            elapsed,
         )
 
         # Log to MLflow
@@ -207,7 +215,12 @@ class HyperparameterOptimizer:
             import optuna
         except ImportError:
             logger.warning("optuna not installed. Install with: pip install optuna")
-            return {"n_estimators": 200, "max_depth": 6, "learning_rate": 0.1, "is_unbalance": True}
+            return {
+                "n_estimators": 200,
+                "max_depth": 6,
+                "learning_rate": 0.1,
+                "is_unbalance": True,
+            }
 
         import lightgbm as lgb
 
@@ -216,7 +229,9 @@ class HyperparameterOptimizer:
             params = {
                 "n_estimators": trial.suggest_int("n_estimators", 100, 500, step=50),
                 "max_depth": trial.suggest_int("max_depth", 3, 12),
-                "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                "learning_rate": trial.suggest_float(
+                    "learning_rate", 0.01, 0.3, log=True
+                ),
                 "subsample": trial.suggest_float("subsample", 0.6, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
                 "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
@@ -230,7 +245,10 @@ class HyperparameterOptimizer:
             }
             return self._cv_score(X, y, lgb.LGBMClassifier, params)
 
-        logger.info("Starting LightGBM hyperparameter optimization (%d trials)...", n_trials or self.n_trials)
+        logger.info(
+            "Starting LightGBM hyperparameter optimization (%d trials)...",
+            n_trials or self.n_trials,
+        )
         start_time = time.time()
 
         study = optuna.create_study(
@@ -258,7 +276,9 @@ class HyperparameterOptimizer:
 
         logger.info(
             "LightGBM HPO complete: best PR-AUC = %.4f (%d trials in %.1fs)",
-            self.best_score, n_trials or self.n_trials, elapsed,
+            self.best_score,
+            n_trials or self.n_trials,
+            elapsed,
         )
 
         self._log_hpo_to_mlflow("lightgbm", study, elapsed)
@@ -294,7 +314,9 @@ class HyperparameterOptimizer:
             params = {
                 "iterations": trial.suggest_int("iterations", 100, 500, step=50),
                 "depth": trial.suggest_int("depth", 4, 10),
-                "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                "learning_rate": trial.suggest_float(
+                    "learning_rate", 0.01, 0.3, log=True
+                ),
                 "l2_leaf_reg": trial.suggest_float("l2_leaf_reg", 1.0, 10.0),
                 "random_seed": self.random_state,
                 "verbose": False,
@@ -302,7 +324,10 @@ class HyperparameterOptimizer:
             }
             return self._cv_score(X, y, CatBoostClassifier, params)
 
-        logger.info("Starting CatBoost hyperparameter optimization (%d trials)...", n_trials or self.n_trials)
+        logger.info(
+            "Starting CatBoost hyperparameter optimization (%d trials)...",
+            n_trials or self.n_trials,
+        )
         start_time = time.time()
 
         study = optuna.create_study(
@@ -328,7 +353,9 @@ class HyperparameterOptimizer:
 
         logger.info(
             "CatBoost HPO complete: best PR-AUC = %.4f (%d trials in %.1fs)",
-            self.best_score, n_trials or self.n_trials, elapsed,
+            self.best_score,
+            n_trials or self.n_trials,
+            elapsed,
         )
 
         self._log_hpo_to_mlflow("catboost", study, elapsed)
@@ -341,6 +368,7 @@ class HyperparameterOptimizer:
             return
         try:
             from src.fraudlens.config import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
+
             mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
             mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
             with mlflow.start_run(run_name=f"{model_name}_hpo"):

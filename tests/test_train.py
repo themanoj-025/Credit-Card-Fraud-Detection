@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.models.train import FraudTrainer
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def small_dataset():
@@ -34,6 +34,7 @@ def small_dataset():
 
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
+
 
 class TestFraudTrainerInit:
     """Tests for FraudTrainer initialization."""
@@ -51,6 +52,7 @@ class TestFraudTrainerInit:
 
 
 # ─── Tests: Training ─────────────────────────────────────────────────────
+
 
 class TestTraining:
     """Tests for training methods."""
@@ -94,6 +96,7 @@ class TestTraining:
 
 # ─── Tests: Cross-Validation ─────────────────────────────────────────────
 
+
 class TestCrossValidation:
     """Tests for cross_validate method."""
 
@@ -118,6 +121,7 @@ class TestCrossValidation:
 
 
 # ─── Tests: Model Persistence ───────────────────────────────────────────
+
 
 class TestModelPersistence:
     """Tests for saving and loading models."""
@@ -151,6 +155,7 @@ class TestModelPersistence:
 
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
+
 
 class TestEdgeCases:
     """Edge case tests for FraudTrainer."""

@@ -53,7 +53,11 @@ class ShapExplanation:
                 "feature": feat,
                 "value": round(float(raw_transaction.get(feat, 0)), 4),
                 "shap_value": round(float(val), 4),
-                "impact": ShapImpact.INCREASES.value if val > 0 else ShapImpact.DECREASES.value,
+                "impact": (
+                    ShapImpact.INCREASES.value
+                    if val > 0
+                    else ShapImpact.DECREASES.value
+                ),
             }
             for feat, val in top
         ]
@@ -174,11 +178,13 @@ class ShapExplainer:
         shap_values = self.explainer.shap_values(X_sample)
         shap_vals = _extract_positive_class_global(shap_values)
 
-        importance = pd.DataFrame({
-            "feature": feature_names,
-            "mean_abs_shap": np.abs(shap_vals).mean(axis=0),
-            "mean_shap": shap_vals.mean(axis=0),
-        }).sort_values("mean_abs_shap", ascending=False)
+        importance = pd.DataFrame(
+            {
+                "feature": feature_names,
+                "mean_abs_shap": np.abs(shap_vals).mean(axis=0),
+                "mean_shap": shap_vals.mean(axis=0),
+            }
+        ).sort_values("mean_abs_shap", ascending=False)
 
         return importance
 

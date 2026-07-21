@@ -92,9 +92,14 @@ class FraudPredictor:
         else:
             logger.info("Using KernelExplainer for %s", model_type)
             bg = shap.kmeans(
-                X_background if X_background is not None
-                else pd.DataFrame(np.zeros((100, len(self.feature_names))),
-                                  columns=self.feature_names),
+                (
+                    X_background
+                    if X_background is not None
+                    else pd.DataFrame(
+                        np.zeros((100, len(self.feature_names))),
+                        columns=self.feature_names,
+                    )
+                ),
                 N_SHAP_BACKGROUND_SAMPLES,
             )
             self.explainer = shap.KernelExplainer(self.model.predict_proba, bg)
@@ -157,7 +162,7 @@ class FraudPredictor:
         if isinstance(shap_values, list):
             # List format: [negative_class_values, positive_class_values]
             return shap_values[1][idx]
-        elif hasattr(shap_values, 'shape') and len(shap_values.shape) == 3:
+        elif hasattr(shap_values, "shape") and len(shap_values.shape) == 3:
             # 3D format: (n_samples, n_features, n_classes) — take positive class (index 1)
             return shap_values[idx, :, 1]
         else:
@@ -179,7 +184,7 @@ class FraudPredictor:
         feature_importance = list(zip(self.feature_names, shap_vals))
         feature_importance.sort(key=lambda x: abs(x[1]), reverse=True)
 
-        top_features = feature_importance[:self.max_shap_features]
+        top_features = feature_importance[: self.max_shap_features]
 
         explanation = [
             {
@@ -236,7 +241,7 @@ class FraudPredictor:
         """Extract global SHAP values, handling different output shapes."""
         if isinstance(shap_values, list):
             return shap_values[1]
-        elif hasattr(shap_values, 'shape') and len(shap_values.shape) == 3:
+        elif hasattr(shap_values, "shape") and len(shap_values.shape) == 3:
             # (n_samples, n_features, n_classes) → (n_samples, n_features) for positive class
             return shap_values[:, :, 1]
         else:
@@ -258,10 +263,12 @@ class FraudPredictor:
         shap_values = self.explainer.shap_values(X_processed)
         shap_vals = self._extract_global_shap_values(shap_values)
 
-        importance = pd.DataFrame({
-            "feature": self.feature_names,
-            "mean_abs_shap": np.abs(shap_vals).mean(axis=0),
-            "mean_shap": shap_vals.mean(axis=0),
-        }).sort_values("mean_abs_shap", ascending=False)
+        importance = pd.DataFrame(
+            {
+                "feature": self.feature_names,
+                "mean_abs_shap": np.abs(shap_vals).mean(axis=0),
+                "mean_shap": shap_vals.mean(axis=0),
+            }
+        ).sort_values("mean_abs_shap", ascending=False)
 
         return importance

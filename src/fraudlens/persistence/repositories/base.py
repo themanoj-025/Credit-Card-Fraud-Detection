@@ -7,7 +7,7 @@ Abstract base class with common CRUD operations for all repositories.
 import logging
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import Base

@@ -23,6 +23,7 @@ _copilot_client = None
 
 # ─── Setter functions (called from api/main.py lifespan) ──────────
 
+
 def set_predictor(predictor) -> None:
     global _predictor
     _predictor = predictor
@@ -49,6 +50,7 @@ def set_copilot_client(client) -> None:
 
 
 # ─── Getter functions (called from routers) ───────────────────────
+
 
 def get_predictor():
     return _predictor

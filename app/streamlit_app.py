@@ -100,13 +100,17 @@ page = st.session_state.page
 
 if page == "Live Monitor":
     from app.pages.live_monitor import show
+
     show()
 elif page == "Case Investigator":
     from app.pages.case_investigator import show
+
     show()
 elif page == "Model Performance":
     from app.pages.model_performance import show
+
     show()
 elif page == "Analyst Copilot":
     from app.pages.analyst_copilot import show
+
     show()

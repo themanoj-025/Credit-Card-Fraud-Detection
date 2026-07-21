@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.case_narrator import CaseNarrator, create_case_narrator
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def narrator_no_key() -> CaseNarrator:
@@ -30,13 +30,34 @@ def sample_transaction() -> dict:
     return {
         "Time": 100000.0,
         "Amount": 2980.50,
-        "V1": -1.36, "V2": -0.07, "V3": 2.54, "V4": 4.12,
-        "V5": -0.34, "V6": 0.46, "V7": 0.24, "V8": 0.10,
-        "V9": 0.36, "V10": 0.09, "V11": -0.55, "V12": -3.89,
-        "V13": -0.99, "V14": -5.23, "V15": 1.47, "V16": -0.47,
-        "V17": 0.21, "V18": 0.03, "V19": 0.40, "V20": 0.25,
-        "V21": -0.02, "V22": 0.28, "V23": -0.11, "V24": 0.07,
-        "V25": 0.13, "V26": -0.19, "V27": 0.13, "V28": 0.02,
+        "V1": -1.36,
+        "V2": -0.07,
+        "V3": 2.54,
+        "V4": 4.12,
+        "V5": -0.34,
+        "V6": 0.46,
+        "V7": 0.24,
+        "V8": 0.10,
+        "V9": 0.36,
+        "V10": 0.09,
+        "V11": -0.55,
+        "V12": -3.89,
+        "V13": -0.99,
+        "V14": -5.23,
+        "V15": 1.47,
+        "V16": -0.47,
+        "V17": 0.21,
+        "V18": 0.03,
+        "V19": 0.40,
+        "V20": 0.25,
+        "V21": -0.02,
+        "V22": 0.28,
+        "V23": -0.11,
+        "V24": 0.07,
+        "V25": 0.13,
+        "V26": -0.19,
+        "V27": 0.13,
+        "V28": 0.02,
     }
 
 
@@ -53,6 +74,7 @@ def sample_shap_explanation() -> list:
 
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
+
 
 class TestCaseNarratorInit:
     """Tests for CaseNarrator initialization."""
@@ -79,6 +101,7 @@ class TestCaseNarratorInit:
 
 # ─── Tests: Fallback Narrative ───────────────────────────────────────────
 
+
 class TestFallbackNarrative:
     """Tests for fallback (template-based) narrative generation."""
 
@@ -93,7 +116,9 @@ class TestFallbackNarrative:
         assert "94.0%" in narrative  # Fraud probability should be included
         assert "V14" in narrative  # Top feature should be mentioned
 
-    def test_legitimate_fallback_narrative(self, narrator_no_key, sample_shap_explanation):
+    def test_legitimate_fallback_narrative(
+        self, narrator_no_key, sample_shap_explanation
+    ):
         """Test fallback narrative for legitimate transaction."""
         narrative = narrator_no_key._fallback_narrative(
             sample_shap_explanation, 0.12, False
@@ -116,6 +141,7 @@ class TestFallbackNarrative:
 
 
 # ─── Tests: Prompt Building ──────────────────────────────────────────────
+
 
 class TestPromptBuilding:
     """Tests for LLM prompt construction."""
@@ -142,9 +168,7 @@ class TestPromptBuilding:
         assert "V14" in prompt
         assert "V4" in prompt
 
-    def test_prompt_limits_to_five_features(
-        self, narrator_no_key, sample_transaction
-    ):
+    def test_prompt_limits_to_five_features(self, narrator_no_key, sample_transaction):
         """Test that prompt only includes top 5 SHAP features."""
         long_shap = [
             {"feature": f"V{i}", "shap_value": 0.1, "impact": "increases"}
@@ -157,9 +181,7 @@ class TestPromptBuilding:
         assert "V14" not in prompt
         assert "V1" in prompt  # First feature should be there
 
-    def test_prompt_time_conversion(
-        self, narrator_no_key, sample_shap_explanation
-    ):
+    def test_prompt_time_conversion(self, narrator_no_key, sample_shap_explanation):
         """Test that raw Time is converted to hours in the prompt."""
         tx = {"Time": 100000.0, "Amount": 100.0}
         prompt = narrator_no_key._build_prompt(tx, 0.5, sample_shap_explanation, False)
@@ -168,6 +190,7 @@ class TestPromptBuilding:
 
 
 # ─── Tests: Narrate Method (Fallback Path) ──────────────────────────────
+
 
 class TestNarrate:
     """Tests for the narrate() method using the fallback path."""
@@ -212,6 +235,7 @@ class TestNarrate:
 
 # ─── Tests: Factory Function ─────────────────────────────────────────────
 
+
 class TestCreateCaseNarrator:
     """Tests for the create_case_narrator factory function."""
 
@@ -228,6 +252,7 @@ class TestCreateCaseNarrator:
 
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
+
 
 class TestEdgeCases:
     """Edge case tests for CaseNarrator."""
@@ -256,7 +281,5 @@ class TestEdgeCases:
 
     def test_missing_transaction_fields(self, narrator_no_key, sample_shap_explanation):
         """Test handling of transaction with missing fields."""
-        result = narrator_no_key.narrate(
-            {}, 0.60, sample_shap_explanation, False
-        )
+        result = narrator_no_key.narrate({}, 0.60, sample_shap_explanation, False)
         assert isinstance(result, str)

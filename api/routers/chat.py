@@ -25,8 +25,8 @@ from tenacity import (
 
 from api.auth import require_api_key
 from api.exceptions import LLMServiceUnavailable
-from api.rate_limit import limiter
 from api.providers import get_copilot_client
+from api.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,7 @@ _CHAT_RETRY = retry(
 
 class ChatRequest(BaseModel):
     """Chat request schema."""
+
     message: str
     conversation_history: Optional[List[Dict[str, str]]] = None
 
@@ -108,14 +109,18 @@ async def analyst_chat(
 
         messages = []
         for h in history:
-            messages.append({
-                "role": h.get("role", "user"),
-                "content": h.get("content", ""),
-            })
-        messages.append({
-            "role": "user",
-            "content": f"{system_prompt}\n\nAnalyst question: {chat_request.message}",
-        })
+            messages.append(
+                {
+                    "role": h.get("role", "user"),
+                    "content": h.get("content", ""),
+                }
+            )
+        messages.append(
+            {
+                "role": "user",
+                "content": f"{system_prompt}\n\nAnalyst question: {chat_request.message}",
+            }
+        )
 
         # LLM call with retry logic
         response = _call_chat_llm(copilot_client, messages)

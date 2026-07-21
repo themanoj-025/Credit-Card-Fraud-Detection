@@ -52,6 +52,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Database Session Provider ──────────────────────────────────────────────
 
+
 async def get_db_session():
     """Get a new async database session via FastAPI Depends().
 
@@ -64,6 +65,7 @@ async def get_db_session():
             ...
     """
     from src.fraudlens.persistence.database import AsyncSessionLocal
+
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -74,6 +76,7 @@ async def get_db_session():
 
 
 # ─── Types ─────────────────────────────────────────────────────────────────
+
 
 class PredictionCache:
     """Simple in-memory LRU cache for predictions.
@@ -94,6 +97,7 @@ class PredictionCache:
         """Create a cache key from a transaction dict."""
         import hashlib
         import json
+
         raw = json.dumps(transaction, sort_keys=True, default=str)
         return hashlib.sha256(raw.encode()).hexdigest()
 
@@ -218,13 +222,12 @@ class FraudPredictor:
         # Conditional SHAP — only compute if explicitly requested
         if return_shap and self.shap_explainer is not None:
             if not self._shap_initialized:
-                self.shap_explainer.init_explainer(
-                    self.model, self.feature_names
-                )
+                self.shap_explainer.init_explainer(self.model, self.feature_names)
                 self._shap_initialized = True
 
             # Convert back to DataFrame for SHAP (it expects one)
             import pandas as pd
+
             X_df = pd.DataFrame(X, columns=self.feature_names)
             explanation = self.shap_explainer.explain(
                 X_df, self.feature_names, transaction
@@ -271,7 +274,9 @@ class FraudPredictor:
         client to poll. For now, it attaches the explanation in-place.
         """
         try:
-            shap_result = self.predict_single(transaction, return_shap=True, use_cache=False)
+            shap_result = self.predict_single(
+                transaction, return_shap=True, use_cache=False
+            )
             if "explanation" in shap_result:
                 result["explanation"] = shap_result["explanation"]
                 logger.info("Async SHAP computed for transaction")
@@ -285,11 +290,13 @@ class FraudPredictor:
 def _get_request_state(request: Optional[Request] = None):
     """Get the FastAPI app state, working both as Depends() injection and plain function call."""
     import sys
+
     if request is not None:
         return request.app.state
     # Fallback: try to get the current request context
     try:
         from fastapi import Request as Req
+
         # If called as a plain function, we can't access app.state without a request
         return None
     except Exception:
@@ -308,6 +315,7 @@ def get_predictor(request: Optional[Request] = None):
     # Fallback: try to import from main's app state
     try:
         from api.main import app
+
         return getattr(app.state, "predictor", None)
     except Exception:
         return None
@@ -320,6 +328,7 @@ def get_anomaly_detector(request: Optional[Request] = None):
         return getattr(state, "anomaly_detector", None)
     try:
         from api.main import app
+
         return getattr(app.state, "anomaly_detector", None)
     except Exception:
         return None
@@ -332,6 +341,7 @@ def get_case_narrator(request: Optional[Request] = None):
         return getattr(state, "case_narrator", None)
     try:
         from api.main import app
+
         return getattr(app.state, "case_narrator", None)
     except Exception:
         return None
@@ -344,6 +354,7 @@ def get_case_retriever(request: Optional[Request] = None):
         return getattr(state, "case_retriever", None)
     try:
         from api.main import app
+
         return getattr(app.state, "case_retriever", None)
     except Exception:
         return None
@@ -356,6 +367,7 @@ def get_copilot_client(request: Optional[Request] = None):
         return getattr(state, "copilot_client", None)
     try:
         from api.main import app
+
         return getattr(app.state, "copilot_client", None)
     except Exception:
         return None

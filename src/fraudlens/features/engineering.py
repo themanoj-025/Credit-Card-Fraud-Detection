@@ -89,9 +89,7 @@ class FeatureEngineer:
             X["V17_V14_interaction"] = X["V17"] * X["V14"]
 
         self._feature_names = X.columns.tolist()
-        logger.info(
-            "Feature engineering: %d → %d features", df.shape[1], X.shape[1]
-        )
+        logger.info("Feature engineering: %d → %d features", df.shape[1], X.shape[1])
         return X
 
     def get_feature_names(self) -> Optional[List[str]]:

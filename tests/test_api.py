@@ -21,6 +21,7 @@ client = TestClient(app)
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def sample_transaction() -> dict:
     """A valid transaction with all required features."""
@@ -31,6 +32,7 @@ def sample_transaction() -> dict:
 
 
 # ─── Tests: Health ────────────────────────────────────────────────────────
+
 
 class TestHealth:
     """Tests for the /health and /v1/health endpoints."""
@@ -61,6 +63,7 @@ class TestHealth:
 
 
 # ─── Tests: Prediction ─────────────────────────────────────────────────────
+
 
 class TestPrediction:
     """Tests for the /v1/predict endpoint."""
@@ -103,6 +106,7 @@ class TestPrediction:
 
 # ─── Tests: Batch Prediction ─────────────────────────────────────────────
 
+
 class TestBatchPrediction:
     """Tests for the /v1/predict/batch endpoint."""
 
@@ -139,6 +143,7 @@ class TestBatchPrediction:
 
 # ─── Tests: Model Info ────────────────────────────────────────────────────
 
+
 class TestModelInfo:
     """Tests for the /model-info endpoint."""
 
@@ -155,6 +160,7 @@ class TestModelInfo:
 
 
 # ─── Tests: /v1/explain Endpoint ──────────────────────────────────────────
+
 
 class TestExplainEndpoint:
     """Tests for the /v1/explain endpoint."""
@@ -176,6 +182,7 @@ class TestExplainEndpoint:
 
 # ─── Tests: /v1/chat Endpoint ────────────────────────────────────────────
 
+
 class TestChatEndpoint:
     """Tests for the /v1/chat endpoint using mocked responses."""
 
@@ -183,7 +190,10 @@ class TestChatEndpoint:
         """Test that /v1/chat returns 503 when no API key is set."""
         response = client.post(
             "/v1/chat",
-            json={"message": "Why was this transaction flagged?", "conversation_history": []},
+            json={
+                "message": "Why was this transaction flagged?",
+                "conversation_history": [],
+            },
         )
         # Should be 503 since no Anthropic client is configured in test
         assert response.status_code == 503
@@ -194,7 +204,10 @@ class TestChatEndpoint:
         """Test that /v1/chat response has expected structure even when failing."""
         response = client.post(
             "/v1/chat",
-            json={"message": "What is the current fraud rate?", "conversation_history": []},
+            json={
+                "message": "What is the current fraud rate?",
+                "conversation_history": [],
+            },
         )
         assert response.status_code == 503
         data = response.json()
@@ -208,6 +221,7 @@ class TestChatEndpoint:
 
 # ─── Tests: /v1/similar-cases Endpoint ────────────────────────────────────
 
+
 class TestSimilarCasesEndpoint:
     """Tests for the /v1/similar-cases endpoint."""
 
@@ -218,6 +232,7 @@ class TestSimilarCasesEndpoint:
 
 
 # ─── Tests: /v1/explain Endpoint Validation ──────────────────────────────
+
 
 class TestExplainValidation:
     """Tests for /v1/explain request validation."""

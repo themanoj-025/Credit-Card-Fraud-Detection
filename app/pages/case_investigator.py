@@ -109,7 +109,10 @@ def show() -> None:
             if result:
                 st.session_state.predict_result = result
 
-        if "explain_result" not in st.session_state and "predict_result" in st.session_state:
+        if (
+            "explain_result" not in st.session_state
+            and "predict_result" in st.session_state
+        ):
             explain_result = api_call_with_spinner(
                 "explain",
                 tx,
@@ -118,7 +121,10 @@ def show() -> None:
             if explain_result:
                 st.session_state.explain_result = explain_result
 
-        if "similar_result" not in st.session_state and "predict_result" in st.session_state:
+        if (
+            "similar_result" not in st.session_state
+            and "predict_result" in st.session_state
+        ):
             similar_result = api_call_with_spinner(
                 "get_similar_cases",
                 tx,
@@ -141,7 +147,8 @@ def show() -> None:
         verdict_color = "#ff6b6b" if is_fraud else "#38ef7d"
         verdict_text = "FRAUD FLAGGED" if is_fraud else "CLEARED"
 
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="
             background: #1a1a2e;
             border: 1px solid {verdict_color};
@@ -162,7 +169,9 @@ def show() -> None:
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
         # ─── Two-Column Layout: SHAP | Narrative + Similar ───────────
         col1, col2 = st.columns(2)
@@ -173,10 +182,9 @@ def show() -> None:
             shap_vals = explain.get("shap_values", {})
 
             if shap_vals:
-                shap_df = pd.DataFrame([
-                    {"feature": k, "shap_value": v}
-                    for k, v in shap_vals.items()
-                ]).sort_values("shap_value", key=abs, ascending=True)
+                shap_df = pd.DataFrame(
+                    [{"feature": k, "shap_value": v} for k, v in shap_vals.items()]
+                ).sort_values("shap_value", key=abs, ascending=True)
 
                 fig = px.bar(
                     shap_df.tail(10),
@@ -200,10 +208,12 @@ def show() -> None:
 
             # Feature values table
             st.markdown("<h4>Feature Values (Top 15)</h4>", unsafe_allow_html=True)
-            features_df = pd.DataFrame([
-                {"Feature": f"V{i}", "Value": tx.get(f"V{i}", 0)}
-                for i in range(1, 16)
-            ])
+            features_df = pd.DataFrame(
+                [
+                    {"Feature": f"V{i}", "Value": tx.get(f"V{i}", 0)}
+                    for i in range(1, 16)
+                ]
+            )
             st.dataframe(features_df, use_container_width=True, hide_index=True)
 
         with col2:
@@ -211,7 +221,8 @@ def show() -> None:
             st.markdown("<h3>📝 Analyst Narrative</h3>", unsafe_allow_html=True)
             narrative = explain.get("narrative", "")
             if narrative:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 <div style="
                     background: #1a1a2e;
                     border: 1px solid #2a2a3e;
@@ -223,7 +234,9 @@ def show() -> None:
                         {narrative}
                     </p>
                 </div>
-                """, unsafe_allow_html=True)
+                """,
+                    unsafe_allow_html=True,
+                )
             else:
                 st.info("LLM narrative unavailable. Set ANTHROPIC_API_KEY to enable.")
 
@@ -236,8 +249,13 @@ def show() -> None:
             for case in cases:
                 outcome = case.get("actual_outcome", "unknown")
                 color = "#3a1a1a" if outcome == "confirmed_fraud" else "#1a3a2a"
-                label = "🔴 Confirmed Fraud" if outcome == "confirmed_fraud" else "🟢 False Positive"
-                st.markdown(f"""
+                label = (
+                    "🔴 Confirmed Fraud"
+                    if outcome == "confirmed_fraud"
+                    else "🟢 False Positive"
+                )
+                st.markdown(
+                    f"""
                 <div style="
                     background: {color};
                     border: 1px solid {'#ff6b6b33' if outcome == 'confirmed_fraud' else '#38ef7d33'};
@@ -250,7 +268,9 @@ def show() -> None:
                         Similarity: {case.get('similarity_score', 0):.2%}
                     </span>
                 </div>
-                """, unsafe_allow_html=True)
+                """,
+                    unsafe_allow_html=True,
+                )
 
             if not cases:
                 st.caption("No similar cases found.")
@@ -267,23 +287,27 @@ def show() -> None:
             metric_card(
                 "Estimated Loss",
                 f"${biz.get('estimated_loss', 0):,.0f}",
-                icon="⚠️", color="#ff6b6b",
+                icon="⚠️",
+                color="#ff6b6b",
             )
         with b2:
             metric_card(
                 "Review Cost",
                 f"${biz.get('review_cost', 5.0):,.2f}",
-                icon="💰", color="#f1c40f",
+                icon="💰",
+                color="#f1c40f",
             )
         with b3:
             metric_card(
                 "Anomaly Score",
                 f"{pred.get('anomaly_score', 0):.2%}",
-                icon="📊", color="#667eea",
+                icon="📊",
+                color="#667eea",
             )
         with b4:
             metric_card(
                 "Action",
                 biz.get("action", "Review"),
-                icon="🎯", color="#38ef7d",
+                icon="🎯",
+                color="#38ef7d",
             )

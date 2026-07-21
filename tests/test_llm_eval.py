@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.case_narrator import CaseNarrator
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def narrator() -> CaseNarrator:
@@ -48,12 +48,17 @@ def sample_transaction() -> Dict[str, Any]:
     return {
         "Time": 100000.0,
         "Amount": 2500.00,
-        "V1": -1.36, "V14": -5.23, "V4": 4.12, "V12": -3.89,
-        "V10": 0.09, "V17": 0.21,
+        "V1": -1.36,
+        "V14": -5.23,
+        "V4": 4.12,
+        "V12": -3.89,
+        "V10": 0.09,
+        "V17": 0.21,
     }
 
 
 # ─── Eval Tests: Factuality ──────────────────────────────────────────────
+
 
 class TestFactuality:
     """Eval: narratives should mention only actual SHAP contributors."""
@@ -84,7 +89,8 @@ class TestFactuality:
 
         # Extract potential feature mentions (V1-V28 patterns)
         import re
-        mentioned_features = re.findall(r'V\d+', narrative)
+
+        mentioned_features = re.findall(r"V\d+", narrative)
 
         hallucinated = [f for f in mentioned_features if f not in actual_features]
         assert len(hallucinated) == 0, (
@@ -107,6 +113,7 @@ class TestFactuality:
 
 # ─── Eval Tests: Probability Accuracy ───────────────────────────────────
 
+
 class TestProbabilityAccuracy:
     """Eval: narratives should report the correct fraud probability."""
 
@@ -118,8 +125,7 @@ class TestProbabilityAccuracy:
             sample_transaction, 0.94, sample_shap_features, True
         )
         assert "94.0%" in narrative, (
-            f"Narrative should include fraud probability. "
-            f"Got: {narrative[:150]}"
+            f"Narrative should include fraud probability. " f"Got: {narrative[:150]}"
         )
 
     def test_narrative_accuracy_different_probabilities(
@@ -130,17 +136,14 @@ class TestProbabilityAccuracy:
 
         # The fallback narrator always produces correct numbers
         # because they're baked into the template
-        n1 = narrator.narrate(
-            sample_transaction, 0.50, sample_shap_features, False
-        )
-        n2 = narrator.narrate(
-            sample_transaction, 0.99, sample_shap_features, True
-        )
+        n1 = narrator.narrate(sample_transaction, 0.50, sample_shap_features, False)
+        n2 = narrator.narrate(sample_transaction, 0.99, sample_shap_features, True)
         assert "50.0%" in n1
         assert "99.0%" in n2
 
 
 # ─── Eval Tests: Consistency ─────────────────────────────────────────────
+
 
 class TestConsistency:
     """Eval: narratives should be consistent across repeated calls."""
@@ -152,16 +155,14 @@ class TestConsistency:
         # Run multiple times to check stability
         narratives = []
         for _ in range(3):
-            n = narrator.narrate(
-                sample_transaction, 0.95, sample_shap_features, True
-            )
+            n = narrator.narrate(sample_transaction, 0.95, sample_shap_features, True)
             narratives.append(n)
 
         # All should mention "manual review" for fraud cases
         for i, n in enumerate(narratives):
-            assert "manual review" in n.lower(), (
-                f"Narrative {i} missing 'manual review' recommendation: {n[:100]}"
-            )
+            assert (
+                "manual review" in n.lower()
+            ), f"Narrative {i} missing 'manual review' recommendation: {n[:100]}"
 
     def test_consistent_legitimate_label(
         self, narrator, sample_transaction, sample_shap_features
@@ -169,40 +170,33 @@ class TestConsistency:
         """Test that legitimate narratives consistently say 'legitimate'."""
         narratives = []
         for _ in range(3):
-            n = narrator.narrate(
-                sample_transaction, 0.05, sample_shap_features, False
-            )
+            n = narrator.narrate(sample_transaction, 0.05, sample_shap_features, False)
             narratives.append(n)
 
         for i, n in enumerate(narratives):
-            assert "legitimate" in n.lower(), (
-                f"Narrative {i} missing 'legitimate': {n[:100]}"
-            )
+            assert (
+                "legitimate" in n.lower()
+            ), f"Narrative {i} missing 'legitimate': {n[:100]}"
 
     def test_deterministic_fallback(
         self, narrator, sample_transaction, sample_shap_features
     ):
         """Test that the fallback template is deterministic."""
-        n1 = narrator.narrate(
-            sample_transaction, 0.75, sample_shap_features, True
-        )
-        n2 = narrator.narrate(
-            sample_transaction, 0.75, sample_shap_features, True
-        )
+        n1 = narrator.narrate(sample_transaction, 0.75, sample_shap_features, True)
+        n2 = narrator.narrate(sample_transaction, 0.75, sample_shap_features, True)
         # Fallback templates with same inputs should produce same output
         assert n1 == n2, "Fallback narrative should be deterministic"
 
 
 # ─── Eval Tests: Edge Cases ──────────────────────────────────────────────
 
+
 class TestEdgeCases:
     """Eval: narratives should handle edge cases gracefully."""
 
     def test_no_shap_features(self, narrator, sample_transaction):
         """Test narrative with empty SHAP explanation."""
-        narrative = narrator.narrate(
-            sample_transaction, 0.60, [], True
-        )
+        narrative = narrator.narrate(sample_transaction, 0.60, [], True)
         assert isinstance(narrative, str)
         assert len(narrative) > 0
         assert "60.0%" in narrative
@@ -210,17 +204,22 @@ class TestEdgeCases:
     def test_many_shap_features(self, narrator, sample_transaction):
         """Test narrative with many SHAP features (should not overflow)."""
         many_features = [
-            {"feature": f"V{i}", "value": float(i), "shap_value": 0.1, "impact": "increases"}
+            {
+                "feature": f"V{i}",
+                "value": float(i),
+                "shap_value": 0.1,
+                "impact": "increases",
+            }
             for i in range(1, 29)
         ]
-        narrative = narrator.narrate(
-            sample_transaction, 0.80, many_features, True
-        )
+        narrative = narrator.narrate(sample_transaction, 0.80, many_features, True)
         # Should still be readable (not truncated or excessively long)
         assert len(narrative) < 5000
         assert len(narrative) > 0
 
-    def test_extreme_probability(self, narrator, sample_transaction, sample_shap_features):
+    def test_extreme_probability(
+        self, narrator, sample_transaction, sample_shap_features
+    ):
         """Test narrative with extreme (0% and 100%) probabilities."""
         # 0% probability (legitimate)
         n1 = narrator.narrate(sample_transaction, 0.0, sample_shap_features, False)
@@ -234,24 +233,42 @@ class TestEdgeCases:
 
 # ─── Eval Tests: Business Readability ────────────────────────────────────
 
+
 class TestBusinessReadability:
     """Eval: narratives should be readable by non-technical fraud analysts."""
 
-    def test_narrative_is_plain_english(self, narrator, sample_transaction, sample_shap_features):
+    def test_narrative_is_plain_english(
+        self, narrator, sample_transaction, sample_shap_features
+    ):
         """Test that the narrative is in plain English (no raw numbers-only output)."""
         narrative = narrator.narrate(
             sample_transaction, 0.94, sample_shap_features, True
         )
         # Should contain actual English words, not just feature names
-        assert any(word in narrative.lower() for word in [
-            "flagged", "fraud", "review", "pattern", "transaction", "indicator"
-        ]), "Narrative should contain plain English fraud analysis terms"
+        assert any(
+            word in narrative.lower()
+            for word in [
+                "flagged",
+                "fraud",
+                "review",
+                "pattern",
+                "transaction",
+                "indicator",
+            ]
+        ), "Narrative should contain plain English fraud analysis terms"
 
-    def test_narrative_actionable(self, narrator, sample_transaction, sample_shap_features):
+    def test_narrative_actionable(
+        self, narrator, sample_transaction, sample_shap_features
+    ):
         """Test that fraud narratives recommend an action."""
         narrative = narrator.narrate(
             sample_transaction, 0.94, sample_shap_features, True
         )
-        assert any(phrase in narrative.lower() for phrase in [
-            "manual review", "recommended action", "review by",
-        ]), "Fraud narrative should include an actionable recommendation"
+        assert any(
+            phrase in narrative.lower()
+            for phrase in [
+                "manual review",
+                "recommended action",
+                "review by",
+            ]
+        ), "Fraud narrative should include an actionable recommendation"

@@ -126,7 +126,7 @@ class FraudLensAPI:
             except (httpx.ConnectError, httpx.TimeoutException) as e:
                 last_error = e
                 if attempt < self.max_retries:
-                    time.sleep(_DEFAULT_RETRY_DELAY * (2 ** attempt))
+                    time.sleep(_DEFAULT_RETRY_DELAY * (2**attempt))
                     continue
             except FraudLensAPIError:
                 raise
@@ -144,9 +144,7 @@ class FraudLensAPI:
     def check_health(self) -> dict:
         """Check API health with per-dependency status."""
         try:
-            return self._request_with_retry(
-                "GET", "/v1/health", label="health check"
-            )
+            return self._request_with_retry("GET", "/v1/health", label="health check")
         except FraudLensAPIError as e:
             if e.status_code in (503, 502):
                 # Try unversioned health endpoint
@@ -220,6 +218,7 @@ class FraudLensAPI:
 
 
 # ─── Streamlit Integration Helpers ────────────────────────────────────────
+
 
 @st.cache_resource
 def get_api_client() -> FraudLensAPI:

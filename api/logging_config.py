@@ -50,9 +50,7 @@ def setup_structlog() -> None:
         return json_lib.dumps(obj, default=str, *args, **kwargs)
 
     if LOG_FORMAT == "console":
-        processors = shared_processors + [
-            structlog.dev.ConsoleRenderer()
-        ]
+        processors = shared_processors + [structlog.dev.ConsoleRenderer()]
     else:
         processors = shared_processors + [
             structlog.processors.JSONRenderer(serializer=_json_serializer),

@@ -44,7 +44,9 @@ def _get_drift_detector():
         loader = DataLoader()
         df = loader.load()
         # Use a sample as reference
-        ref_data = df[["V1", "V4", "V14", "Amount"]].sample(min(10000, len(df)), random_state=42)
+        ref_data = df[["V1", "V4", "V14", "Amount"]].sample(
+            min(10000, len(df)), random_state=42
+        )
 
         from src.fraudlens.monitoring.drift import DriftDetector
 
@@ -58,9 +60,7 @@ def _get_drift_detector():
         # Fallback: create detector with synthetic reference
         from src.fraudlens.monitoring.drift import DriftDetector
 
-        ref = pd.DataFrame(
-            {f: np.random.randn(5000) for f in ["V1", "V4", "V14"]}
-        )
+        ref = pd.DataFrame({f: np.random.randn(5000) for f in ["V1", "V4", "V14"]})
         ref["Amount"] = np.random.exponential(100, 5000)
         _DRIFT_DETECTOR = DriftDetector(
             reference_data=ref,
@@ -182,8 +182,10 @@ def show() -> None:
     with col2:
         delay = st.slider("Delay (s)", 0.1, 2.0, 0.5)
     with col3:
-        if st.button("▶️ Start" if not st.session_state.running else "⏹ Stop",
-                     use_container_width=True):
+        if st.button(
+            "▶️ Start" if not st.session_state.running else "⏹ Stop",
+            use_container_width=True,
+        ):
             st.session_state.running = not st.session_state.running
     with col4:
         if st.button("🔄 Reset", use_container_width=True):
@@ -211,22 +213,29 @@ def show() -> None:
     with m1:
         metric_card("Transactions", str(st.session_state.total_transactions), icon="📊")
     with m2:
-        metric_card("Fraud Caught",
-                     f"${st.session_state.fraud_caught:,.0f}",
-                     icon="🛑", color="#38ef7d")
+        metric_card(
+            "Fraud Caught",
+            f"${st.session_state.fraud_caught:,.0f}",
+            icon="🛑",
+            color="#38ef7d",
+        )
     with m3:
-        metric_card("Fraud Missed",
-                     f"${st.session_state.fraud_missed:,.0f}",
-                     icon="⚠️", color="#ff6b6b")
+        metric_card(
+            "Fraud Missed",
+            f"${st.session_state.fraud_missed:,.0f}",
+            icon="⚠️",
+            color="#ff6b6b",
+        )
     with m4:
-        metric_card("Review Costs",
-                     f"${st.session_state.total_review_cost:,.0f}",
-                     icon="💰", color="#f1c40f")
+        metric_card(
+            "Review Costs",
+            f"${st.session_state.total_review_cost:,.0f}",
+            icon="💰",
+            color="#f1c40f",
+        )
     with m5:
         net = st.session_state.fraud_caught - st.session_state.total_review_cost
-        metric_card("Net Benefit",
-                     f"${net:,.0f}",
-                     icon="✅", color="#38ef7d")
+        metric_card("Net Benefit", f"${net:,.0f}", icon="✅", color="#38ef7d")
 
     # ─── Charts ──────────────────────────────────────────────────────
     chart_col1, chart_col2 = st.columns(2)
@@ -249,13 +258,15 @@ def show() -> None:
             result = _predict_transaction(tx)
             if result:
                 _update_metrics(result)
-                st.session_state.transactions.append({
-                    "time": time.strftime("%H:%M:%S"),
-                    "amount": f"${tx['Amount']:,.2f}",
-                    "probability": f"{result['fraud_probability']:.1%}",
-                    "status": result["decision"],
-                    "is_fraud": result["is_fraud"],
-                })
+                st.session_state.transactions.append(
+                    {
+                        "time": time.strftime("%H:%M:%S"),
+                        "amount": f"${tx['Amount']:,.2f}",
+                        "probability": f"{result['fraud_probability']:.1%}",
+                        "status": result["decision"],
+                        "is_fraud": result["is_fraud"],
+                    }
+                )
                 batch_txs.append(tx)
 
             # Keep only recent history
@@ -263,8 +274,10 @@ def show() -> None:
                 st.session_state.transactions = st.session_state.transactions[-200:]
 
         # Run drift check on cadence
-        if (st.session_state.total_transactions - st.session_state.last_drift_check
-                >= DRIFT_ALERT_WINDOW):
+        if (
+            st.session_state.total_transactions - st.session_state.last_drift_check
+            >= DRIFT_ALERT_WINDOW
+        ):
             _run_drift_check(batch_txs)
 
         # ─── Update Charts ────────────────────────────────────────────────
@@ -284,8 +297,10 @@ def show() -> None:
                 labels={"x": "Fraud Probability"},
             )
             fig1.update_layout(
-                plot_bgcolor="#1a1a2e", paper_bgcolor="#0f0f1a",
-                font_color="#e0e0e0", showlegend=False,
+                plot_bgcolor="#1a1a2e",
+                paper_bgcolor="#0f0f1a",
+                font_color="#e0e0e0",
+                showlegend=False,
             )
             chart_placeholder.plotly_chart(fig1, use_container_width=True)
 
@@ -302,17 +317,26 @@ def show() -> None:
                 cum_cost.append(cost)
 
             fig2 = go.Figure()
-            fig2.add_trace(go.Scatter(
-                y=cum_caught, name="Fraud Caught ($)",
-                line=dict(color="#38ef7d", width=2), mode="lines",
-            ))
-            fig2.add_trace(go.Scatter(
-                y=cum_cost, name="Review Costs ($)",
-                line=dict(color="#f1c40f", width=2), mode="lines",
-            ))
+            fig2.add_trace(
+                go.Scatter(
+                    y=cum_caught,
+                    name="Fraud Caught ($)",
+                    line=dict(color="#38ef7d", width=2),
+                    mode="lines",
+                )
+            )
+            fig2.add_trace(
+                go.Scatter(
+                    y=cum_cost,
+                    name="Review Costs ($)",
+                    line=dict(color="#f1c40f", width=2),
+                    mode="lines",
+                )
+            )
             fig2.update_layout(
                 title="Cumulative Business Impact",
-                plot_bgcolor="#1a1a2e", paper_bgcolor="#0f0f1a",
+                plot_bgcolor="#1a1a2e",
+                paper_bgcolor="#0f0f1a",
                 font_color="#e0e0e0",
                 hovermode="x unified",
             )

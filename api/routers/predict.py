@@ -12,6 +12,7 @@ import pandas as pd
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 
 from api.auth import require_api_key
+from api.providers import get_anomaly_detector, get_predictor
 from api.rate_limit import limiter
 from api.schemas import (
     BatchInput,
@@ -24,7 +25,6 @@ from api.schemas import (
     ShapFeature,
     TransactionInput,
 )
-from api.providers import get_anomaly_detector, get_predictor
 from src.fraudlens.config import AVG_FRAUD_LOSS, REVIEW_COST
 
 logger = logging.getLogger(__name__)
@@ -68,16 +68,16 @@ async def predict_single(
             # Auto-queue background SHAP for high-risk transactions
             # Client gets fast response; SHAP is computed asynchronously
             if result["is_fraud"]:
-                background_tasks.add_task(
-                    pred._compute_shap_async, tx_dict, result
-                )
+                background_tasks.add_task(pred._compute_shap_async, tx_dict, result)
 
         # Get anomaly score from Isolation Forest (vectorized numpy path)
         anomaly_score = None
         try:
             anomaly_det = get_anomaly_detector()
             if anomaly_det is not None:
-                raw_model = anomaly_det.model if hasattr(anomaly_det, 'model') else anomaly_det
+                raw_model = (
+                    anomaly_det.model if hasattr(anomaly_det, "model") else anomaly_det
+                )
                 if raw_model is not None:
                     tx_array = pred._vectorize_transaction(transaction.dict())
                     scores = raw_model.score_samples(tx_array)
@@ -114,7 +114,9 @@ async def predict_single(
         )
     except Exception as e:
         logger.error("Prediction failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Model prediction failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Model prediction failed: {str(e)}"
+        )
 
 
 @router.post("/predict/batch", response_model=BatchResponse)
@@ -143,7 +145,9 @@ async def predict_batch(
         if pred.feature_names:
             missing = [f for f in pred.feature_names if f not in X.columns]
             if missing:
-                raise HTTPException(status_code=422, detail=f"Missing features: {missing}")
+                raise HTTPException(
+                    status_code=422, detail=f"Missing features: {missing}"
+                )
             X = X[pred.feature_names]
 
         results = pred.predict_batch(X)

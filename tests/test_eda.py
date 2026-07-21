@@ -34,48 +34,60 @@ class TestEDAFunctions:
     def test_plot_class_imbalance_returns_figure(self, sample_df):
         """Test that plot_class_imbalance returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_class_imbalance
+
         fig = plot_class_imbalance(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
     def test_plot_amount_distribution_returns_figure(self, sample_df):
         """Test that plot_amount_distribution returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_amount_distribution
+
         fig = plot_amount_distribution(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
     def test_plot_time_distribution_returns_figure(self, sample_df):
         """Test that plot_time_distribution returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_time_distribution
+
         fig = plot_time_distribution(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
     def test_plot_correlation_heatmap_returns_figure(self, sample_df):
         """Test that plot_correlation_heatmap returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_correlation_heatmap
+
         fig = plot_correlation_heatmap(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
     def test_plot_feature_separability_returns_figure(self, sample_df):
         """Test that plot_feature_separability returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_feature_separability
+
         fig = plot_feature_separability(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
     def test_plot_feature_distributions_returns_figure(self, sample_df):
         """Test that plot_feature_distributions returns a matplotlib Figure."""
         from src.fraudlens.analysis.eda import plot_feature_distributions
+
         fig = plot_feature_distributions(sample_df)
         import matplotlib.pyplot as plt
+
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
@@ -103,6 +115,7 @@ class TestEDARun:
             output_path = Path(tmpdir) / "test_chart.png"
             fig.savefig(output_path, dpi=72, bbox_inches="tight")
             import matplotlib.pyplot as plt
+
             plt.close(fig)
 
             assert output_path.exists()

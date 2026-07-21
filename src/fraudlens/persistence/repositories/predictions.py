@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import sqlalchemy as sa
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import PredictionModel
@@ -67,9 +67,9 @@ class PredictionRepository(BaseRepository[PredictionModel]):
         """Get prediction statistics for monitoring."""
         stmt = select(
             func.count(PredictionModel.id).label("total"),
-            func.sum(
-                sa.cast(PredictionModel.is_fraud, sa.Integer())
-            ).label("total_fraud"),
+            func.sum(sa.cast(PredictionModel.is_fraud, sa.Integer())).label(
+                "total_fraud"
+            ),
             func.avg(PredictionModel.fraud_probability).label("avg_probability"),
             func.avg(PredictionModel.latency_ms).label("avg_latency_ms"),
         )
@@ -82,7 +82,9 @@ class PredictionRepository(BaseRepository[PredictionModel]):
         return {
             "total_predictions": total,
             "total_fraud": row.total_fraud or 0,
-            "fraud_rate": round((row.total_fraud or 0) / total, 4) if total > 0 else 0.0,
+            "fraud_rate": (
+                round((row.total_fraud or 0) / total, 4) if total > 0 else 0.0
+            ),
             "avg_probability": round(float(row.avg_probability or 0.0), 4),
             "avg_latency_ms": round(float(row.avg_latency_ms or 0.0), 2),
         }

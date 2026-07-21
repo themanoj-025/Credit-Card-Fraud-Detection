@@ -23,9 +23,11 @@ from typing import List, Optional
 # BaseSettings is in pydantic v1 directly, or pydantic-settings for v2+
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
+
     _HAS_SETTINGS_V2 = True
 except ImportError:
     from pydantic import BaseSettings
+
     _HAS_SETTINGS_V2 = False
 
 from pydantic import Field
@@ -86,11 +88,13 @@ class Settings(BaseSettings):
     # Business Cost Assumptions
     # ════════════════════════════════════════════════════════════════
     AVG_FRAUD_LOSS: float = Field(
-        150.0, env="AVG_FRAUD_LOSS",
+        150.0,
+        env="AVG_FRAUD_LOSS",
         description="Average dollar loss per missed fraud transaction",
     )
     REVIEW_COST: float = Field(
-        5.0, env="REVIEW_COST",
+        5.0,
+        env="REVIEW_COST",
         description="Cost to manually review a flagged transaction",
     )
 
@@ -121,8 +125,14 @@ class Settings(BaseSettings):
     # Model Training
     # ════════════════════════════════════════════════════════════════
     DEFAULT_MODELS: List[str] = Field(
-        ["logistic_regression", "random_forest", "gradient_boosting",
-         "xgboost", "lightgbm", "catboost"],
+        [
+            "logistic_regression",
+            "random_forest",
+            "gradient_boosting",
+            "xgboost",
+            "lightgbm",
+            "catboost",
+        ],
         env="DEFAULT_MODELS",
     )
     MODEL_SELECTION_METRIC: str = Field("pr_auc", env="MODEL_SELECTION_METRIC")
@@ -166,6 +176,16 @@ class Settings(BaseSettings):
     # RAG
     RAG_TOP_K: int = Field(3, env="RAG_TOP_K")
     EMBEDDING_DIM: int = Field(30, env="EMBEDDING_DIM")
+    RAG_USE_PROJECTION: bool = Field(
+        False,
+        env="RAG_USE_PROJECTION",
+        description="Apply learned PCA projection before FAISS indexing",
+    )
+    RAG_PROJECTION_COMPONENTS: int = Field(
+        20,
+        env="RAG_PROJECTION_COMPONENTS",
+        description="Target dimension for projected RAG embeddings",
+    )
 
     # ════════════════════════════════════════════════════════════════
     # Drift Detection
@@ -197,7 +217,9 @@ class Settings(BaseSettings):
     # ════════════════════════════════════════════════════════════════
     # MLflow
     # ════════════════════════════════════════════════════════════════
-    MLFLOW_EXPERIMENT_NAME: str = Field("fraudlens_model_comparison", env="MLFLOW_EXPERIMENT_NAME")
+    MLFLOW_EXPERIMENT_NAME: str = Field(
+        "fraudlens_model_comparison", env="MLFLOW_EXPERIMENT_NAME"
+    )
     MLFLOW_TRACKING_URI: str = Field("http://localhost:5000", env="MLFLOW_TRACKING_URI")
     MLFLOW_ARTIFACT_DIR: str = Field("mlruns", env="MLFLOW_ARTIFACT_DIR")
 
@@ -213,23 +235,28 @@ class Settings(BaseSettings):
     # Feature Flags
     # ════════════════════════════════════════════════════════════════
     FEATURE_LLM_NARRATOR: bool = Field(
-        True, env="FEATURE_LLM_NARRATOR",
+        True,
+        env="FEATURE_LLM_NARRATOR",
         description="Enable LLM-powered case narration for /v1/explain",
     )
     FEATURE_ANOMALY_SCORE: bool = Field(
-        True, env="FEATURE_ANOMALY_SCORE",
+        True,
+        env="FEATURE_ANOMALY_SCORE",
         description="Include Isolation Forest anomaly score in predictions",
     )
     FEATURE_SHAP_EXPLANATION: bool = Field(
-        True, env="FEATURE_SHAP_EXPLANATION",
+        True,
+        env="FEATURE_SHAP_EXPLANATION",
         description="Enable SHAP computation on the prediction path",
     )
     FEATURE_CACHE_PREDICTIONS: bool = Field(
-        True, env="FEATURE_CACHE_PREDICTIONS",
+        True,
+        env="FEATURE_CACHE_PREDICTIONS",
         description="Enable LRU cache for duplicate predictions",
     )
     FEATURE_RAG_RETRIEVAL: bool = Field(
-        True, env="FEATURE_RAG_RETRIEVAL",
+        True,
+        env="FEATURE_RAG_RETRIEVAL",
         description="Enable RAG-based similar case retrieval",
     )
 
@@ -237,7 +264,8 @@ class Settings(BaseSettings):
     # Prediction threshold (runtime override)
     # ════════════════════════════════════════════════════════════════
     PREDICTION_THRESHOLD: Optional[float] = Field(
-        None, env="PREDICTION_THRESHOLD",
+        None,
+        env="PREDICTION_THRESHOLD",
         description="Override the model's optimal threshold. Null = use model default.",
     )
 
@@ -248,8 +276,10 @@ class Settings(BaseSettings):
             case_sensitive=True,
         )
     else:
+
         class Config:
             """Pydantic v1 config for BaseSettings."""
+
             env_file = ".env"
             env_file_encoding = "utf-8"
             case_sensitive = True
@@ -323,6 +353,8 @@ LLM_MAX_TOKENS = settings.LLM_MAX_TOKENS
 LLM_TEMPERATURE = settings.LLM_TEMPERATURE
 RAG_TOP_K = settings.RAG_TOP_K
 EMBEDDING_DIM = settings.EMBEDDING_DIM
+RAG_USE_PROJECTION = settings.RAG_USE_PROJECTION
+RAG_PROJECTION_COMPONENTS = settings.RAG_PROJECTION_COMPONENTS
 
 # Drift
 DRIFT_THRESHOLD = settings.DRIFT_THRESHOLD

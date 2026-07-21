@@ -8,25 +8,28 @@ Comprehensive evaluation with business-relevant metrics:
 - Precision-recall tradeoff curves
 """
 
-import pandas as pd
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib
 import numpy as np
-from typing import Dict, Any, Tuple, Optional, List
+import pandas as pd
 from sklearn.metrics import (
-    precision_recall_curve,
+    auc,
     average_precision_score,
-    roc_auc_score,
-    confusion_matrix,
     classification_report,
+    confusion_matrix,
     f1_score,
+    precision_recall_curve,
     precision_score,
     recall_score,
-    auc,
+    roc_auc_score,
 )
-import matplotlib
+
 matplotlib.use('Agg')
+import logging
+
 import matplotlib.pyplot as plt
 import seaborn as sns
-import logging
 
 logger = logging.getLogger(__name__)
 

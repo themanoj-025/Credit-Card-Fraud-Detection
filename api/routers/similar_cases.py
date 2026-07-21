@@ -10,6 +10,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from api.auth import require_api_key
+from api.providers import get_case_retriever
 from api.rate_limit import limiter
 from api.schemas import (
     CursorPagination,
@@ -17,7 +18,6 @@ from api.schemas import (
     SimilarCasesResponse,
     TransactionInput,
 )
-from api.providers import get_case_retriever
 from src.fraudlens.config import RAG_TOP_K
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ async def get_similar_cases(
                 offset = 0
 
         # Slice for pagination
-        page = similar[offset:offset + limit]
+        page = similar[offset : offset + limit]
         has_more = len(similar) > offset + limit
         next_cursor = str(offset + limit) if has_more else None
 

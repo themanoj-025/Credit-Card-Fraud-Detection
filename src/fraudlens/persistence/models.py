@@ -19,7 +19,16 @@ Usage:
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, Boolean
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
@@ -27,31 +36,35 @@ from .database import Base
 
 # Use appropriate types for SQLite vs PostgreSQL compatibility
 
+
 def _uuid_column():
     """Return a UUID column compatible with both SQLite and PostgreSQL."""
-    from sqlalchemy import TypeDecorator, String as SAString
-    
+    from sqlalchemy import String as SAString
+    from sqlalchemy import TypeDecorator
+
     class _UUID(TypeDecorator):
         """Platform-independent UUID type."""
+
         impl = SAString(36)
         cache_ok = True
-        
+
         def process_bind_param(self, value, dialect):
             if value is None:
                 return None
             return str(value)
-        
+
         def process_result_value(self, value, dialect):
             if value is None:
                 return None
             return uuid.UUID(value) if isinstance(value, str) else value
-    
+
     return Column(_UUID(36), primary_key=True, default=uuid.uuid4)
 
 
 def _json_column():
     """Return a JSON column compatible with both SQLite and PostgreSQL."""
     from sqlalchemy import JSON
+
     return Column(JSON, nullable=True)
 
 
@@ -132,7 +145,9 @@ class DriftEventModel(Base):
     feature_name = Column(String(64), nullable=False, index=True)
     drift_score = Column(Float, nullable=False)
     p_value = Column(Float, nullable=True)
-    alert_type = Column(String(32), nullable=False, default="drift")  # drift, warning, alert
+    alert_type = Column(
+        String(32), nullable=False, default="drift"
+    )  # drift, warning, alert
     window_size = Column(Integer, nullable=True)
     details = _json_column()
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)

@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # ─── Integration: Training → Prediction → Evaluation ────────────────────
 
+
 class TestTrainingToPredictionPipeline:
     """End-to-end: train model → predict → verify output shape/range."""
 
@@ -33,9 +34,7 @@ class TestTrainingToPredictionPipeline:
         X, y = trainer.training_results["logistic_regression"].get("n_samples", 0), None
 
         # Generate test data
-        X_test = pd.DataFrame(
-            {f"V{i}": np.random.randn(50) for i in range(1, 29)}
-        )
+        X_test = pd.DataFrame({f"V{i}": np.random.randn(50) for i in range(1, 29)})
         X_test["Time"] = np.random.uniform(0, 172800, 50)
         X_test["Amount"] = np.random.exponential(100, 50)
 
@@ -47,9 +46,7 @@ class TestTrainingToPredictionPipeline:
     def test_predict_proba_output_shape(self, trained_model):
         """Test that predict_proba returns the correct shape."""
         model, _ = trained_model
-        X_test = pd.DataFrame(
-            {f"V{i}": np.random.randn(10) for i in range(1, 29)}
-        )
+        X_test = pd.DataFrame({f"V{i}": np.random.randn(10) for i in range(1, 29)})
         X_test["Time"] = np.random.uniform(0, 172800, 10)
         X_test["Amount"] = np.random.exponential(100, 10)
 
@@ -59,9 +56,7 @@ class TestTrainingToPredictionPipeline:
     def test_decision_based_on_threshold(self, trained_model):
         """Test that decisions (FRAUD/LEGITIMATE) are threshold-consistent."""
         model, _ = trained_model
-        X_test = pd.DataFrame(
-            {f"V{i}": np.random.randn(20) for i in range(1, 29)}
-        )
+        X_test = pd.DataFrame({f"V{i}": np.random.randn(20) for i in range(1, 29)})
         X_test["Time"] = np.random.uniform(0, 172800, 20)
         X_test["Amount"] = np.random.exponential(100, 20)
 
@@ -72,6 +67,7 @@ class TestTrainingToPredictionPipeline:
 
 
 # ─── Integration: API with Model ─────────────────────────────────────────
+
 
 class TestApiWithModel:
     """Tests that the API correctly integrates with the loaded model."""
@@ -119,6 +115,7 @@ class TestApiWithModel:
 
 # ─── Integration: Feature Engineering Parity ────────────────────────────
 
+
 class TestFeatureEngineeringParity:
     """Golden tests: training-time and inference-time feature parity.
 
@@ -134,7 +131,9 @@ class TestFeatureEngineeringParity:
         assert engineer.get_feature_names() is not None
         assert len(engineer.get_feature_names()) == n_features
 
-    def test_engineer_reproducible_transform(self, trained_engineer, engineered_transaction):
+    def test_engineer_reproducible_transform(
+        self, trained_engineer, engineered_transaction
+    ):
         """Test that transforming the same data twice produces identical results."""
         engineer, _ = trained_engineer
         df = pd.DataFrame([engineered_transaction])
@@ -144,7 +143,9 @@ class TestFeatureEngineeringParity:
 
         pd.testing.assert_frame_equal(result1, result2)
 
-    def test_engineer_column_order_consistent(self, trained_engineer, engineered_transaction):
+    def test_engineer_column_order_consistent(
+        self, trained_engineer, engineered_transaction
+    ):
         """Test that column order is deterministic (critical for train/serve parity)."""
         engineer, _ = trained_engineer
         df = pd.DataFrame([engineered_transaction])
@@ -156,6 +157,7 @@ class TestFeatureEngineeringParity:
 
 
 # ─── Integration: SHAP Output ───────────────────────────────────────────
+
 
 class TestShapOutput:
     """Tests that SHAP explanations have the correct structure."""

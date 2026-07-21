@@ -79,7 +79,9 @@ class ProblemDetailResponse(BaseModel):
     title: str = Field(..., description="Short, human-readable problem summary")
     status: int = Field(..., description="HTTP status code")
     detail: str = Field(..., description="Human-readable explanation")
-    instance: Optional[str] = Field(None, description="URI reference to the specific occurrence")
+    instance: Optional[str] = Field(
+        None, description="URI reference to the specific occurrence"
+    )
     errors: Optional[List[Dict[str, Any]]] = Field(
         None, description="Field-level validation errors"
     )
@@ -106,11 +108,13 @@ def validation_exception_handler(
     """Convert Pydantic validation errors to RFC 7807 format."""
     errors = []
     for error in exc.errors():
-        errors.append({
-            "field": " -> ".join(str(l) for l in error.get("loc", [])),
-            "message": error.get("msg", "Invalid value"),
-            "type": error.get("type", "value_error"),
-        })
+        errors.append(
+            {
+                "field": " -> ".join(str(l) for l in error.get("loc", [])),
+                "message": error.get("msg", "Invalid value"),
+                "type": error.get("type", "value_error"),
+            }
+        )
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

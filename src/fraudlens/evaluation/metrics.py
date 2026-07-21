@@ -114,8 +114,13 @@ class FraudEvaluator:
         }
 
         logger.info("Evaluation: %s", model_name)
-        logger.info("  PR-AUC: %.4f | F1: %.4f | Precision: %.4f | Recall: %.4f",
-                     metrics["pr_auc"], metrics["f1"], metrics["precision"], metrics["recall"])
+        logger.info(
+            "  PR-AUC: %.4f | F1: %.4f | Precision: %.4f | Recall: %.4f",
+            metrics["pr_auc"],
+            metrics["f1"],
+            metrics["precision"],
+            metrics["recall"],
+        )
         return results
 
     def compare_models(
@@ -143,18 +148,20 @@ class FraudEvaluator:
             metrics = self.compute_metrics(y_true, y_proba, t)
             biz = (business_costs or {}).get(model_name, {})
 
-            rows.append({
-                "Model": model_name,
-                "Threshold": metrics["threshold"],
-                "PR-AUC": metrics["pr_auc"],
-                "ROC-AUC": metrics["roc_auc"],
-                "F1": metrics["f1"],
-                "Precision": metrics["precision"],
-                "Recall": metrics["recall"],
-                "Net Benefit ($)": biz.get("net_benefit_usd", 0),
-                "Fraud Caught ($)": biz.get("fraud_caught_usd", 0),
-                "Missed Fraud ($)": biz.get("fraud_missed_usd", 0),
-            })
+            rows.append(
+                {
+                    "Model": model_name,
+                    "Threshold": metrics["threshold"],
+                    "PR-AUC": metrics["pr_auc"],
+                    "ROC-AUC": metrics["roc_auc"],
+                    "F1": metrics["f1"],
+                    "Precision": metrics["precision"],
+                    "Recall": metrics["recall"],
+                    "Net Benefit ($)": biz.get("net_benefit_usd", 0),
+                    "Fraud Caught ($)": biz.get("fraud_caught_usd", 0),
+                    "Missed Fraud ($)": biz.get("fraud_missed_usd", 0),
+                }
+            )
 
         comparison_df = pd.DataFrame(rows).sort_values("PR-AUC", ascending=False)
         logger.info("Model comparison:\n%s", comparison_df.to_string(index=False))
@@ -182,7 +189,12 @@ class FraudEvaluator:
         for model_name, y_proba in predictions.items():
             precisions, recalls, _ = precision_recall_curve(y_true, y_proba)
             pr_auc = average_precision_score(y_true, y_proba)
-            ax.plot(recalls, precisions, label=f"{model_name} (PR-AUC={pr_auc:.4f})", linewidth=2)
+            ax.plot(
+                recalls,
+                precisions,
+                label=f"{model_name} (PR-AUC={pr_auc:.4f})",
+                linewidth=2,
+            )
 
         ax.set_xlabel("Recall", fontsize=12)
         ax.set_ylabel("Precision", fontsize=12)
@@ -191,8 +203,13 @@ class FraudEvaluator:
         ax.grid(True, alpha=0.3)
 
         baseline = y_true.sum() / len(y_true)
-        ax.axhline(y=baseline, color="gray", linestyle="--", alpha=0.5,
-                   label=f"Random baseline ({baseline:.4f})")
+        ax.axhline(
+            y=baseline,
+            color="gray",
+            linestyle="--",
+            alpha=0.5,
+            label=f"Random baseline ({baseline:.4f})",
+        )
 
         plt.tight_layout()
         if save_path:
@@ -234,7 +251,11 @@ class FraudEvaluator:
             cm = confusion_matrix(y_true, y_pred)
 
             sns.heatmap(
-                cm, annot=True, fmt="d", cmap="Blues", ax=ax,
+                cm,
+                annot=True,
+                fmt="d",
+                cmap="Blues",
+                ax=ax,
                 xticklabels=["Legit", "Fraud"],
                 yticklabels=["Legit", "Fraud"],
             )

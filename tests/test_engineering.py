@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.features.engineering import FeatureEngineer
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def sample_df() -> pd.DataFrame:
@@ -31,6 +31,7 @@ def sample_df() -> pd.DataFrame:
 
 
 # ─── Tests: Initialization ───────────────────────────────────────────────
+
 
 class TestFeatureEngineerInit:
     """Tests for FeatureEngineer initialization."""
@@ -49,6 +50,7 @@ class TestFeatureEngineerInit:
 
 
 # ─── Tests: Feature Transformation ───────────────────────────────────────
+
 
 class TestFeatureTransformation:
     """Tests for the transform method."""
@@ -117,14 +119,14 @@ class TestFeatureTransformation:
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
 
+
 class TestEdgeCases:
     """Edge case tests for FeatureEngineer."""
 
     def test_single_row_input(self):
         """Test that transform handles a single-row DataFrame."""
         single = pd.DataFrame(
-            {**{f"V{i}": [0.0] for i in range(1, 29)},
-             "Time": [0.0], "Amount": [50.0]}
+            {**{f"V{i}": [0.0] for i in range(1, 29)}, "Time": [0.0], "Amount": [50.0]}
         )
         fe = FeatureEngineer()
         result = fe.transform(single)
@@ -135,8 +137,11 @@ class TestEdgeCases:
         Note: np.log1p(-amount) will be NaN for amount < -1 since log of negatives is undefined.
         """
         df = pd.DataFrame(
-            {**{f"V{i}": [0.0, 0.0] for i in range(1, 29)},
-             "Time": [0.0, 100.0], "Amount": [-50.0, 200.0]}
+            {
+                **{f"V{i}": [0.0, 0.0] for i in range(1, 29)},
+                "Time": [0.0, 100.0],
+                "Amount": [-50.0, 200.0],
+            }
         )
         fe = FeatureEngineer()
         result = fe.transform(df)
@@ -149,8 +154,7 @@ class TestEdgeCases:
     def test_zero_amount(self):
         """Test that Amount of 0 is handled."""
         df = pd.DataFrame(
-            {**{f"V{i}": [0.0] for i in range(1, 29)},
-             "Time": [0.0], "Amount": [0.0]}
+            {**{f"V{i}": [0.0] for i in range(1, 29)}, "Time": [0.0], "Amount": [0.0]}
         )
         fe = FeatureEngineer()
         result = fe.transform(df)
@@ -158,6 +162,7 @@ class TestEdgeCases:
 
 
 # ─── Tests: Static Methods ───────────────────────────────────────────────
+
 
 class TestStaticMethods:
     """Tests for static helper methods."""

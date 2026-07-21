@@ -13,9 +13,9 @@ import joblib
 import pandas as pd
 
 from src.fraudlens.config import (
+    MLFLOW_EXPERIMENT_NAME,
     MODEL_SELECTION_METRIC,
     MODELS_DIR,
-    MLFLOW_EXPERIMENT_NAME,
     SELECTION_RULE_DESCRIPTION,
 )
 
@@ -129,7 +129,9 @@ class ModelSelector:
             "ranking": sorted_df,
         }
 
-        logger.info("Selected best model: %s (%s=%.4f)", best_name, self.metric, best_value)
+        logger.info(
+            "Selected best model: %s (%s=%.4f)", best_name, self.metric, best_value
+        )
         logger.info("Reasoning: %s", reasoning)
 
         # Tag the winning model's MLflow run
@@ -158,7 +160,9 @@ class ModelSelector:
         logger.info("Best model saved to %s", path)
         return path
 
-    def _tag_winning_model_mlflow(self, best_name: str, best_value: float, reasoning: str) -> None:
+    def _tag_winning_model_mlflow(
+        self, best_name: str, best_value: float, reasoning: str
+    ) -> None:
         """Tag the winning model's MLflow run for easy identification in the UI."""
         if not MLFLOW_AVAILABLE:
             return

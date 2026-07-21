@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ModelLoadError(Exception):
     """Raised when a model artifact cannot be loaded or verified."""
+
     pass
 
 
@@ -168,7 +169,8 @@ class ModelLoader:
         # SCALE_FEATURES are always the last features: V1-V28, Time, Amount
         # Time is at index 28, Amount is at index 29
         scale_indices = [
-            self.feature_names.index(f) for f in SCALE_FEATURES
+            self.feature_names.index(f)
+            for f in SCALE_FEATURES
             if f in self.feature_names
         ]
 

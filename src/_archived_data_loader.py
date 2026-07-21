@@ -4,11 +4,12 @@ Data Loader Module
 Handles loading the credit card fraud dataset and providing basic statistics.
 """
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Tuple, Optional
 import logging
+from pathlib import Path
+from typing import Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

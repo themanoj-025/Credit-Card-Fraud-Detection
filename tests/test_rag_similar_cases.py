@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever, create_retriever
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def sample_historical_data() -> pd.DataFrame:
@@ -36,17 +36,41 @@ def sample_historical_data() -> pd.DataFrame:
 def query_transaction() -> dict:
     """A query transaction similar to some fraud cases."""
     return {
-        "V1": -0.5, "V2": 0.3, "V3": 1.2, "V4": -2.1, "V5": 0.7,
-        "V6": -0.3, "V7": 0.1, "V8": -0.8, "V9": 0.4, "V10": -1.5,
-        "V11": 0.6, "V12": -2.0, "V13": -0.2, "V14": -4.0, "V15": 0.8,
-        "V16": -0.5, "V17": 0.3, "V18": -0.1, "V19": 0.2, "V20": -0.4,
-        "V21": 0.1, "V22": -0.2, "V23": 0.0, "V24": -0.1, "V25": 0.3,
-        "V26": -0.2, "V27": 0.1, "V28": -0.3,
-        "Time": 100000.0, "Amount": 200.0,
+        "V1": -0.5,
+        "V2": 0.3,
+        "V3": 1.2,
+        "V4": -2.1,
+        "V5": 0.7,
+        "V6": -0.3,
+        "V7": 0.1,
+        "V8": -0.8,
+        "V9": 0.4,
+        "V10": -1.5,
+        "V11": 0.6,
+        "V12": -2.0,
+        "V13": -0.2,
+        "V14": -4.0,
+        "V15": 0.8,
+        "V16": -0.5,
+        "V17": 0.3,
+        "V18": -0.1,
+        "V19": 0.2,
+        "V20": -0.4,
+        "V21": 0.1,
+        "V22": -0.2,
+        "V23": 0.0,
+        "V24": -0.1,
+        "V25": 0.3,
+        "V26": -0.2,
+        "V27": 0.1,
+        "V28": -0.3,
+        "Time": 100000.0,
+        "Amount": 200.0,
     }
 
 
 # ─── Tests: Build Index ─────────────────────────────────────────────────
+
 
 class TestBuildIndex:
     """Tests for building the FAISS index."""
@@ -76,10 +100,13 @@ class TestBuildIndex:
 
 # ─── Tests: Retrieve ───────────────────────────────────────────────────
 
+
 class TestRetrieve:
     """Tests for retrieving similar cases."""
 
-    def test_retrieve_returns_correct_count(self, sample_historical_data, query_transaction):
+    def test_retrieve_returns_correct_count(
+        self, sample_historical_data, query_transaction
+    ):
         """Test that retrieve returns top_k results."""
         retriever = SimilarCaseRetriever(top_k=3)
         retriever.build_index(sample_historical_data)
@@ -93,7 +120,9 @@ class TestRetrieve:
         results = retriever.retrieve(query_transaction, top_k=2)
         assert len(results) == 2
 
-    def test_retrieve_results_have_expected_keys(self, sample_historical_data, query_transaction):
+    def test_retrieve_results_have_expected_keys(
+        self, sample_historical_data, query_transaction
+    ):
         """Test that each result has the expected fields."""
         retriever = SimilarCaseRetriever(top_k=3)
         retriever.build_index(sample_historical_data)
@@ -104,7 +133,9 @@ class TestRetrieve:
         assert "features" in result
         assert result["actual_outcome"] in ("confirmed_fraud", "false_positive")
 
-    def test_retrieve_scores_are_reasonable(self, sample_historical_data, query_transaction):
+    def test_retrieve_scores_are_reasonable(
+        self, sample_historical_data, query_transaction
+    ):
         """Test that similarity scores are between -1 and 1 (cosine/IP)."""
         retriever = SimilarCaseRetriever(top_k=3)
         retriever.build_index(sample_historical_data)
@@ -120,6 +151,7 @@ class TestRetrieve:
 
 
 # ─── Tests: Save / Load ─────────────────────────────────────────────────
+
 
 class TestSaveLoad:
     """Tests for saving and loading the FAISS index."""
@@ -173,6 +205,7 @@ class TestSaveLoad:
 
 # ─── Tests: Factory Function ─────────────────────────────────────────────
 
+
 class TestFactory:
     """Tests for create_retriever factory function."""
 
@@ -191,10 +224,13 @@ class TestFactory:
 
 # ─── Tests: Edge Cases ───────────────────────────────────────────────────
 
+
 class TestEdgeCases:
     """Edge cases for SimilarCaseRetriever."""
 
-    def test_retrieve_more_than_available(self, sample_historical_data, query_transaction):
+    def test_retrieve_more_than_available(
+        self, sample_historical_data, query_transaction
+    ):
         """Test retrieving more than available cases returns all."""
         small_data = sample_historical_data.head(2)
         retriever = SimilarCaseRetriever(top_k=10)
@@ -204,11 +240,15 @@ class TestEdgeCases:
 
     def test_retrieve_with_missing_features(self, query_transaction):
         """Test retrieving with missing feature columns."""
-        minimal_data = pd.DataFrame({
-            "V1": [0.0, 1.0], "V14": [-1.0, -5.0],
-            "Time": [0.0, 100.0], "Amount": [50.0, 200.0],
-            "Class": [0, 1],
-        })
+        minimal_data = pd.DataFrame(
+            {
+                "V1": [0.0, 1.0],
+                "V14": [-1.0, -5.0],
+                "Time": [0.0, 100.0],
+                "Amount": [50.0, 200.0],
+                "Class": [0, 1],
+            }
+        )
         retriever = SimilarCaseRetriever(top_k=2)
         retriever.build_index(minimal_data)
         results = retriever.retrieve(query_transaction, top_k=1)

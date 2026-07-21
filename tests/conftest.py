@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 def app():
     """Get the FastAPI application."""
     from api.main import app
+
     return app
 
 
@@ -83,6 +84,7 @@ def trained_model(small_training_data):
 
 # ─── Anthropic API Mock ──────────────────────────────────────────────────
 
+
 @pytest.fixture(autouse=True)
 def mock_anthropic(monkeypatch):
     """
@@ -113,6 +115,7 @@ def mock_anthropic(monkeypatch):
 
 
 # ─── Feature Engineering Fixture ────────────────────────────────────────
+
 
 @pytest.fixture
 def engineered_transaction() -> Dict[str, float]:

@@ -19,9 +19,9 @@ from api.exceptions import (
     ModelNotLoadedError,
     PredictionError,
 )
+from api.providers import get_case_narrator, get_predictor
 from api.rate_limit import limiter
 from api.schemas import ExplanationResponse, TransactionInput
-from api.providers import get_case_narrator, get_predictor
 
 logger = logging.getLogger(__name__)
 

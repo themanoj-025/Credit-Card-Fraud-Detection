@@ -68,9 +68,9 @@ class TestEndpointExistence:
         for endpoint in _REQUIRED_ENDPOINTS:
             method, path = endpoint.split(" ", 1)
             assert path in paths, f"Path '{path}' not in OpenAPI spec"
-            assert method.lower() in paths[path], (
-                f"Method '{method}' not found for path '{path}'"
-            )
+            assert (
+                method.lower() in paths[path]
+            ), f"Method '{method}' not found for path '{path}'"
 
     @staticmethod
     def _get_registered_routes(app) -> Set[str]:
@@ -201,9 +201,13 @@ class TestOpenApiSpecConsistency:
         spec = app.openapi()
         schemas = spec.get("components", {}).get("schemas", {})
         core_schemas = {
-            "TransactionInput", "PredictionResponse", "BatchInput",
-            "BatchResponse", "ExplanationResponse",
-            "SimilarCasesResponse", "CursorPagination",
+            "TransactionInput",
+            "PredictionResponse",
+            "BatchInput",
+            "BatchResponse",
+            "ExplanationResponse",
+            "SimilarCasesResponse",
+            "CursorPagination",
         }
         for schema in core_schemas:
             assert schema in schemas, (
@@ -220,9 +224,5 @@ class TestOpenApiSpecConsistency:
                 if "operationId" in method:
                     operation_ids.append(method["operationId"])
 
-        duplicates = [
-            oid for oid in operation_ids if operation_ids.count(oid) > 1
-        ]
-        assert len(duplicates) == 0, (
-            f"Duplicate operationIds found: {set(duplicates)}"
-        )
+        duplicates = [oid for oid in operation_ids if operation_ids.count(oid) > 1]
+        assert len(duplicates) == 0, f"Duplicate operationIds found: {set(duplicates)}"
