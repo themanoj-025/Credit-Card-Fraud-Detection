@@ -88,6 +88,9 @@ load-test:  ## Run locust load tests
 	@echo "Starting locust. Point browser to http://localhost:8089"
 	locust -f tests/load/locustfile.py --host http://localhost:8000
 
+trivy-scan:  ## Run Trivy vulnerability scan on the serve image
+	trivy image --severity CRITICAL,HIGH --exit-code 1 --ignore-unfixed fraudlens:serve
+
 # ─── Lint ─────────────────────────────────────────────────────
 
 lint:  ## Run all linters (blocking — fails on issues)
@@ -141,6 +144,14 @@ clean:  ## Remove cache and build artifacts
 	rm -rf .pytest_cache
 	rm -rf build/ dist/ *.egg-info
 	rm -rf .mypy_cache .dmypy.json
+
+# ─── K8s ──────────────────────────────────────────────────────
+
+k8s-apply:  ## Apply Kustomize manifests to current cluster
+	kubectl apply -k infra/k8s/
+
+k8s-dry-run:  ## Dry-run Kustomize manifests
+	kubectl kustomize infra/k8s/
 
 # ─── Baseline ─────────────────────────────────────────────────
 
