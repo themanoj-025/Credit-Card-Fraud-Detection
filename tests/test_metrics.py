@@ -9,7 +9,6 @@ import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend for testing
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from src.fraudlens.evaluation.metrics import FraudEvaluator, print_evaluation_summary

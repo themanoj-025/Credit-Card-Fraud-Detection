@@ -40,20 +40,20 @@ from api.logging_config import get_logger, setup_structlog
 setup_structlog()
 logger = get_logger(__name__)
 
-from api.auth import is_auth_enabled
-from api.metrics import setup_metrics
-from api.providers import (
+from api.auth import is_auth_enabled  # noqa: E402
+from api.metrics import setup_metrics  # noqa: E402
+from api.providers import (  # noqa: E402
     FraudPredictor,
     get_predictor,
 )
-from api.rate_limit import limiter
-from api.routers import admin, chat, explain, predict, similar_cases
-from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST
-from src.fraudlens.explainability.shap_explainer import ShapExplainer
-from src.fraudlens.llm.case_narrator import CaseNarrator
-from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever
-from src.fraudlens.persistence import init_db
-from src.fraudlens.prediction.model_loader import ModelLoader
+from api.rate_limit import limiter  # noqa: E402
+from api.routers import admin, chat, explain, predict, similar_cases  # noqa: E402
+from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST  # noqa: E402
+from src.fraudlens.explainability.shap_explainer import ShapExplainer  # noqa: E402
+from src.fraudlens.llm.case_narrator import CaseNarrator  # noqa: E402
+from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever  # noqa: E402
+from src.fraudlens.persistence import init_db  # noqa: E402
+from src.fraudlens.prediction.model_loader import ModelLoader  # noqa: E402
 
 # ─── Attempt to load optional dependencies ───────────────────────────────
 
@@ -158,7 +158,7 @@ async def lifespan(app: FastAPI):
     _try_load_copilot(app)
 
     # Wire circuit breaker into case narrator
-    from api.exceptions import circuit_breaker
+    from api.exceptions import circuit_breaker  # noqa: E402
 
     app.state.llm_circuit_breaker = circuit_breaker
     case_narrator = getattr(app.state, "case_narrator", None)
@@ -166,7 +166,7 @@ async def lifespan(app: FastAPI):
         case_narrator.set_circuit_breaker(circuit_breaker)
 
     # Update Prometheus gauges with current state
-    from api.metrics import (
+    from api.metrics import (  # noqa: E402
         ANOMALY_LOADED_GAUGE,
         LLM_AVAILABLE_GAUGE,
         MODEL_LOADED_GAUGE,

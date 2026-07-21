@@ -5,7 +5,7 @@ Tests for persistence/database.py: engine creation, session lifecycle,
 and init_db (table creation).
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

@@ -4,7 +4,7 @@ FraudLens — Anomaly Detection Tests
 Tests for IsolationForestDetector and AutoencoderDetector.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd

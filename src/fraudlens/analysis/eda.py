@@ -33,8 +33,8 @@ import seaborn as sns
 matplotlib.use("Agg")
 sns.set_style("whitegrid")
 
-from src.fraudlens.config import FIGURES_DIR, PCA_FEATURES, REPORTS_DIR
-from src.fraudlens.data.loaders import DataLoader
+from src.fraudlens.config import FIGURES_DIR, PCA_FEATURES, REPORTS_DIR  # noqa: E402
+from src.fraudlens.data.loaders import DataLoader  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

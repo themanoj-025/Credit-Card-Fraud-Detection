@@ -8,9 +8,11 @@ Backed by the Anthropic API with tool-use access to simulation data.
 import os
 from typing import Dict, List, Optional
 
+import requests
 import streamlit as st
 
 from app.api_client import get_api_client
+from src.fraudlens.config import API_URL
 
 
 def _get_copilot_response(

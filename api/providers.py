@@ -62,7 +62,7 @@ async def get_db_session():
         ):
             ...
     """
-    from src.fraudlens.persistence.database import AsyncSessionLocal
+    from src.fraudlens.persistence.database import AsyncSessionLocal  # noqa: E402
 
     async with AsyncSessionLocal() as session:
         try:
@@ -309,7 +309,7 @@ def get_predictor(request: Optional[Request] = None):
         return getattr(state, "predictor", None)
     # Fallback: try to import from main's app state
     try:
-        from api.main import app
+        from api.main import app  # noqa: E402
 
         return getattr(app.state, "predictor", None)
     except Exception:
@@ -322,7 +322,7 @@ def get_anomaly_detector(request: Optional[Request] = None):
     if state is not None:
         return getattr(state, "anomaly_detector", None)
     try:
-        from api.main import app
+        from api.main import app  # noqa: E402
 
         return getattr(app.state, "anomaly_detector", None)
     except Exception:
@@ -335,7 +335,7 @@ def get_case_narrator(request: Optional[Request] = None):
     if state is not None:
         return getattr(state, "case_narrator", None)
     try:
-        from api.main import app
+        from api.main import app  # noqa: E402
 
         return getattr(app.state, "case_narrator", None)
     except Exception:
@@ -348,7 +348,7 @@ def get_case_retriever(request: Optional[Request] = None):
     if state is not None:
         return getattr(state, "case_retriever", None)
     try:
-        from api.main import app
+        from api.main import app  # noqa: E402
 
         return getattr(app.state, "case_retriever", None)
     except Exception:
@@ -361,7 +361,7 @@ def get_copilot_client(request: Optional[Request] = None):
     if state is not None:
         return getattr(state, "copilot_client", None)
     try:
-        from api.main import app
+        from api.main import app  # noqa: E402
 
         return getattr(app.state, "copilot_client", None)
     except Exception:

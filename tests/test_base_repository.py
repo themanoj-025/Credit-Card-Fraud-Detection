@@ -5,7 +5,7 @@ Tests for BaseRepository CRUD operations (create, get, list, count, update, dele
 Uses mocked async session to avoid requiring a real database.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession

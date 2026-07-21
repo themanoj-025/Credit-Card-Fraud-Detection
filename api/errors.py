@@ -19,7 +19,7 @@ Usage:
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -110,7 +110,7 @@ def validation_exception_handler(
     for error in exc.errors():
         errors.append(
             {
-                "field": " -> ".join(str(l) for l in error.get("loc", [])),
+                "field": " -> ".join(str(loc) for loc in error.get("loc", [])),
                 "message": error.get("msg", "Invalid value"),
                 "type": error.get("type", "value_error"),
             }

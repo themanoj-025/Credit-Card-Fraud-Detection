@@ -5,8 +5,6 @@ Covers DataLoader class: load, get_basic_stats, get_column_info,
 get_class_distribution, sample_transaction, and the convenience load_data function.
 """
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
