@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from api.auth import require_admin_key
 from api.rate_limit import limiter
+from src.fraudlens.llm.cost_tracker import cost_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,55 @@ async def list_api_keys(
             keys.append({"sha256_hash": hash_val, "role": role})
 
     return KeyListResponse(keys=keys, count=len(keys))
+
+
+# ─── LLM Usage Endpoint ───────────────────────────────────────────────────
+
+
+class LLMUsageResponse(BaseModel):
+    """LLM cost and usage summary."""
+
+    date: str
+    total_cost_usd: float
+    total_calls: int
+    total_input_tokens: int
+    total_output_tokens: int
+    by_model: Dict[str, float]
+    by_endpoint: Dict[str, float]
+
+
+class LLMUsagePeriod(BaseModel):
+    """Period selector for LLM usage."""
+
+    period: str = "today"  # "today", "month", "total"
+
+
+@router.get("/llm-usage", response_model=LLMUsageResponse)
+@limiter.limit("30/minute")
+async def get_llm_usage(
+    request: Request,
+    period: str = "today",
+    _admin_key: str = Depends(require_admin_key),
+) -> LLMUsageResponse:
+    """
+    Get LLM API cost and usage summary.
+
+    Query param `period`: today | month | total
+    Requires an admin-level API key.
+    """
+    if period == "month":
+        summary = cost_tracker.get_month_summary()
+    elif period == "total":
+        summary = cost_tracker.get_total_summary()
+    else:
+        summary = cost_tracker.get_today_summary()
+
+    return LLMUsageResponse(
+        date=summary.date,
+        total_cost_usd=summary.total_cost_usd,
+        total_calls=summary.total_calls,
+        total_input_tokens=summary.total_input_tokens,
+        total_output_tokens=summary.total_output_tokens,
+        by_model=summary.by_model,
+        by_endpoint=summary.by_endpoint,
+    )
