@@ -15,7 +15,6 @@ This is a light, honestly-scoped RAG implementation — not overengineered,
 uses FAISS (no hosted vector DB needed).
 """
 
-import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -180,9 +179,7 @@ class SimilarCaseRetriever:
         self._feature_columns: List[str] = []
         self._initialized = False
         # Effective embedding dim depends on projection state
-        self.embedding_dim = (
-            projection_components if use_projection else embedding_dim
-        )
+        self.embedding_dim = projection_components if use_projection else embedding_dim
 
     def _init_faiss(self):
         """Lazy import FAISS to avoid hard dependency."""
@@ -234,9 +231,7 @@ class SimilarCaseRetriever:
 
         # Optionally apply learned projection
         if self.use_projection:
-            self.projector = EmbeddingProjector(
-                n_components=self.projection_components
-            )
+            self.projector = EmbeddingProjector(n_components=self.projection_components)
             embeddings = self.projector.fit_transform(raw_embeddings)
             self.embedding_dim = self.projector.embedding_dim
             logger.info(

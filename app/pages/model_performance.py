@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.fraudlens.config import MODELS_DIR, REPORTS_DIR
+from src.fraudlens.config import REPORTS_DIR
 
 
 def _load_comparison_data() -> Optional[pd.DataFrame]:

@@ -35,14 +35,12 @@ Usage:
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import numpy as np
 from fastapi import Request
 
 from src.fraudlens.explainability.shap_explainer import ShapExplainer
-from src.fraudlens.llm.case_narrator import CaseNarrator
-from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever
 from src.fraudlens.prediction.model_loader import ModelLoader
 
 logger = logging.getLogger(__name__)
@@ -252,7 +250,6 @@ class FraudPredictor:
         Still uses DataFrame for batch since the overhead is amortized
         across many rows.
         """
-        import pandas as pd
 
         t = threshold or self.threshold
         X_processed = self.model_loader.preprocess(X)
@@ -289,13 +286,11 @@ class FraudPredictor:
 
 def _get_request_state(request: Optional[Request] = None):
     """Get the FastAPI app state, working both as Depends() injection and plain function call."""
-    import sys
 
     if request is not None:
         return request.app.state
     # Fallback: try to get the current request context
     try:
-        from fastapi import Request as Req
 
         # If called as a plain function, we can't access app.state without a request
         return None

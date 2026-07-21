@@ -10,15 +10,14 @@ Now uses the shared FraudLensAPI client — no hardcoded mock data.
 """
 
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.api_client import FraudLensAPI, api_call_with_spinner, get_api_client
+from app.api_client import api_call_with_spinner, get_api_client
 from app.components.metric_cards import metric_card
-from src.fraudlens.config import API_URL
 
 
 def _generate_synthetic_transactions(n: int = 5) -> List[Dict[str, Any]]:

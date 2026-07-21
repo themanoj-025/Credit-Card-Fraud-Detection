@@ -9,10 +9,8 @@ Verifies the API and models handle edge cases gracefully:
 - Extreme Amount values (0 and very large)
 """
 
-import math
 import sys
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 from pydantic import ValidationError

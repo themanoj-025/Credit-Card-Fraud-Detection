@@ -4,7 +4,6 @@ FraudLens — Prediction Repository
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy import func, select

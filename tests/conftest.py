@@ -7,7 +7,7 @@ and mock external services (Anthropic, etc.).
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, Generator, List
+from typing import Dict, Generator
 
 import numpy as np
 import pandas as pd

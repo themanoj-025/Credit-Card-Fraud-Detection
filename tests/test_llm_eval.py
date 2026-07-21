@@ -132,7 +132,6 @@ class TestProbabilityAccuracy:
         self, narrator, sample_transaction, sample_shap_features
     ):
         """Test that different probabilities produce different narratives."""
-        from src.fraudlens.llm.case_narrator import CaseNarrator
 
         # The fallback narrator always produces correct numbers
         # because they're baked into the template

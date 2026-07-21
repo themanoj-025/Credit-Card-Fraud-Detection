@@ -6,7 +6,7 @@ Converts ML metrics into dollar figures that stakeholders understand.
 """
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt

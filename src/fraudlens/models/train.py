@@ -25,7 +25,6 @@ from src.fraudlens.config import (
     CROSS_VALIDATION_SCORING,
     DEFAULT_MODELS,
     MLFLOW_EXPERIMENT_NAME,
-    MLFLOW_TRACKING_URI,
     MODELS_DIR,
     RANDOM_STATE,
 )
@@ -256,7 +255,6 @@ class FraudTrainer:
 
                 # Log the model artifact
                 try:
-                    import sklearn
 
                     mlflow.sklearn.log_model(model, artifact_path="model")
                 except Exception:

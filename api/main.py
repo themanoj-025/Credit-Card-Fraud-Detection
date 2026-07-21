@@ -44,11 +44,6 @@ from api.auth import is_auth_enabled
 from api.metrics import setup_metrics
 from api.providers import (
     FraudPredictor,
-    get_anomaly_detector,
-    get_case_narrator,
-    get_case_retriever,
-    get_copilot_client,
-    get_db_session,
     get_predictor,
 )
 from api.rate_limit import limiter
@@ -57,7 +52,6 @@ from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST
 from src.fraudlens.explainability.shap_explainer import ShapExplainer
 from src.fraudlens.llm.case_narrator import CaseNarrator
 from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever
-from src.fraudlens.models.anomaly import IsolationForestDetector
 from src.fraudlens.persistence import init_db
 from src.fraudlens.prediction.model_loader import ModelLoader
 

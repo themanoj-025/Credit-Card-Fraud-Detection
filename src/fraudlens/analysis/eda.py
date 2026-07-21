@@ -25,7 +25,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 import matplotlib
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -540,7 +539,7 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     print(f"\n{'=' * 70}")
     print(f"  EDA COMPLETE — {len(charts)} charts saved to {output_dir}")
     print(f"{'=' * 70}")
-    print(f"\n  Generated charts:")
+    print("\n  Generated charts:")
     for name, _ in charts:
         path = output_dir / name
         size_kb = path.stat().st_size / 1024 if path.exists() else 0

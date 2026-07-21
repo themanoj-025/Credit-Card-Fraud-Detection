@@ -12,9 +12,9 @@ Resilience:
 """
 
 import logging
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from tenacity import (
     before_sleep_log,

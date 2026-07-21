@@ -6,11 +6,11 @@ Backed by the Anthropic API with tool-use access to simulation data.
 """
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import streamlit as st
 
-from app.api_client import FraudLensAPI, get_api_client
+from app.api_client import get_api_client
 
 
 def _get_copilot_response(

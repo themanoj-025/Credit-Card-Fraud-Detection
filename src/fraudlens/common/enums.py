@@ -5,7 +5,7 @@ Central enum definitions to eliminate magic strings scattered across
 the codebase. Import these instead of hardcoding string literals.
 """
 
-from enum import Enum, auto
+from enum import Enum
 
 
 class Decision(str, Enum):

@@ -18,7 +18,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from src.fraudlens.config import (
-    ALL_FEATURES,
     PCA_FEATURES,
     RANDOM_STATE,
     SCALE_FEATURES,

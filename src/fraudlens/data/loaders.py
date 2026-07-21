@@ -8,7 +8,6 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 
 from src.fraudlens.config import AVG_FRAUD_LOSS, DEFAULT_DATA_PATH, REVIEW_COST

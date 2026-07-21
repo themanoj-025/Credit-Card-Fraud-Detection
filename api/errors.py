@@ -163,7 +163,7 @@ def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
 
 def register_error_handlers(app: "FastAPI") -> None:
     """Register all RFC 7807 error handlers on a FastAPI app."""
-    from fastapi import FastAPI, HTTPException
+    from fastapi import HTTPException
 
     app.add_exception_handler(ProblemDetail, problem_detail_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)

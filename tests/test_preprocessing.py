@@ -117,7 +117,6 @@ class TestFraudPreprocessor:
 
     def test_split_without_stratification(self):
         """Test that splitting works without stratify when classes are too sparse."""
-        import warnings
 
         # Very small dataset - use manual split without stratification
         small_df = pd.DataFrame(

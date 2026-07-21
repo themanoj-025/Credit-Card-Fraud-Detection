@@ -9,23 +9,17 @@ Features:
 - SHAP explanation display
 """
 
-import json
 import os
 import sys
 import time
-from datetime import datetime, timedelta
 
-import joblib
 import numpy as np
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.evaluate import FraudEvaluator
 from src.predict import FraudPredictor
 
 # ─── Page Config ────────────────────────────────────────────
@@ -205,7 +199,7 @@ with st.sidebar:
     st.markdown("### 📊 Model Info")
     predictor = load_model()
     if predictor:
-        st.success(f"✅ Model loaded")
+        st.success("✅ Model loaded")
         st.info(f"Threshold: {predictor.threshold:.4f}")
     else:
         st.warning("⚠️ No model found. Run training first.")

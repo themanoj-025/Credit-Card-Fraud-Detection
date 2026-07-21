@@ -140,7 +140,6 @@ class ModelLoader:
         Returns:
             Scaled features (or original if no scaler loaded)
         """
-        import pandas as pd
 
         if self.scaler is None:
             return X

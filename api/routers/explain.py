@@ -11,7 +11,7 @@ Resilience:
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from api.auth import require_api_key
 from api.exceptions import (

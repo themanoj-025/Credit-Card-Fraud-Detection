@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 # Use Redis if REDIS_URL is set, otherwise fall back to in-memory
 redis_url = os.environ.get("REDIS_URL", "")
 if redis_url:
-    from slowapi import RedisStorage
 
     limiter = Limiter(key_func=get_remote_address, storage_uri=redis_url)
     logger.info("Rate limiter using Redis: %s", redis_url)

@@ -24,7 +24,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from src.fraudlens.config import AVG_FRAUD_LOSS, REVIEW_COST
 
 # ─── Inject dark theme ────────────────────────────────────────────────────
 with open(Path(__file__).parent / "assets" / "theme.css", encoding="utf-8") as f:

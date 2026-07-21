@@ -7,8 +7,7 @@ drift detection alerts, and a rolling count of flags over the last N transaction
 
 import random
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -16,10 +15,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.api_client import FraudLensAPI, get_api_client
+from app.api_client import get_api_client
 from app.components.metric_cards import drift_banner, metric_card
 from src.fraudlens.config import (
-    API_URL,
     DRIFT_ALERT_WINDOW,
     MAX_TRANSACTION_HISTORY,
     SIMULATION_BATCH_SIZE,
@@ -56,7 +54,7 @@ def _get_drift_detector():
             significance_level=0.05,
         )
         return _DRIFT_DETECTOR
-    except (FileNotFoundError, Exception) as e:
+    except (FileNotFoundError, Exception):
         # Fallback: create detector with synthetic reference
         from src.fraudlens.monitoring.drift import DriftDetector
 

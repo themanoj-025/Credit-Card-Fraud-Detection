@@ -9,7 +9,7 @@ Comprehensive evaluation with business-relevant metrics:
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -286,11 +286,11 @@ def print_evaluation_summary(results: Dict[str, Any]) -> str:
         f"  Precision:       {results['precision']:.4f}",
         f"  Recall:          {results['recall']:.4f}",
         f"{'-'*60}",
-        f"  BUSINESS IMPACT:",
+        "  BUSINESS IMPACT:",
         f"  Fraud Caught:    ${results['business']['fraud_caught_usd']:>10,.2f}",
         f"  Fraud Missed:    ${results['business']['fraud_missed_usd']:>10,.2f}",
         f"  Review Costs:    ${results['business']['review_costs_usd']:>10,.2f}",
-        f"  --------------------------------------------",
+        "  --------------------------------------------",
         f"  Net Benefit:     ${results['business']['net_benefit_usd']:>10,.2f}",
         f"{'='*60}",
     ]
