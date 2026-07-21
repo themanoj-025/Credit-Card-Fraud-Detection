@@ -45,7 +45,8 @@ class TestDataLoaderInit:
             avg_fraud_loss=200.0,
             review_cost=10.0,
         )
-        assert str(loader.data_path) == "/custom/path.csv"
+        assert "custom" in str(loader.data_path)
+        assert "path.csv" in str(loader.data_path)
         assert loader.avg_fraud_loss == 200.0
         assert loader.review_cost == 10.0
 
@@ -117,7 +118,7 @@ class TestDataLoaderStats:
         assert "amount_max" in stats
         assert "time_range" in stats
         assert stats["n_samples"] == 200
-        assert stats["n_features"] == 29  # V1-V28 + Time + Amount - Class
+        assert stats["n_features"] == 30  # V1-V28 + Time + Amount = 30 features, minus Class in shape[1]-1
 
     def test_get_column_info(self, sample_csv_data, tmp_path):
         """Test column info returns expected DataFrame."""

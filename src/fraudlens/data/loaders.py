@@ -70,20 +70,24 @@ class DataLoader:
             raise ValueError("Dataset not loaded. Call load() first.")
 
         df = self.df
-        n_fraud = int(df["Class"].sum())
-        n_legit = int(len(df) - n_fraud)
-        fraud_rate = n_fraud / len(df) * 100
+        n_total = len(df)
+        n_fraud = int(df["Class"].sum()) if n_total > 0 else 0
+        n_legit = n_total - n_fraud
+        fraud_rate = n_fraud / n_total * 100 if n_total > 0 else 0.0
 
         stats = {
-            "n_samples": len(df),
+            "n_samples": n_total,
             "n_features": df.shape[1] - 1,
             "n_fraud": n_fraud,
             "n_legitimate": n_legit,
             "fraud_rate_pct": round(fraud_rate, 4),
-            "imbalance_ratio": round(n_legit / n_fraud, 1),
-            "amount_mean": round(float(df["Amount"].mean()), 2),
-            "amount_max": round(float(df["Amount"].max()), 2),
-            "time_range": (int(df["Time"].min()), int(df["Time"].max())),
+            "imbalance_ratio": round(n_legit / n_fraud, 1) if n_fraud > 0 else None,
+            "amount_mean": round(float(df["Amount"].mean()), 2) if n_total > 0 else 0.0,
+            "amount_max": round(float(df["Amount"].max()), 2) if n_total > 0 else 0.0,
+            "time_range": (
+                (int(df["Time"].min()), int(df["Time"].max()))
+                if n_total > 0 else (0, 0)
+            ),
             "avg_fraud_loss": self.avg_fraud_loss,
             "review_cost": self.review_cost,
         }
@@ -114,14 +118,15 @@ class DataLoader:
         if self.df is None:
             raise ValueError("Dataset not loaded. Call load() first.")
 
+        n_total = len(self.df)
         n_fraud = int(self.df["Class"].sum())
-        n_legit = int(len(self.df) - n_fraud)
+        n_legit = n_total - n_fraud
         baseline_loss = n_fraud * self.avg_fraud_loss
 
         return {
             "n_fraud": n_fraud,
             "n_legitimate": n_legit,
-            "fraud_rate": round(n_fraud / len(self.df) * 100, 4),
+            "fraud_rate": round(n_fraud / n_total * 100, 4) if n_total > 0 else 0.0,
             "baseline_loss": round(baseline_loss, 2),
             "avg_fraud_loss": self.avg_fraud_loss,
             "review_cost": self.review_cost,

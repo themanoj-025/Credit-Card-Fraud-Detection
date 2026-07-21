@@ -90,23 +90,22 @@ class TestInitDb:
     """Test init_db table creation."""
 
     @pytest.mark.asyncio
-    async def test_init_db_creates_tables(self):
-        """Test init_db calls create_all on the metadata."""
-        mock_conn = AsyncMock()
-        mock_conn.__aenter__ = AsyncMock(return_value=mock_conn)
-        mock_run_sync = AsyncMock()
+    async def test_init_db_creates_tables(self, tmp_path):
+        """Test init_db calls create_all on the metadata.
 
-        with (
-            patch(
-                "src.fraudlens.persistence.database.engine.begin",
-                return_value=mock_conn,
-            ),
-            patch(
-                "src.fraudlens.persistence.database.Base.metadata.create_all"
-            ) as mock_create_all,
-        ):
-            from src.fraudlens.persistence.database import init_db
+        Uses a temporary database file to avoid side effects on the
+        project's default fraudlens.db file.
+        """
+        import importlib
+        from src.fraudlens.persistence import database as db
 
-            await init_db()
-
-            mock_create_all.assert_called_once()
+        # Override DB URL to use temp file
+        db_path = tmp_path / "test_fraudlens.db"
+        temp_url = f"sqlite+aiosqlite:///{db_path}"
+        with patch.dict("os.environ", {"DATABASE_URL": temp_url}):
+            importlib.reload(db)
+            with patch.object(
+                db.Base.metadata, "create_all"
+            ) as mock_create_all:
+                await db.init_db()
+                mock_create_all.assert_called_once()
