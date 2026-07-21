@@ -88,8 +88,10 @@ load-test:  ## Run locust load tests
 	@echo "Starting locust. Point browser to http://localhost:8089"
 	locust -f tests/load/locustfile.py --host http://localhost:8000
 
+TRIVY_IMAGE ?= fraudlens:serve
+
 trivy-scan:  ## Run Trivy vulnerability scan on the serve image
-	trivy image --severity CRITICAL,HIGH --exit-code 1 --ignore-unfixed fraudlens:serve
+	trivy image --severity CRITICAL,HIGH --exit-code 1 --ignore-unfixed $(TRIVY_IMAGE)
 
 # ─── Lint ─────────────────────────────────────────────────────
 

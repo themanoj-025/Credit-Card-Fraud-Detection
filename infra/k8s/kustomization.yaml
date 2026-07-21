@@ -24,4 +24,6 @@ commonLabels:
   app: fraudlens
   managed-by: kustomize
 
-namePrefix: fraudlens-
+namespace: fraudlens
+
+# No namePrefix — resources already have fraudlens- in their names

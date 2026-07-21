@@ -16,7 +16,12 @@ data:
   LOG_LEVEL: "info"
 
   # ─── Database ─────────────────────────────────────────────────
-  DATABASE_URL: "postgresql+asyncpg://fraudlens:$(POSTGRES_PASSWORD)@fraudlens-postgres:5432/fraudlens"
+  # Full DATABASE_URL is stored in the fraudlens-secrets Secret
+  # PostgreSQL host/port for application use
+  POSTGRES_HOST: "fraudlens-postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "fraudlens"
+  POSTGRES_USER: "fraudlens"
 
   # ─── Redis ────────────────────────────────────────────────────
   REDIS_URL: "redis://fraudlens-redis:6379/0"
