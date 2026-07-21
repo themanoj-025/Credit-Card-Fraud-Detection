@@ -69,7 +69,7 @@
 
 ## Component Responsibilities
 
-### 1. Core Library (`src/fraudshield/`)
+### 1. Core Library (`src/fraudlens/`)
 
 The library is organized as a Python package with subpackages:
 
@@ -133,7 +133,7 @@ The dashboard is a multi-page Streamlit application:
 | Theme | `assets/theme.css` | Dark theme styling for the whole app |
 | Entry Point | `streamlit_app.py` | Multi-page navigation hub, loads page config |
 
-### 4. Monitoring (`src/fraudshield/monitoring/`)
+### 4. Monitoring (`src/fraudlens/monitoring/`)
 
 | Module | Class/Function | Purpose |
 |--------|----------------|---------|

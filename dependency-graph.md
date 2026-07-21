@@ -9,24 +9,24 @@
 │                                                                             │
 │  ENTRY POINTS                                                               │
 │  ┌────────────────────────┐                                                 │
-│  │ train_and_compare.py   │──── src/fraudshield/data/loaders.py            │
-│  │ (Full training pipeline)│──── src/fraudshield/data/preprocessing.py     │
-│  │                        │──── src/fraudshield/models/train.py            │
-│  │                        │──── src/fraudshield/models/anomaly.py          │
-│  │                        │──── src/fraudshield/models/model_selection.py  │
-│  │                        │──── src/fraudshield/evaluation/metrics.py      │
-│  │                        │──── src/fraudshield/evaluation/business_cost.py│
+│  │ train_and_compare.py   │──── src/fraudlens/data/loaders.py            │
+│  │ (Full training pipeline)│──── src/fraudlens/data/preprocessing.py     │
+│  │                        │──── src/fraudlens/models/train.py            │
+│  │                        │──── src/fraudlens/models/anomaly.py          │
+│  │                        │──── src/fraudlens/models/model_selection.py  │
+│  │                        │──── src/fraudlens/evaluation/metrics.py      │
+│  │                        │──── src/fraudlens/evaluation/business_cost.py│
 │  └────────────────────────┘                                                 │
 │  ┌────────────────────────┐                                                 │
 │  │ run_pipeline.py        │──── (same modules + AutoencoderDetector)       │
-│  │ (Extended pipeline)    │──── src/fraudshield/monitoring/drift.py        │
+│  │ (Extended pipeline)    │──── src/fraudlens/monitoring/drift.py        │
 │  └────────────────────────┘                                                 │
 │  ┌────────────────────────┐                                                 │
-│  │ api/main.py (FastAPI)  │──── src/fraudshield/explainability/shap_utils  │
-│  │                        │──── src/fraudshield/llm/case_narrator.py       │
-│  │                        │──── src/fraudshield/llm/rag_similar_cases.py   │
-│  │                        │──── src/fraudshield/models/anomaly.py          │
-│  │                        │──── src/fraudshield/config.py                  │
+│  │ api/main.py (FastAPI)  │──── src/fraudlens/explainability/shap_utils  │
+│  │                        │──── src/fraudlens/llm/case_narrator.py       │
+│  │                        │──── src/fraudlens/llm/rag_similar_cases.py   │
+│  │                        │──── src/fraudlens/models/anomaly.py          │
+│  │                        │──── src/fraudlens/config.py                  │
 │  │                        │──── api/routers/(predict,explain,chat,cases)   │
 │  └────────────────────────┘                                                 │
 │  ┌────────────────────────┐                                                 │
@@ -35,7 +35,7 @@
 │  │                        │──── app/components/metric_cards.py             │
 │  └────────────────────────┘                                                 │
 │                                                                             │
-│  CORE PACKAGES (src/fraudshield/)                                           │
+│  CORE PACKAGES (src/fraudlens/)                                           │
 │                                                                             │
 │  ┌────────────────────────┐                                                 │
 │  │ config.py              │──── (no internal imports — all constants)       │
@@ -149,20 +149,20 @@
 
 | Source File | Internal Imports | External Imports |
 |------------|-----------------|-----------------|
-| `src/fraudshield/config.py` | — | pathlib |
-| `src/fraudshield/data/loaders.py` | `config` | pandas, numpy, joblib, logging |
-| `src/fraudshield/data/preprocessing.py` | `config` | sklearn, imblearn, joblib, logging |
-| `src/fraudshield/features/engineering.py` | — | pandas, numpy, logging |
-| `src/fraudshield/models/train.py` | `config` | sklearn, xgboost, lightgbm, catboost, joblib, logging |
-| `src/fraudshield/models/anomaly.py` | `config` | sklearn, numpy, pandas, logging, (optional) tensorflow |
-| `src/fraudshield/models/model_selection.py` | — | pandas, numpy, logging, joblib |
-| `src/fraudshield/evaluation/metrics.py` | `config` | sklearn.metrics, matplotlib, seaborn, numpy, pandas |
-| `src/fraudshield/evaluation/business_cost.py` | — | numpy, logging |
-| `src/fraudshield/explainability/shap_utils.py` | `config` | shap, joblib, pandas, numpy, logging |
-| `src/fraudshield/llm/case_narrator.py` | — | (optional) anthropic SDK |
-| `src/fraudshield/llm/rag_similar_cases.py` | — | faiss, numpy, logging |
-| `src/fraudshield/monitoring/drift.py` | `config` | scipy.stats, pandas, numpy, json, logging |
-| `src/fraudshield/analysis/eda.py` | `config`, `data/loaders` | pandas, numpy, matplotlib, seaborn, plotly |
+| `src/fraudlens/config.py` | — | pathlib |
+| `src/fraudlens/data/loaders.py` | `config` | pandas, numpy, joblib, logging |
+| `src/fraudlens/data/preprocessing.py` | `config` | sklearn, imblearn, joblib, logging |
+| `src/fraudlens/features/engineering.py` | — | pandas, numpy, logging |
+| `src/fraudlens/models/train.py` | `config` | sklearn, xgboost, lightgbm, catboost, joblib, logging |
+| `src/fraudlens/models/anomaly.py` | `config` | sklearn, numpy, pandas, logging, (optional) tensorflow |
+| `src/fraudlens/models/model_selection.py` | — | pandas, numpy, logging, joblib |
+| `src/fraudlens/evaluation/metrics.py` | `config` | sklearn.metrics, matplotlib, seaborn, numpy, pandas |
+| `src/fraudlens/evaluation/business_cost.py` | — | numpy, logging |
+| `src/fraudlens/explainability/shap_utils.py` | `config` | shap, joblib, pandas, numpy, logging |
+| `src/fraudlens/llm/case_narrator.py` | — | (optional) anthropic SDK |
+| `src/fraudlens/llm/rag_similar_cases.py` | — | faiss, numpy, logging |
+| `src/fraudlens/monitoring/drift.py` | `config` | scipy.stats, pandas, numpy, json, logging |
+| `src/fraudlens/analysis/eda.py` | `config`, `data/loaders` | pandas, numpy, matplotlib, seaborn, plotly |
 | `api/main.py` | `state`, `routers/*`, `config`, `shap_utils`, `llm/*`, `anomaly` | fastapi, pydantic, joblib, logging |
 | `api/routers/predict.py` | `schemas`, `state`, `config` | fastapi, pandas, logging |
 | `api/routers/explain.py` | `schemas`, `state` | fastapi, logging |
@@ -181,19 +181,19 @@
 
 | File | Impact | Why |
 |------|--------|-----|
-| `src/fraudshield/data/preprocessing.py` | 🔴 Critical | Data leakage prevention — any change affects all downstream |
-| `src/fraudshield/explainability/shap_utils.py` | 🔴 Critical | `FraudPredictor` — SHAP integration used by API, dashboard, and notebooks |
-| `src/fraudshield/evaluation/business_cost.py` | 🟡 High | Business cost logic — affects threshold optimization and ROI metrics |
-| `src/fraudshield/models/train.py` | 🟡 High | Model training — affects all model artifacts |
-| `src/fraudshield/models/anomaly.py` | 🟡 High | `IsolationForestDetector` — anomaly scores used in API predictions |
+| `src/fraudlens/data/preprocessing.py` | 🔴 Critical | Data leakage prevention — any change affects all downstream |
+| `src/fraudlens/explainability/shap_utils.py` | 🔴 Critical | `FraudPredictor` — SHAP integration used by API, dashboard, and notebooks |
+| `src/fraudlens/evaluation/business_cost.py` | 🟡 High | Business cost logic — affects threshold optimization and ROI metrics |
+| `src/fraudlens/models/train.py` | 🟡 High | Model training — affects all model artifacts |
+| `src/fraudlens/models/anomaly.py` | 🟡 High | `IsolationForestDetector` — anomaly scores used in API predictions |
 | `api/main.py` | 🟡 High | App lifecycle, model loading, router registration |
 | `api/schemas.py` | 🟡 High | Pydantic models define the external API contract |
-| `src/fraudshield/config.py` | 🟡 Medium | Central config — many modules depend on it |
+| `src/fraudlens/config.py` | 🟡 Medium | Central config — many modules depend on it |
 | `app/pages/*.py` | 🟢 Medium | UI pages — changes don't affect core ML pipeline |
-| `src/fraudshield/data/loaders.py` | 🟢 Medium | Entry point — used only by notebooks and training pipelines |
-| `src/fraudshield/features/engineering.py` | 🟢 Low | Not currently used in the main prediction pipeline |
-| `src/fraudshield/monitoring/drift.py` | 🟢 Low | Standalone — no downstream dependencies |
-| `src/fraudshield/llm/*.py` | 🟢 Low | Optional LLM features (require API keys / external services) |
+| `src/fraudlens/data/loaders.py` | 🟢 Medium | Entry point — used only by notebooks and training pipelines |
+| `src/fraudlens/features/engineering.py` | 🟢 Low | Not currently used in the main prediction pipeline |
+| `src/fraudlens/monitoring/drift.py` | 🟢 Low | Standalone — no downstream dependencies |
+| `src/fraudlens/llm/*.py` | 🟢 Low | Optional LLM features (require API keys / external services) |
 
 ## External Dependency Map
 
@@ -254,7 +254,7 @@ Project
 
 | Risk Level | Files | Notes |
 |-----------|-------|-------|
-| 🔴 Do Not Modify Lightly | `src/fraudshield/data/preprocessing.py`, `src/fraudshield/explainability/shap_utils.py` | Core ML logic, data leakage risk, SHAP integration |
-| 🟡 Modify Carefully | `src/fraudshield/evaluation/*`, `src/fraudshield/models/*`, `api/main.py`, `api/schemas.py` | Business logic, training pipeline, API contract |
-| 🟢 Safe to Modify | `app/pages/*`, `src/fraudshield/monitoring/*`, `src/fraudshield/llm/*`, `tests/*` | UI, optional features, tests |
+| 🔴 Do Not Modify Lightly | `src/fraudlens/data/preprocessing.py`, `src/fraudlens/explainability/shap_utils.py` | Core ML logic, data leakage risk, SHAP integration |
+| 🟡 Modify Carefully | `src/fraudlens/evaluation/*`, `src/fraudlens/models/*`, `api/main.py`, `api/schemas.py` | Business logic, training pipeline, API contract |
+| 🟢 Safe to Modify | `app/pages/*`, `src/fraudlens/monitoring/*`, `src/fraudlens/llm/*`, `tests/*` | UI, optional features, tests |
 | ⚪ Never Modify | `models/*.pkl`, `models/*.joblib`, `data/raw/*`, `data/processed/*` | Generated artifacts, source data (reproducible) |

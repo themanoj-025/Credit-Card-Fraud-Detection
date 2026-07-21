@@ -15,7 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.models.train import FraudTrainer
+from src.fraudlens.models.train import FraudTrainer
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

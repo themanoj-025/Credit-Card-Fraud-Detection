@@ -13,7 +13,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.llm.case_narrator import CaseNarrator, create_case_narrator
+from src.fraudlens.llm.case_narrator import CaseNarrator, create_case_narrator
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

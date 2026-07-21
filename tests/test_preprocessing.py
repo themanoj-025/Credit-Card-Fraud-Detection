@@ -18,8 +18,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.config import ALL_FEATURES
-from src.fraudshield.data.preprocessing import FraudPreprocessor, Resampler
+from src.fraudlens.config import ALL_FEATURES
+from src.fraudlens.data.preprocessing import FraudPreprocessor, Resampler
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

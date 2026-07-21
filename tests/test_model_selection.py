@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.models.model_selection import ModelSelector
+from src.fraudlens.models.model_selection import ModelSelector
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

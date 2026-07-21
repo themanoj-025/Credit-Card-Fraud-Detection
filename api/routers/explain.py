@@ -6,18 +6,25 @@ Returns SHAP values + LLM narrative for a transaction.
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from api.auth import require_api_key
+from api.rate_limit import limiter
 from api.schemas import ExplanationResponse, TransactionInput
-from api.state import get_case_narrator, get_predictor
+from api.providers import get_case_narrator, get_predictor
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["explainability"])
+router = APIRouter(prefix="/v1", tags=["explainability"])
 
 
 @router.post("/explain", response_model=ExplanationResponse)
-async def explain_transaction(transaction: TransactionInput) -> ExplanationResponse:
+@limiter.limit("60/minute")
+async def explain_transaction(
+    request: Request,
+    transaction: TransactionInput,
+    api_key: str = Depends(require_api_key),
+) -> ExplanationResponse:
     """
     Get SHAP values and LLM narrative for a transaction.
 

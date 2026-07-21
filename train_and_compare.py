@@ -24,14 +24,14 @@ matplotlib.use("Agg")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.fraudshield.config import AVG_FRAUD_LOSS, MODELS_DIR, PROCESSED_DATA_DIR, REVIEW_COST
-from src.fraudshield.data.loaders import DataLoader
-from src.fraudshield.data.preprocessing import FraudPreprocessor
-from src.fraudshield.evaluation.business_cost import BusinessCostCalculator
-from src.fraudshield.evaluation.metrics import FraudEvaluator
-from src.fraudshield.models.anomaly import IsolationForestDetector
-from src.fraudshield.models.model_selection import ModelSelector
-from src.fraudshield.models.train import FraudTrainer
+from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, PROCESSED_DATA_DIR, REVIEW_COST
+from src.fraudlens.data.loaders import DataLoader
+from src.fraudlens.data.preprocessing import FraudPreprocessor
+from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
+from src.fraudlens.evaluation.metrics import FraudEvaluator
+from src.fraudlens.models.anomaly import IsolationForestDetector
+from src.fraudlens.models.model_selection import ModelSelector
+from src.fraudlens.models.train import FraudTrainer
 
 sns.set_style("whitegrid")
 plt.rcParams["figure.figsize"] = (12, 6)

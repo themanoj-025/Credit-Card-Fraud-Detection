@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.explainability.shap_utils import FraudPredictor
+from src.fraudlens.explainability.shap_utils import FraudPredictor
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

@@ -14,7 +14,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.features.engineering import FeatureEngineer
+from src.fraudlens.features.engineering import FeatureEngineer
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

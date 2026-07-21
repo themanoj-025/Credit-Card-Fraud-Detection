@@ -127,8 +127,9 @@ hr {
 }
 
 /* ─── Spinner ────────────────────────────────────────────────── */
-.stSpinner > div {
-    border-color: #667eea !important;
+div.stSpinner > div[data-testid="stSpinner"] {
+    border-color: #667eea;
+    border-top-color: transparent;
 }
 
 /* ─── Code blocks ────────────────────────────────────────────── */

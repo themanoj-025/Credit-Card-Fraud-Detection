@@ -48,7 +48,7 @@ class BatchInput(BaseModel):
     """Batch of transactions to predict."""
 
     transactions: List[TransactionInput] = Field(
-        ..., min_items=1, max_items=1000, description="List of transactions"
+        ..., min_length=1, max_length=1000, description="List of transactions"
     )
 
 
@@ -131,11 +131,29 @@ class SimilarCase(BaseModel):
     features: Dict[str, float]
 
 
+class CursorPagination(BaseModel):
+    """Cursor-based pagination metadata."""
+
+    next_cursor: Optional[str] = Field(
+        None, description="Cursor for the next page. Null if no more results."
+    )
+    has_more: bool = Field(
+        False, description="Whether there are more results available"
+    )
+    limit: int = Field(..., description="Maximum results per page")
+    total: Optional[int] = Field(
+        None, description="Total number of results (if known)"
+    )
+
+
 class SimilarCasesResponse(BaseModel):
-    """Response for similar cases retrieval."""
+    """Response for similar cases retrieval with cursor pagination."""
 
     transaction_id: str
     similar_cases: List[SimilarCase]
+    pagination: CursorPagination = Field(
+        ..., description="Pagination metadata for navigating results"
+    )
 
 
 class ChatResponse(BaseModel):
@@ -151,6 +169,34 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     version: str = "2.0.0"
+
+
+class FeedbackCreate(BaseModel):
+    """Request to submit feedback on a prediction."""
+
+    prediction_id: str = Field(..., description="UUID of the prediction to provide feedback on")
+    confirmed_fraud: bool = Field(..., description="Whether the analyst confirms fraud")
+    analyst_notes: Optional[str] = Field(None, max_length=2000, description="Analyst notes")
+    reviewed_by: Optional[str] = Field(None, max_length=128, description="Analyst identifier")
+
+
+class FeedbackResponse(BaseModel):
+    """Response for a feedback submission."""
+
+    id: str
+    prediction_id: str
+    confirmed_fraud: bool
+    analyst_notes: Optional[str]
+    reviewed_by: Optional[str]
+    created_at: str
+
+
+class FeedbackStatistics(BaseModel):
+    """Feedback statistics response."""
+
+    total_feedback: int
+    confirmed_fraud: int
+    confirmed_legitimate: int
 
 
 class ModelInfoResponse(BaseModel):

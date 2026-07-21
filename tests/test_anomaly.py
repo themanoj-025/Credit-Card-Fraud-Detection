@@ -14,7 +14,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.models.anomaly import IsolationForestDetector
+from src.fraudlens.models.anomaly import IsolationForestDetector
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ class TestAutoencoderDetector:
     def test_build_model_structure(self):
         """Test that the model builds with correct input/output dimensions."""
         try:
-            from src.fraudshield.models.anomaly import AutoencoderDetector
+            from src.fraudlens.models.anomaly import AutoencoderDetector
 
             detector = AutoencoderDetector(encoding_dim=4, epochs=2, batch_size=8)
             detector._build_model(10)
@@ -151,7 +151,7 @@ class TestAutoencoderDetector:
     def test_fit_and_predict(self):
         """Test that fit trains and predict returns scores."""
         try:
-            from src.fraudshield.models.anomaly import AutoencoderDetector
+            from src.fraudlens.models.anomaly import AutoencoderDetector
 
             np.random.seed(42)
             X = pd.DataFrame(np.random.randn(100, 10))
@@ -166,7 +166,7 @@ class TestAutoencoderDetector:
     def test_score_before_fit_raises(self):
         """Test that score raises error before fit."""
         try:
-            from src.fraudshield.models.anomaly import AutoencoderDetector
+            from src.fraudlens.models.anomaly import AutoencoderDetector
 
             detector = AutoencoderDetector()
             with pytest.raises(ValueError):

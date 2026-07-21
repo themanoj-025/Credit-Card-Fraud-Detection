@@ -15,7 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.llm.rag_similar_cases import SimilarCaseRetriever, create_retriever
+from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever, create_retriever
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.fraudshield.evaluation.business_cost import BusinessCostCalculator
+from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────

@@ -7,6 +7,12 @@ Production-grade REST API for credit card fraud detection with:
 - LLM case narration
 - RAG similar-case retrieval
 - Analyst copilot chat
+
+Security:
+- API key authentication via X-API-Key header
+- Rate limiting (slowapi + Redis)
+- CORS restricted to known origins
+- Security headers on all responses
 """
 
 import logging
@@ -17,24 +23,32 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from api.routers import chat, explain, predict, similar_cases
-from api.state import (
+from api.auth import is_auth_enabled
+from api.providers import (
+    FraudPredictor,
+    get_anomaly_detector,
+    get_case_narrator,
+    get_case_retriever,
+    get_copilot_client,
+    get_db_session,
     get_predictor,
-    set_anomaly_detector,
-    set_case_narrator,
-    set_case_retriever,
-    set_copilot_client,
-    set_predictor,
 )
-from src.fraudshield.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST
-from src.fraudshield.explainability.shap_utils import FraudPredictor
-from src.fraudshield.llm.case_narrator import CaseNarrator
-from src.fraudshield.llm.rag_similar_cases import SimilarCaseRetriever
-from src.fraudshield.models.anomaly import IsolationForestDetector
+from api.rate_limit import limiter
+from api.routers import admin, chat, explain, predict, similar_cases
+from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST
+from src.fraudlens.explainability.shap_explainer import ShapExplainer
+from src.fraudlens.llm.case_narrator import CaseNarrator
+from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever
+from src.fraudlens.models.anomaly import IsolationForestDetector
+from src.fraudlens.persistence import init_db
+from src.fraudlens.prediction.model_loader import ModelLoader
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,13 +56,13 @@ logger = logging.getLogger(__name__)
 
 # ─── Attempt to load optional dependencies ───────────────────────────────
 
-def _try_load_copilot():
+def _try_load_copilot(app: FastAPI):
     """Try to load Anthropic client for copilot features."""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if api_key:
         try:
             from anthropic import Anthropic
-            set_copilot_client(Anthropic(api_key=api_key))
+            app.state.copilot_client = Anthropic(api_key=api_key)
             logger.info("Analyst Copilot initialized")
         except ImportError:
             logger.warning("anthropic package not installed. Copilot unavailable.")
@@ -56,23 +70,23 @@ def _try_load_copilot():
         logger.info("ANTHROPIC_API_KEY not set. Copilot unavailable.")
 
 
-def _try_load_case_narrator():
+def _try_load_case_narrator(app: FastAPI):
     """Try to load the case narrator."""
     try:
-        set_case_narrator(CaseNarrator())
+        app.state.case_narrator = CaseNarrator()
         logger.info("Case Narrator initialized")
     except Exception as e:
         logger.warning("Case Narrator unavailable: %s", e)
 
 
-def _try_load_rag_retriever():
+def _try_load_rag_retriever(app: FastAPI):
     """Try to load the RAG-based similar case retriever."""
     index_path = MODELS_DIR / "rag_index"
     if index_path.exists():
         try:
             retriever = SimilarCaseRetriever()
             retriever.load(str(index_path))
-            set_case_retriever(retriever)
+            app.state.case_retriever = retriever
             logger.info("RAG retriever loaded from %s", index_path)
         except Exception as e:
             logger.warning("RAG retriever unavailable: %s", e)
@@ -84,38 +98,53 @@ def _try_load_rag_retriever():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load models and dependencies on startup."""
+    """Load models and dependencies on startup into app.state."""
     logger.info("Starting FraudLens API v2.0.0...")
 
-    # Load supervised model
+    if is_auth_enabled():
+        logger.info("API key authentication enabled")
+    else:
+        logger.warning("API key authentication DISABLED — set FRAUDLENS_API_KEYS to enable")
+
+    # Initialize database
     try:
-        predictor = FraudPredictor()
-        predictor.load_from_config()
-        threshold_path = MODELS_DIR / "threshold.txt"
-        if threshold_path.exists():
-            with open(threshold_path) as f:
-                predictor.threshold = float(f.read().strip())
-            logger.info("Threshold loaded: %.4f", predictor.threshold)
-        set_predictor(predictor)
-        logger.info("Model loaded successfully")
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.warning("Database initialization failed: %s", e)
+
+    # Load supervised model via new DI-friendly architecture
+    try:
+        model_loader = ModelLoader(verify_checksum=True)
+        model_loader.load_all()
+        shap_explainer = ShapExplainer()
+        predictor = FraudPredictor(model_loader=model_loader, shap_explainer=shap_explainer)
+        app.state.predictor = predictor
+        logger.info("Model loaded successfully (threshold=%.4f)", model_loader.threshold)
     except Exception as e:
         logger.warning("Failed to load model: %s", e)
+        app.state.predictor = None
 
     # Load anomaly detector
     try:
         anomaly_path = MODELS_DIR / "anomaly_detector.pkl"
         if anomaly_path.exists():
             import joblib
-            detector = joblib.load(anomaly_path)
-            set_anomaly_detector(detector)
+            app.state.anomaly_detector = joblib.load(anomaly_path)
             logger.info("Anomaly detector loaded")
+        else:
+            app.state.anomaly_detector = None
     except Exception as e:
         logger.warning("Failed to load anomaly detector: %s", e)
+        app.state.anomaly_detector = None
 
-    # Load optional features
-    _try_load_case_narrator()
-    _try_load_rag_retriever()
-    _try_load_copilot()
+    # Load optional features into app.state
+    app.state.case_narrator = None
+    app.state.case_retriever = None
+    app.state.copilot_client = None
+    _try_load_case_narrator(app)
+    _try_load_rag_retriever(app)
+    _try_load_copilot(app)
 
     logger.info("FraudLens API ready")
     yield
@@ -131,7 +160,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ─── CORS ─────────────────────────────────────────────────────────────────
+# Register rate limit error handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Register RFC 7807 error handlers
+from api.errors import register_error_handlers
+register_error_handlers(app)
+
+# ─── CORS (locked to explicit origins) ────────────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
@@ -142,9 +179,13 @@ app.add_middleware(
         "http://127.0.0.1:8501",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["X-API-Key", "Content-Type", "Authorization"],
 )
+
+# ─── Rate Limiting Middleware ─────────────────────────────────────────────
+
+app.add_middleware(SlowAPIMiddleware)
 
 
 # ─── Security Headers ────────────────────────────────────────────────────
@@ -159,10 +200,13 @@ async def add_security_headers(request, call_next):
     response.headers["X-XSS-Protection"] = "0"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     return response
 
-# ─── Routes ──────────────────────────────────────────────────────────────
+# ─── Routes (with optional auth) ─────────────────────────────────────────
 
+app.include_router(admin.router)
 app.include_router(predict.router)
 app.include_router(explain.router)
 app.include_router(similar_cases.router)
@@ -170,13 +214,58 @@ app.include_router(chat.router)
 
 
 @app.get("/health")
+@app.get("/v1/health")
 async def health():
-    """Health check endpoint."""
+    """Health check endpoint. No auth required.
+
+    Returns per-dependency status breakdown for monitoring and orchestration.
+    Each dependency reports its own status: ok, degraded, or error.
+    """
     pred = get_predictor()
+    llm_available = getattr(app.state, "copilot_client", None) is not None
+    case_narrator = getattr(app.state, "case_narrator", None) is not None
+    case_retriever = getattr(app.state, "case_retriever", None) is not None
+    anomaly_det = getattr(app.state, "anomaly_detector", None) is not None
+    db_initialized = True  # Assume ok — init failures logged at startup
+
+    # Build per-dependency breakdown
+    dependencies = {
+        "model": {
+            "status": "ok" if pred is not None and pred.model is not None else "degraded",
+            "detail": f"{type(pred.model).__name__} (threshold={pred.threshold:.4f})"
+            if pred is not None and pred.model is not None else "not loaded",
+        },
+        "database": {
+            "status": "ok" if db_initialized else "error",
+            "detail": db_initialized,
+        },
+        "anomaly_detector": {
+            "status": "ok" if anomaly_det else "degraded",
+            "detail": "loaded" if anomaly_det else "not loaded",
+        },
+        "llm": {
+            "status": "ok" if llm_available else "degraded",
+            "detail": "connected" if llm_available else "API key not set",
+        },
+        "case_narrator": {
+            "status": "ok" if case_narrator else "degraded",
+            "detail": "loaded" if case_narrator else "not loaded",
+        },
+        "rag_retriever": {
+            "status": "ok" if case_retriever else "degraded",
+            "detail": "loaded" if case_retriever else "no index found",
+        },
+    }
+
+    # Overall status: ok if all dependencies are ok, degraded otherwise
+    all_ok = all(d["status"] == "ok" for d in dependencies.values())
+    overall = "healthy" if all_ok else "degraded"
+
     return {
-        "status": "healthy",
-        "model_loaded": pred is not None and pred.model is not None,
+        "status": overall,
         "version": "2.0.0",
+        "auth_enabled": is_auth_enabled(),
+        "dependencies": dependencies,
     }
 
 

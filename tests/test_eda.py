@@ -33,7 +33,7 @@ class TestEDAFunctions:
 
     def test_plot_class_imbalance_returns_figure(self, sample_df):
         """Test that plot_class_imbalance returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_class_imbalance
+        from src.fraudlens.analysis.eda import plot_class_imbalance
         fig = plot_class_imbalance(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -41,7 +41,7 @@ class TestEDAFunctions:
 
     def test_plot_amount_distribution_returns_figure(self, sample_df):
         """Test that plot_amount_distribution returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_amount_distribution
+        from src.fraudlens.analysis.eda import plot_amount_distribution
         fig = plot_amount_distribution(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -49,7 +49,7 @@ class TestEDAFunctions:
 
     def test_plot_time_distribution_returns_figure(self, sample_df):
         """Test that plot_time_distribution returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_time_distribution
+        from src.fraudlens.analysis.eda import plot_time_distribution
         fig = plot_time_distribution(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -57,7 +57,7 @@ class TestEDAFunctions:
 
     def test_plot_correlation_heatmap_returns_figure(self, sample_df):
         """Test that plot_correlation_heatmap returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_correlation_heatmap
+        from src.fraudlens.analysis.eda import plot_correlation_heatmap
         fig = plot_correlation_heatmap(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -65,7 +65,7 @@ class TestEDAFunctions:
 
     def test_plot_feature_separability_returns_figure(self, sample_df):
         """Test that plot_feature_separability returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_feature_separability
+        from src.fraudlens.analysis.eda import plot_feature_separability
         fig = plot_feature_separability(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -73,7 +73,7 @@ class TestEDAFunctions:
 
     def test_plot_feature_distributions_returns_figure(self, sample_df):
         """Test that plot_feature_distributions returns a matplotlib Figure."""
-        from src.fraudshield.analysis.eda import plot_feature_distributions
+        from src.fraudlens.analysis.eda import plot_feature_distributions
         fig = plot_feature_distributions(sample_df)
         import matplotlib.pyplot as plt
         assert isinstance(fig, plt.Figure)
@@ -85,7 +85,7 @@ class TestEDARun:
 
     def test_run_eda_creates_figures(self, sample_df):
         """Test that run_eda saves figures to output directory."""
-        from src.fraudshield.analysis.eda import run_eda
+        from src.fraudlens.analysis.eda import run_eda
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
@@ -96,7 +96,7 @@ class TestEDARun:
 
     def test_save_fig_creates_file(self, sample_df):
         """Test that _save_fig writes a file."""
-        from src.fraudshield.analysis.eda import plot_class_imbalance
+        from src.fraudlens.analysis.eda import plot_class_imbalance
 
         fig = plot_class_imbalance(sample_df)
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -114,7 +114,7 @@ class TestFeatureImportance:
 
     def test_feature_importance_returns_top_features(self, sample_df):
         """Test that feature importance identifies top discriminative features."""
-        from src.fraudshield.analysis.eda import _get_feature_importances
+        from src.fraudlens.analysis.eda import _get_feature_importances
 
         importances = _get_feature_importances(sample_df)
         assert isinstance(importances, pd.DataFrame)

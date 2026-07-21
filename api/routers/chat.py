@@ -8,14 +8,16 @@ natural-language questions about the simulation state and cases.
 import logging
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from api.state import get_copilot_client
+from api.auth import require_api_key
+from api.rate_limit import limiter
+from api.providers import get_copilot_client
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["copilot"])
+router = APIRouter(prefix="/v1", tags=["copilot"])
 
 
 class ChatRequest(BaseModel):
@@ -41,7 +43,12 @@ TOOLS = {
 
 
 @router.post("/chat")
-async def analyst_chat(request: ChatRequest) -> dict:
+@limiter.limit("20/minute")
+async def analyst_chat(
+    request: Request,
+    chat_request: ChatRequest,
+    api_key: str = Depends(require_api_key),
+) -> dict:
     """
     Analyst copilot chat endpoint.
 
@@ -56,7 +63,7 @@ async def analyst_chat(request: ChatRequest) -> dict:
         )
 
     try:
-        history = request.conversation_history or []
+        history = chat_request.conversation_history or []
 
         system_prompt = (
             "You are a fraud analysis copilot. You help analysts understand "
@@ -70,7 +77,7 @@ async def analyst_chat(request: ChatRequest) -> dict:
         messages = []
         for h in history:
             messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
-        messages.append({"role": "user", "content": f"{system_prompt}\n\nAnalyst question: {request.message}"})
+        messages.append({"role": "user", "content": f"{system_prompt}\n\nAnalyst question: {chat_request.message}"})
 
         response = copilot_client.messages.create(
             model="claude-sonnet-4-20250514",

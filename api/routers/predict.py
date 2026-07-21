@@ -2,13 +2,17 @@
 Prediction Router — /predict and /predict/batch endpoints.
 
 Handles single and batch fraud predictions with anomaly scores.
+Performance-v1: SHAP only computed when ?explain=true is explicitly
+requested, BackgroundTasks for async SHAP, vectorized prediction path.
 """
 
 import logging
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 
+from api.auth import require_api_key
+from api.rate_limit import limiter
 from api.schemas import (
     BatchInput,
     BatchPredictionItem,
@@ -20,41 +24,63 @@ from api.schemas import (
     ShapFeature,
     TransactionInput,
 )
-from api.state import get_anomaly_detector, get_predictor
-from src.fraudshield.config import AVG_FRAUD_LOSS, REVIEW_COST
+from api.providers import get_anomaly_detector, get_predictor
+from src.fraudlens.config import AVG_FRAUD_LOSS, REVIEW_COST
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["predictions"])
+router = APIRouter(prefix="/v1", tags=["predictions"])
 
 
 @router.post("/predict", response_model=PredictionResponse)
-async def predict_single(transaction: TransactionInput) -> PredictionResponse:
+@limiter.limit("100/minute")
+async def predict_single(
+    request: Request,
+    transaction: TransactionInput,
+    background_tasks: BackgroundTasks,
+    explain: bool = Query(
+        False,
+        description="Compute SHAP explanation (slow). Off by default for performance.",
+    ),
+    api_key: str = Depends(require_api_key),
+) -> PredictionResponse:
     """
     Predict fraud probability for a single transaction.
 
-    Returns fraud probability, anomaly score, SHAP explanation,
-    and business impact analysis.
+    By default SHAP explanation is skipped for performance.
+    Pass ?explain=true to get the full SHAP breakdown.
+    Returns fraud probability, anomaly score, and business impact.
     """
     pred = get_predictor()
     if pred is None or pred.model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        result = pred.predict_single(transaction.dict(), return_shap=True)
+        tx_dict = transaction.dict()
 
-        # Get anomaly score from Isolation Forest (handles both raw sklearn model and wrapper)
+        # Use cache-enabled, vectorized prediction path
+        if explain:
+            result = pred.predict_single(tx_dict, return_shap=True, use_cache=True)
+        else:
+            # Fast path — no SHAP, cached
+            result = pred.predict_single(tx_dict, return_shap=False, use_cache=True)
+
+            # Auto-queue background SHAP for high-risk transactions
+            # Client gets fast response; SHAP is computed asynchronously
+            if result["is_fraud"]:
+                background_tasks.add_task(
+                    pred._compute_shap_async, tx_dict, result
+                )
+
+        # Get anomaly score from Isolation Forest (vectorized numpy path)
         anomaly_score = None
         try:
             anomaly_det = get_anomaly_detector()
             if anomaly_det is not None:
-                # anomaly_det may be raw sklearn IsolationForest or IsolationForestDetector wrapper
                 raw_model = anomaly_det.model if hasattr(anomaly_det, 'model') else anomaly_det
                 if raw_model is not None:
-                    tx_dict = transaction.dict()
-                    # Ensure all expected feature columns exist
-                    X = pd.DataFrame([tx_dict]).reindex(columns=pred.feature_names, fill_value=0.0)
-                    scores = raw_model.score_samples(X.values)
+                    tx_array = pred._vectorize_transaction(transaction.dict())
+                    scores = raw_model.score_samples(tx_array)
                     min_s, max_s = scores.min(), scores.max()
                     probas = 1 - (scores - min_s) / (max_s - min_s + 1e-10)
                     anomaly_score = round(float(probas[0]), 4)
@@ -92,7 +118,12 @@ async def predict_single(transaction: TransactionInput) -> PredictionResponse:
 
 
 @router.post("/predict/batch", response_model=BatchResponse)
-async def predict_batch(batch: BatchInput) -> BatchResponse:
+@limiter.limit("30/minute")
+async def predict_batch(
+    request: Request,
+    batch: BatchInput,
+    api_key: str = Depends(require_api_key),
+) -> BatchResponse:
     """
     Predict fraud for multiple transactions (faster, no SHAP).
 

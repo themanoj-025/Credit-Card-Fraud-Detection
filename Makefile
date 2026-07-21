@@ -3,68 +3,148 @@
 # Common development commands
 # ════════════════════════════════════════════════════════════════
 
-.PHONY: help install train api dashboard test lint clean docker-up docker-build mlflow-ui
+.PHONY: help install install-dev train api dashboard test test-cov test-integration \
+        lint format clean docker-build docker-up docker-down docker-down-v \
+        mlflow-ui migrate load-test pre-commit baseline
 
-help:
+SHELL := /bin/bash
+
+help:  ## Show this help message
 	@echo "FraudLens — Development Makefile"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make install      Install Python dependencies"
-	@echo "  make train        Run full training pipeline"
-	@echo "  make api          Start FastAPI server"
-	@echo "  make dashboard    Start Streamlit dashboard"
-	@echo "  make test         Run all tests"
-	@echo "  make lint         Run linters (black, isort, ruff)"
-	@echo "  make clean        Remove cache and artifacts"
-	@echo "  make docker-up    Start Docker services"
-	@echo "  make docker-build Build Docker images"
-	@echo "  make mlflow-ui    Start MLflow tracking UI"
+	@echo ""
+	@echo "  📦 Setup"
+	@echo "    make install          Install Python dependencies"
+	@echo "    make install-dev      Install dev extras (pre-commit, etc.)"
+	@echo ""
+	@echo "  🚀 Run"
+	@echo "    make train            Run full training pipeline"
+	@echo "    make api              Start FastAPI server on :8000"
+	@echo "    make dashboard        Start Streamlit dashboard on :8501"
+	@echo "    make migrate          Run Alembic database migrations"
+	@echo ""
+	@echo "  🧪 Test"
+	@echo "    make test             Run all tests (unit)"
+	@echo "    make test-cov         Run tests with coverage report"
+	@echo "    make test-integration Run integration tests"
+	@echo "    make load-test        Run locust load tests"
+	@echo ""
+	@echo "  🧹 Lint"
+	@echo "    make lint             Run linters (blocking)"
+	@echo "    make format           Auto-format code (black + isort)"
+	@echo "    make pre-commit       Run pre-commit on all files"
+	@echo ""
+	@echo "  🐳 Docker"
+	@echo "    make docker-build     Build Docker images"
+	@echo "    make docker-up        Start all Docker services"
+	@echo "    make docker-down      Stop all Docker services"
+	@echo "    make docker-down-v    Stop and clean volumes"
+	@echo ""
+	@echo "  📊 MLflow"
+	@echo "    make mlflow-ui        Start MLflow tracking UI on :5000"
+	@echo ""
+	@echo "  🧹 Clean"
+	@echo "    make clean            Remove cache and build artifacts"
+	@echo "    make baseline         Record current test baseline to docs/adr/"
 
-install:
+# ─── Setup ────────────────────────────────────────────────────
+
+install:  ## Install Python dependencies
 	pip install -r requirements.txt
 	pre-commit install || echo "pre-commit not installed, skipping"
 
-train:
+install-dev:  ## Install dev extras
+	pip install -r requirements.txt
+	pip install pre-commit ruff pytest-cov mypy types-requests locust
+	pre-commit install
+
+# ─── Run ──────────────────────────────────────────────────────
+
+train:  ## Run full training pipeline
 	python run_pipeline.py
 
-api:
+api:  ## Start FastAPI server
 	uvicorn api.main:app --reload --port 8000
 
-dashboard:
+dashboard:  ## Start Streamlit dashboard
 	streamlit run app/streamlit_app.py --server.port 8501
 
-test:
-	pytest tests/ -v --tb=short
+# ─── Test ─────────────────────────────────────────────────────
 
-test-cov:
-	pytest tests/ -v --cov=src/fraudshield --cov-report=term-missing --tb=short
+test:  ## Run all unit tests
+	pytest tests/ -v --tb=short -x
 
-lint:
-	black --check src/ api/ app/ tests/ || echo "Formatting issues found (non-blocking)"
-	isort --check-only src/ api/ app/ tests/ || echo "Import sorting issues found (non-blocking)"
-	ruff check src/ api/ app/ tests/ || echo "Linting issues found (non-blocking)"
+test-cov:  ## Run tests with coverage (target 85%)
+	pytest tests/ -v --cov=src/fraudlens --cov-report=term-missing --cov-fail-under=85 --tb=short -n auto
 
-format:
+test-integration:  ## Run integration tests
+	pytest tests/ -v --tb=short -n auto tests/test_integration.py tests/test_edge_cases.py
+
+test-contract:  ## Run OpenAPI contract tests
+	pytest tests/ -v --tb=short tests/test_contract.py
+
+load-test:  ## Run locust load tests
+	@echo "Starting locust. Point browser to http://localhost:8089"
+	locust -f tests/load/locustfile.py --host http://localhost:8000
+
+# ─── Lint ─────────────────────────────────────────────────────
+
+lint:  ## Run all linters (blocking — fails on issues)
+	@echo "=== black ==="
+	black --check src/ api/ app/ tests/
+	@echo "=== isort ==="
+	isort --check-only --profile=black src/ api/ app/ tests/
+	@echo "=== ruff ==="
+	ruff check src/ api/ app/ tests/
+	@echo "✅ All linters passed"
+
+format:  ## Auto-format code
 	black src/ api/ app/ tests/
-	isort src/ api/ app/ tests/
+	isort --profile=black src/ api/ app/ tests/
 
-clean:
+pre-commit:  ## Run pre-commit on all files
+	pre-commit run --all-files
+
+# ─── Docker ───────────────────────────────────────────────────
+
+docker-build:  ## Build Docker images
+	docker compose build
+
+docker-up:  ## Start all Docker services
+	docker compose up
+
+docker-down:  ## Stop all Docker services
+	docker compose down
+
+docker-down-v:  ## Stop and clean volumes
+	docker compose down -v
+
+# ─── Database ─────────────────────────────────────────────────
+
+migrate:  ## Run Alembic migrations
+	alembic upgrade head
+
+# ─── MLflow ───────────────────────────────────────────────────
+
+mlflow-ui:  ## Start MLflow UI
+	@echo "Starting MLflow UI on port 5000..."
+	mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlruns
+
+# ─── Clean ────────────────────────────────────────────────────
+
+clean:  ## Remove cache and build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	find . -type f -name ".coverage" -delete
 	rm -rf .pytest_cache
 	rm -rf build/ dist/ *.egg-info
+	rm -rf .mypy_cache .dmypy.json
 
-mlflow-ui:
-	@echo "Starting MLflow UI on port 5000..."
-	mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlruns
+# ─── Baseline ─────────────────────────────────────────────────
 
-docker-build:
-	docker-compose build
-
-docker-up:
-	docker-compose up
-
-docker-down:
-	docker-compose down
+baseline:  ## Record current test baseline snapshot
+	@echo "Recording baseline..."
+	pytest tests/ -v --cov=src/fraudlens --cov-report=term-missing --tb=short 2>&1 | tee .baseline_test_output.txt
+	@echo "Baseline saved to .baseline_test_output.txt"

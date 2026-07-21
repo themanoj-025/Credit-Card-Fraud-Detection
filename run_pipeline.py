@@ -40,9 +40,13 @@ matplotlib.use("Agg")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.fraudshield.config import (
+from src.fraudlens.config import (
     AUTOENCODER_ENCODING_DIM,
     AVG_FRAUD_LOSS,
+    HPO_ENABLED,
+    HPO_MODELS,
+    HPO_N_TRIALS,
+    HPO_CV_FOLDS,
     MLFLOW_EXPERIMENT_NAME,
     MLFLOW_TRACKING_URI,
     MODELS_DIR,
@@ -62,13 +66,14 @@ try:
 except (ImportError, Exception) as e:
     HAS_MLFLOW = False
     print(f"  MLflow tracking: disabled ({e})")
-from src.fraudshield.data.loaders import DataLoader
-from src.fraudshield.data.preprocessing import FraudPreprocessor, Resampler
-from src.fraudshield.evaluation.business_cost import BusinessCostCalculator
-from src.fraudshield.evaluation.metrics import FraudEvaluator, print_evaluation_summary
-from src.fraudshield.models.anomaly import AutoencoderDetector, IsolationForestDetector
-from src.fraudshield.models.model_selection import ModelSelector
-from src.fraudshield.models.train import FraudTrainer
+from src.fraudlens.data.loaders import DataLoader
+from src.fraudlens.data.preprocessing import FraudPreprocessor, Resampler
+from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
+from src.fraudlens.evaluation.metrics import FraudEvaluator, print_evaluation_summary
+from src.fraudlens.models.anomaly import AutoencoderDetector, IsolationForestDetector
+from src.fraudlens.models.hpo import HyperparameterOptimizer
+from src.fraudlens.models.model_selection import ModelSelector
+from src.fraudlens.models.train import FraudTrainer
 
 sns.set_style("whitegrid")
 plt.rcParams["figure.figsize"] = (12, 6)
@@ -134,6 +139,27 @@ for strat, (X_r, y_r) in resampled.items():
     print(f"    {strat:<20}: {len(X_r):>8} samples, {int(y_r.sum()):>5} fraud ({y_r.mean()*100:.2f}%)")
 
 # ══════════════════════════════════════════════════════════════════════════
+# STAGE 3.5: Hyperparameter Optimization (Optuna) — optional
+# ══════════════════════════════════════════════════════════════════════════
+print("\n" + "-" * 70)
+print("  [3.5/6] Hyperparameter Optimization (Optuna)")
+print("-" * 70)
+
+custom_configs = {}
+if HPO_ENABLED:
+    hpo = HyperparameterOptimizer(n_trials=HPO_N_TRIALS, cv_folds=HPO_CV_FOLDS)
+    if "xgboost" in HPO_MODELS:
+        print("  Tuning XGBoost hyperparameters...")
+        xgb_params = hpo.tune_xgboost(X_train, y_train)
+        custom_configs["xgboost"] = {"params": xgb_params}
+    if "lightgbm" in HPO_MODELS:
+        print("  Tuning LightGBM hyperparameters...")
+        lgb_params = hpo.tune_lightgbm(X_train, y_train)
+        custom_configs["lightgbm"] = {"params": lgb_params}
+else:
+    print("  HPO disabled (set HPO_ENABLED=True to enable)")
+
+# ══════════════════════════════════════════════════════════════════════════
 # STAGE 4: Train All Models (6 Supervised + 2 Unsupervised)
 # ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
@@ -142,8 +168,8 @@ print("-" * 70)
 
 t_start = time.time()
 
-# 4a. Supervised models
-trainer = FraudTrainer()
+# 4a. Supervised models (with optional HPO-tuned params)
+trainer = FraudTrainer(custom_configs=custom_configs if custom_configs else None)
 models = trainer.train_all(X_train, y_train)
 
 # 4b. Cross-validate supervised models

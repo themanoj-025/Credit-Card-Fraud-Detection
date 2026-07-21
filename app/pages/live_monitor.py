@@ -14,11 +14,11 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import requests
 import streamlit as st
 
+from app.api_client import FraudLensAPI, get_api_client
 from app.components.metric_cards import drift_banner, metric_card
-from src.fraudshield.config import (
+from src.fraudlens.config import (
     API_URL,
     DRIFT_ALERT_WINDOW,
     MAX_TRANSACTION_HISTORY,
@@ -39,14 +39,14 @@ def _get_drift_detector():
     # Generate a reference distribution from synthetic data matching training
     # In production, this would load the actual training data from disk
     try:
-        from src.fraudshield.data.loaders import DataLoader
+        from src.fraudlens.data.loaders import DataLoader
 
         loader = DataLoader()
         df = loader.load()
         # Use a sample as reference
         ref_data = df[["V1", "V4", "V14", "Amount"]].sample(min(10000, len(df)), random_state=42)
 
-        from src.fraudshield.monitoring.drift import DriftDetector
+        from src.fraudlens.monitoring.drift import DriftDetector
 
         _DRIFT_DETECTOR = DriftDetector(
             reference_data=ref_data,
@@ -56,7 +56,7 @@ def _get_drift_detector():
         return _DRIFT_DETECTOR
     except (FileNotFoundError, Exception) as e:
         # Fallback: create detector with synthetic reference
-        from src.fraudshield.monitoring.drift import DriftDetector
+        from src.fraudlens.monitoring.drift import DriftDetector
 
         ref = pd.DataFrame(
             {f: np.random.randn(5000) for f in ["V1", "V4", "V14"]}
@@ -108,11 +108,11 @@ def _generate_transaction() -> Dict[str, float]:
 
 
 def _predict_transaction(tx: Dict[str, float]) -> Optional[Dict]:
-    """Send transaction to API for prediction."""
+    """Send transaction to API for prediction using shared client."""
     try:
-        resp = requests.post(f"{API_URL}/predict", json=tx, timeout=5)
-        return resp.json() if resp.ok else None
-    except requests.exceptions.RequestException:
+        client = get_api_client()
+        return client.predict(tx)
+    except Exception:
         return None
 
 

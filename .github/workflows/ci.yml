@@ -50,7 +50,7 @@ jobs:
 
       - name: Run all tests with coverage
         run: |
-          pytest tests/ -v --cov=src/fraudshield --cov-report=term-missing --tb=short
+          pytest tests/ -v --cov=src/fraudlens --cov-report=term-missing --tb=short
 
   lint:
     runs-on: ubuntu-latest
@@ -70,12 +70,12 @@ jobs:
 
       - name: Check formatting with black
         run: |
-          black --check src/fraudshield/ api/ app/ tests/ || echo "Formatting issues found (non-blocking)"
+          black --check src/fraudlens/ api/ app/ tests/ || echo "Formatting issues found (non-blocking)"
 
       - name: Check import sorting with isort
         run: |
-          isort --check-only src/fraudshield/ api/ app/ tests/ || echo "Import sorting issues found (non-blocking)"
+          isort --check-only src/fraudlens/ api/ app/ tests/ || echo "Import sorting issues found (non-blocking)"
 
       - name: Lint with ruff
         run: |
-          ruff check src/fraudshield/ api/ app/ tests/ || echo "Linting issues found (non-blocking)"
+          ruff check src/fraudlens/ api/ app/ tests/ || echo "Linting issues found (non-blocking)"

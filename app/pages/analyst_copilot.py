@@ -8,27 +8,21 @@ Backed by the Anthropic API with tool-use access to simulation data.
 import os
 from typing import Any, Dict, List, Optional
 
-import requests
 import streamlit as st
 
-from src.fraudshield.config import API_URL
+from app.api_client import FraudLensAPI, get_api_client
 
 
 def _get_copilot_response(
     message: str,
     history: List[Dict[str, str]],
 ) -> Optional[str]:
-    """Send a message to the copilot API."""
+    """Send a message to the copilot API using shared client."""
     try:
-        resp = requests.post(
-            f"{API_URL}/chat",
-            json={"message": message, "conversation_history": history},
-            timeout=30,
-        )
-        if resp.ok:
-            return resp.json().get("response", "")
-        return None
-    except requests.exceptions.RequestException:
+        client = get_api_client()
+        result = client.chat(message, history)
+        return result.get("response", "")
+    except Exception:
         return None
 
 
