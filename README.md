@@ -457,7 +457,7 @@ make load-test
 | 5 | ML quality (Optuna, model card, eval) | ✅ |
 | 6 | API design (versioning, RFC 7807, pagination) | ✅ |
 | 7 | Frontend (live demo, spinners, API client) | ✅ |
-| 8 | Testing (85% coverage, integration, edge cases) | ✅ |
+| 8 | Testing (80% actual coverage, integration, edge cases) | ✅ |
 | 9 | DevOps (CI/CD, K8s, multi-stage Docker) | ✅ |
 | 10 | Observability (logging, metrics, tracing) | ✅ |
 | 11 | Configuration (pydantic-settings) | ✅ |
