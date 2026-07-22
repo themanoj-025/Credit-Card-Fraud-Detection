@@ -13,10 +13,8 @@ Key features:
 """
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 
 from app.api_client import FraudLensAPIError, get_api_client
@@ -362,13 +360,13 @@ def _handle_promote(client: Any, version: str) -> None:
             if result.get("success"):
                 msg = result.get("message", f"Model {version} promoted successfully.")
                 st.success(f"✅ {msg}")
-                # Clear cached candidates to force re-fetch
-                st.cache_data.clear()
+                # Signal re-fetch on next render
+                st.session_state["gov_force_refresh"] = True
                 st.rerun()
             else:
                 st.error(f"❌ Promotion failed: {result.get('message', 'Unknown error')}")
         except FraudLensAPIError as e:
-            if "409" in str(e) or "CONFLICT" in str(e).upper():
+            if e.status_code == 409:
                 st.warning(f"⚠️ Candidate already processed: {e}")
             else:
                 st.error(f"❌ Promotion failed: {e}")
@@ -383,12 +381,12 @@ def _handle_reject(client: Any, version: str) -> None:
             result = client.reject_candidate(version)
             if result.get("success"):
                 st.info(f"📋 Candidate {version} rejected.")
-                st.cache_data.clear()
+                st.session_state["gov_force_refresh"] = True
                 st.rerun()
             else:
                 st.error(f"❌ Rejection failed: {result.get('message', 'Unknown error')}")
         except FraudLensAPIError as e:
-            if "409" in str(e) or "CONFLICT" in str(e).upper():
+            if e.status_code == 409:
                 st.warning(f"⚠️ Candidate already processed: {e}")
             else:
                 st.error(f"❌ Rejection failed: {e}")
@@ -569,14 +567,15 @@ def _show_demo_content() -> None:
 
     for cand in candidates:
         status = cand.get("status", "candidate")
-        status_color = CANDIDATE_COLORS.get(status, {}).get("fg", "#a0a0a0")
+        pr_auc = cand.get("pr_auc")
         is_pending = status == "candidate"
+        pr_auc_str = f"  🎯 PR-AUC: {pr_auc:.4f}" if pr_auc else ""
 
         with st.expander(
             f"**{cand['model_version']}** — "
             f"{_status_chip_html(status)} "
             f"{_trigger_chip_html(cand['trigger'])}"
-            f"{'  🎯 PR-AUC: ' + f\"{cand['pr_auc']:.4f}\" if cand.get('pr_auc') else ''}",
+            f"{pr_auc_str}",
             expanded=is_pending,
         ):
             m1, m2, m3, m4 = st.columns(4)
