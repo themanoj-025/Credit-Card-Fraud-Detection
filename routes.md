@@ -14,7 +14,12 @@
 | `POST` | `/v1/chat` | Analyst copilot | API Key | 20/min | `ChatRequest` | `{response, tool_calls}` |
 | `GET` | `/v1/auth/keys` | List API keys | Admin Key | 30/min | — | `{keys[], count}` |
 | `POST` | `/v1/auth/keys` | Generate API key | Admin Key | 10/hour | `{role, description}` | `{api_key, role, sha256_hash}` |
-| `GET` | `/v1/admin/llm-usage` | LLM cost & usage | Admin Key | 30/min | `?period=today\|month\|total` | `{date, total_cost_usd, total_calls, by_model, by_endpoint}` |
+| `GET` | `/v1/admin/llm-usage` | LLM cost & usage (DB+memory merge) | Admin Key | 30/min | `?period=today\|month\|total` | `{date, total_cost_usd, total_calls, by_model, by_endpoint}` |
+| `GET` | `/v1/admin/models/candidates` | List model candidates | Admin Key | 30/min | `?status_filter=candidate\|promoted\|rejected&limit=50` | `{candidates[], total, pending, promoted, rejected}` |
+| `GET` | `/v1/admin/models/candidates/{version}` | Get candidate details | Admin Key | 30/min | — | `{model_version, trigger, pr_auc, f1_score, ...}` |
+| `POST` | `/v1/admin/models/candidates/{version}/promote` | Promote candidate | Admin Key | 10/hour | — | `{success, model_version, message, candidate}` |
+| `POST` | `/v1/admin/models/candidates/{version}/reject` | Reject candidate | Admin Key | 10/hour | — | `{success, model_version, message, candidate}` |
+| `GET` | `/v1/admin/models/candidates/{version}/compare` | Compare vs production | Admin Key | 30/min | — | `{current_production, candidate, metrics_delta}` |
 
 ## Route Details
 
@@ -202,4 +207,5 @@ curl -X POST http://localhost:8000/v1/predict \
 | 422 | Validation Error | Negative Amount, NaN/Inf, empty batch, missing features |
 | 429 | Too Many Requests | Rate limit exceeded |
 | 500 | Internal Server Error | Model prediction failure |
-| 503 | Service Unavailable | Model not loaded, LLM unavailable, RAG index missing |
+| 409 | Conflict | Candidate already promoted or rejected (idempotent protect) |
+| 503 | Service Unavailable | Model not loaded, LLM unavailable, RAG index missing, DB unavailable |

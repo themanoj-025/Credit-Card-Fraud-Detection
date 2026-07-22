@@ -24,7 +24,12 @@
 | `POST` | `/v1/chat` | Analyst copilot chat (requires Anthropic key) | API Key | 20/min |
 | `GET` | `/v1/auth/keys` | List configured API keys (admin only) | Admin Key | 30/min |
 | `POST` | `/v1/auth/keys` | Generate new API key (admin only) | Admin Key | 10/hour |
-| `GET` | `/v1/admin/llm-usage` | LLM cost & usage summary (admin only) | Admin Key | 30/min |
+| `GET` | `/v1/admin/llm-usage` | LLM cost & usage summary (admin only) — merges DB + in-memory | Admin Key | 30/min |
+| `GET` | `/v1/admin/models/candidates` | List model candidates with optional status filter | Admin Key | 30/min |
+| `GET` | `/v1/admin/models/candidates/{version}` | Get candidate details | Admin Key | 30/min |
+| `POST` | `/v1/admin/models/candidates/{version}/promote` | Promote candidate to production | Admin Key | 10/hour |
+| `POST` | `/v1/admin/models/candidates/{version}/reject` | Reject candidate | Admin Key | 10/hour |
+| `GET` | `/v1/admin/models/candidates/{version}/compare` | Compare candidate vs current production | Admin Key | 30/min |
 
 ## Pydantic Models
 

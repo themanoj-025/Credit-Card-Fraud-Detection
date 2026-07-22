@@ -10,6 +10,8 @@ FraudLens uses **PostgreSQL** as the system of record for:
 | `feedback` | Analyst-confirmed labels (fraud/legitimate) |
 | `api_keys` | Stored as SHA-256 hashes |
 | `drift_events` | Data drift monitoring events |
+| `model_candidates` | Retrained model versions awaiting human review/promotion |
+| `llm_calls` | Per-call LLM API cost records for historical spend analysis |
 
 SQLite is used as a dev-only fallback. PostgreSQL is the production target.
 
@@ -87,6 +89,39 @@ SQLite is used as a dev-only fallback. PostgreSQL is the production target.
 | `current_mean` | FLOAT | NOT NULL | Current distribution mean |
 | `created_at` | TIMESTAMPTZ | NOT NULL, default NOW() | When drift was detected |
 
+### Table: `model_candidates`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK | Unique candidate ID |
+| `model_version` | VARCHAR(64) | UNIQUE, NOT NULL | Version string (vYYYYMMDD_HHMMSS) |
+| `trigger` | VARCHAR(32) | NOT NULL | `drift` or `feedback_volume` |
+| `trigger_detail` | TEXT | NULLABLE | Human-readable trigger description |
+| `pr_auc` | FLOAT | NULLABLE | Candidate PR-AUC score |
+| `f1_score` | FLOAT | NULLABLE | Candidate F1 score |
+| `precision` | FLOAT | NULLABLE | Candidate precision |
+| `recall` | FLOAT | NULLABLE | Candidate recall |
+| `threshold` | FLOAT | NULLABLE | Optimal decision threshold |
+| `mlflow_run_id` | VARCHAR(64) | NULLABLE | MLflow run identifier |
+| `model_path` | VARCHAR(512) | NULLABLE | Filesystem path to model artifact |
+| `status` | VARCHAR(32) | NOT NULL, default `candidate` | `candidate`, `promoted`, or `rejected` |
+| `created_at` | TIMESTAMPTZ | NOT NULL, default NOW() | When candidate was created |
+| `evaluated_at` | TIMESTAMPTZ | NULLABLE | When metrics were computed |
+| `promoted_at` | TIMESTAMPTZ | NULLABLE | When human promoted to production |
+
+### Table: `llm_calls`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK | Unique call ID |
+| `model` | VARCHAR(64) | NOT NULL, indexed | LLM model identifier |
+| `endpoint` | VARCHAR(64) | NOT NULL, indexed | API endpoint (`narrate`, `chat`) |
+| `input_tokens` | INTEGER | NOT NULL | Input token count |
+| `output_tokens` | INTEGER | NOT NULL | Output token count |
+| `cost_usd` | FLOAT | NOT NULL | Computed cost in USD |
+| `status` | VARCHAR(16) | NOT NULL, default `success` | `success` or `error` |
+| `created_at` | TIMESTAMPTZ | NOT NULL, default NOW(), indexed | When call was made |
+
 ## Entity Relationships
 
 ```mermaid
@@ -143,7 +178,9 @@ All database access goes through repository classes in `src/fraudlens/persistenc
 | `PredictionRepository` | `create()`, `get_by_id()`, `list_recent()`, `get_statistics()` |
 | `FeedbackRepository` | `create()`, `get_by_prediction_id()`, `get_statistics()` |
 | `ApiKeyRepository` | `create()`, `get_by_hash()`, `list_all()`, `deactivate()` |
-| `DriftEventRepository` | `create()`, `list_recent()` |
+| `DriftEventRepository` | `create()`, `list_recent()`, `get_statistics()` |
+| `ModelCandidateRepository` | `create_candidate()`, `get_candidates()`, `get_by_version()`, `promote()`, `reject()`, `get_latest_promoted()`, `get_statistics()` |
+| `LlmCallRepository` | `create_call()`, `get_recent_calls()`, `get_calls_since()`, `get_period_summary()`, `get_statistics()` |
 
 Routers never touch SQLAlchemy sessions directly — they go through repositories.
 
