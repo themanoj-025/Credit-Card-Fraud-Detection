@@ -135,6 +135,40 @@ class FeedbackModel(Base):
         return f"<Feedback {self.id[:8]} confirmed_fraud={self.confirmed_fraud}>"
 
 
+class ModelCandidateModel(Base):
+    """A model version candidate ready for human review and promotion.
+
+    Created by the automated retraining trigger. Never auto-promoted —
+    requires a human (via promote API endpoint) to swap production traffic.
+    """
+
+    __tablename__ = "model_candidates"
+
+    id = _uuid_column()
+    model_version = Column(String(64), nullable=False, unique=True, index=True)
+    trigger = Column(String(32), nullable=False)  # "drift" or "feedback_volume"
+    trigger_detail = Column(Text, nullable=True)
+    pr_auc = Column(Float, nullable=True)
+    f1_score = Column(Float, nullable=True)
+    precision = Column(Float, nullable=True)
+    recall = Column(Float, nullable=True)
+    threshold = Column(Float, nullable=True)
+    mlflow_run_id = Column(String(64), nullable=True)
+    model_path = Column(String(512), nullable=True)
+    status = Column(
+        String(32), nullable=False, default="candidate"
+    )  # candidate, promoted, rejected
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    evaluated_at = Column(DateTime, nullable=True)
+    promoted_at = Column(DateTime, nullable=True)
+
+    def __repr__(self) -> str:
+        return (
+            f"<ModelCandidate {self.model_version} trigger={self.trigger} "
+            f"status={self.status}>"
+        )
+
+
 class DriftEventModel(Base):
     """Recorded data drift events for monitoring."""
 
