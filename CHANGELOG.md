@@ -6,48 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.1.0] — 2026-07-22
-
-### Added
-
-#### Model Governance Dashboard (Phase 14 — Gap 7 follow-up)
-- New **Model Governance** Streamlit page (`app/pages/model_governance.py`) with 3-tab layout:
-  - **Pending Candidates tab:** summary stats, status filter, expandable cards with PR-AUC/F1/Precision/Recall deltas (▲ green / ▼ red vs production), and Promote/Reject buttons
-  - **History tab:** lists previously promoted/rejected candidates with timestamps
-  - **About tab:** explains the governance workflow (drift trigger, feedback volume, no auto-promotion)
-- Admin API client methods: `get_candidates()`, `promote_candidate()`, `reject_candidate()`, `compare_candidate()`
-- `FRAUDLENS_DASHBOARD_API_KEY` env var for dashboard-to-API admin auth
-- Demo fallback content with realistic sample candidates when no admin API key configured
-
-#### LLM Cost Persistence to Database (Phase 14 — Gap 4 follow-up)
-- `LlmCallModel` — SQLAlchemy ORM model with `llm_calls` table (`alembic/versions/003_llm_calls.py`)
-- `LlmCallRepository` — async repository with period-based aggregation queries
-- `CostTracker.merge_summaries()` — merges in-memory (recent) + DB (historical) cost data
-- `CostTracker.get_pending_records()` / `clear_pending()` — flush management helpers
-- `GET /v1/admin/llm-usage` now flushes pending records to DB before querying, then merges DB + in-memory results — cost data survives restarts
-- Streamlit dashboard sidebar now shows **LLM Spend Today** with cost, call count, token usage, and per-model breakdown in a styled card
-
-#### Automated Retraining Trigger (Phase 14 — Gap 7)
-- `src/fraudlens/retraining/` package — automated retraining trigger module
-- Drift trigger: checks for CRITICAL drift events since last training
-- Feedback volume trigger: checks if accumulated feedback >= configurable threshold
-- K8s CronJob (`infra/k8s/cronjob.yaml`) runs daily at 2 AM — checks conditions, triggers pipeline if met
-- MLflow candidate registration: every triggered run tagged with `trigger=drift|feedback_volume` and `is_candidate=true`
-- No auto-promotion: retraining registers candidates only; human must promote via API
-- Admin API endpoints (auth-protected):
-  - `GET /v1/admin/models/candidates` — list candidates with pagination and status filter
-  - `GET /v1/admin/models/candidates/{version}` — view candidate details
-  - `POST /v1/admin/models/candidates/{version}/promote` — human-gated promotion to production
-  - `POST /v1/admin/models/candidates/{version}/reject` — mark candidate as rejected
-  - `GET /v1/admin/models/candidates/{version}/compare` — compare candidate vs current production
-- `ModelCandidateModel` — SQLAlchemy ORM model with `model_candidates` table (`alembic/versions/002_model_candidates.py`)
-- `ModelCandidateRepository` — async repository with candidate CRUD and promotion logic
-- Config-driven thresholds via env vars (`RETRAINING_FEEDBACK_THRESHOLD`, `RETRAINING_DRIFT_CRITICAL_THRESHOLD`, etc.)
-- `python -m src.fraudlens.retraining.retrain_trigger` entry point for CronJob
-- 51 tests in `tests/test_retrain_trigger.py` covering all trigger conditions, timestamp parsing edge cases, dry-run mode, pipeline failure paths, and integration scenarios
-
-
-
-
 ### Added
 
 #### Automated Data Download (Phase 14 — Gap 1)
@@ -72,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GET /v1/admin/llm-usage?period=today|month|total` — admin-only endpoint for spend queries
 - Structured log field on every LLM call with cost breakdown
 
+#### LLM Cost Persistence to Database (Phase 14 — Gap 4 follow-up)
+- `LlmCallModel` — SQLAlchemy ORM model with `llm_calls` table (`alembic/versions/003_llm_calls.py`)
+- `LlmCallRepository` — async repository with period-based aggregation queries
+- `CostTracker.merge_summaries()` — merges in-memory (recent) + DB (historical) cost data
+- `CostTracker.get_pending_records()` / `clear_pending()` — flush management helpers
+- `GET /v1/admin/llm-usage` now flushes pending records to DB before querying, then merges DB + in-memory results — cost data survives restarts
+- Streamlit dashboard sidebar now shows **LLM Spend Today** with cost, call count, token usage, and per-model breakdown in a styled card
+
 #### Autoencoder Removal (Phase 14 — Gap 6)
 - Removed `AutoencoderDetector` class from `src/fraudlens/models/anomaly.py`
 - Removed TensorFlow and Keras from `requirements.txt` (~600MB dependency saved)
@@ -79,8 +45,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `IsolationForestDetector` is now the sole unsupervised anomaly detector
 - `docs/adr/0001-remove-autoencoder.md` — ADR documenting the decision
 
+#### Automated Retraining Trigger (Phase 14 — Gap 7)
+- `src/fraudlens/retraining/` package — automated retraining trigger module
+- Drift trigger: checks for CRITICAL drift events since last training
+- Feedback volume trigger: checks if accumulated feedback >= configurable threshold
+- K8s CronJob (`infra/k8s/cronjob.yaml`) runs daily at 2 AM — checks conditions, triggers pipeline if met
+- MLflow candidate registration: every triggered run tagged with `trigger=drift|feedback_volume` and `is_candidate=true`
+- No auto-promotion: retraining registers candidates only; human must promote via API
+- Admin API endpoints (auth-protected):
+  - `GET /v1/admin/models/candidates` — list candidates with pagination and status filter
+  - `GET /v1/admin/models/candidates/{version}` — view candidate details
+  - `POST /v1/admin/models/candidates/{version}/promote` — human-gated promotion to production
+  - `POST /v1/admin/models/candidates/{version}/reject` — mark candidate as rejected
+  - `GET /v1/admin/models/candidates/{version}/compare` — compare candidate vs current production
+- `ModelCandidateModel` — SQLAlchemy ORM model with `model_candidates` table (`alembic/versions/002_model_candidates.py`)
+- `ModelCandidateRepository` — async repository with candidate CRUD and promotion logic
+- Config-driven thresholds via env vars (`RETRAINING_FEEDBACK_THRESHOLD`, `RETRAINING_DRIFT_CRITICAL_THRESHOLD`, etc.)
+- `python -m src.fraudlens.retraining.retrain_trigger` entry point for CronJob
+- 51 tests in `tests/test_retrain_trigger.py` covering all trigger conditions, timestamp parsing edge cases, dry-run mode, pipeline failure paths, and integration scenarios
+
+#### Model Governance Dashboard (Phase 14 — Gap 7 follow-up)
+- New **Model Governance** Streamlit page (`app/pages/model_governance.py`) with 3-tab layout:
+  - **Pending Candidates tab:** summary stats, status filter, expandable cards with PR-AUC/F1/Precision/Recall deltas (▲ green / ▼ red vs production), and Promote/Reject buttons
+  - **History tab:** lists previously promoted/rejected candidates with timestamps
+  - **About tab:** explains the governance workflow (drift trigger, feedback volume, no auto-promotion)
+- Admin API client methods: `get_candidates()`, `promote_candidate()`, `reject_candidate()`, `compare_candidate()`
+- `FRAUDLENS_DASHBOARD_API_KEY` env var for dashboard-to-API admin auth
+- Demo fallback content with realistic sample candidates when no admin API key configured
+
 #### Test Coverage (Phase 14 — Gap 2)
 - `tests/test_download.py` — 25+ tests for the download module (synthetic generation, validation, Kaggle detection, ensure_data_ready, get_or_create_data)
+- `tests/test_retrain_trigger.py` — 51 tests for retraining trigger (drift/feedback conditions, dry-run, pipeline failure, timestamp parsing, integration scenarios)
 
 ### Changed
 - `requirements.txt`: Removed `tensorflow>=2.12.0` and `keras>=2.12.0`

@@ -109,7 +109,8 @@ A **FAISS-based SimilarCaseRetriever** finds the most similar historical transac
 | `routers/explain.py` | `POST /v1/explain` |
 | `routers/similar_cases.py` | `POST /v1/similar-cases` (cursor pagination) |
 | `routers/chat.py` | `POST /v1/chat` (Anthropic Claude) |
-| `routers/admin.py` | `GET /v1/auth/keys`, `POST /v1/auth/keys` |
+| `routers/admin.py` | `GET/POST /v1/auth/keys`, `GET /v1/admin/llm-usage` (LLM cost summary) |
+| `routers/models_admin.py` | `GET /v1/admin/models/candidates`, `POST .../promote`, `POST .../reject`, `GET .../compare` |
 
 ### 2. Core Library (`src/fraudlens/`)
 
@@ -130,7 +131,8 @@ A **FAISS-based SimilarCaseRetriever** finds the most similar historical transac
 | **llm** | `case_narrator.py` | `CaseNarrator` | LLM narrative from SHAP values |
 | **llm** | `rag_similar_cases.py` | `SimilarCaseRetriever` | FAISS-based RAG retrieval |
 | **monitoring** | `drift.py` | `DriftDetector` | KS-test for data drift |
-| **persistence** | | SQLAlchemy models | Predictions, feedback, API keys, drift events |
+| **retraining** | `retrain_trigger.py` | `RetrainingTrigger` | Drift + feedback volume retraining trigger, MLflow registration |
+| **persistence** | `models.py` | SQLAlchemy models | Predictions, feedback, API keys, drift events, model candidates, LLM calls |
 
 ### 3. Dashboard Layer (`app/`)
 
@@ -139,6 +141,7 @@ A **FAISS-based SimilarCaseRetriever** finds the most similar historical transac
 | Live Monitor | `pages/live_monitor.py` | Real-time transaction feed, drift alerts |
 | Case Investigator | `pages/case_investigator.py` | SHAP deep-dive, LLM narrative, RAG similar cases |
 | Model Performance | `pages/model_performance.py` | Model comparison charts |
+| Model Governance | `pages/model_governance.py` | Candidate review, promote/reject UI |
 | Analyst Copilot | `pages/analyst_copilot.py` | Natural-language chat with tool-use |
 | API Client | `api_client.py` | Shared HTTP client (retries, timeouts, spinners) |
 
@@ -209,7 +212,10 @@ No module-level mutable globals remain — all state is managed through `app.sta
 |----------|-------------|----------|
 | `ANTHROPIC_API_KEY` | Anthropic API key for LLM features | No |
 | `FRAUDLENS_API_KEYS` | Semicolon-delimited `hash=role` pairs | No |
+| `FRAUDLENS_DASHBOARD_API_KEY` | Admin API key for dashboard Model Governance page | No |
 | `DATABASE_URL` | PostgreSQL connection string | No (SQLite fallback) |
 | `REDIS_URL` | Redis connection string | No |
+| `RETRAINING_FEEDBACK_THRESHOLD` | Min feedback labels to trigger retraining | No |
+| `RETRAINING_DRIFT_CRITICAL_THRESHOLD` | Min CRITICAL drift events to trigger | No |
 | `LOG_LEVEL` | Logging level (default: INFO) | No |
 
