@@ -43,6 +43,14 @@ The following items have been addressed in the project's security hardening:
   - `/v1/auth/keys` POST: 10/hour (admin security)
 - [x] Redis-backed in production; in-memory fallback for dev
 - [x] Configurable via `REDIS_URL` environment variable
+- [x] **Multi-worker safety proven:** `tests/test_rate_limit_shared.py` contains
+  integration tests verifying that two separate `Limiter` instances sharing the
+  same Redis backend correctly share counter state. The test also includes a
+  negative check proving that separate in-memory limiters diverge (confirming
+  the positive test is not a false positive). Run with:
+  ```bash
+  REDIS_URL=redis://localhost:6379/0 pytest tests/test_rate_limit_shared.py -v
+  ```
 
 ### Input Validation
 - [x] All endpoints use Pydantic models for request bodies

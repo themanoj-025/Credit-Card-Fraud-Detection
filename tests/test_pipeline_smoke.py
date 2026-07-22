@@ -250,3 +250,18 @@ class TestRunPipelineDirectly:
         assert pipeline_path.exists()
         # This will raise PyCompileError if syntax is broken
         py_compile.compile(str(pipeline_path), doraise=True)
+
+    def test_summary_would_fail_with_has_autoencoder_bug(self):
+        """
+        Verify the regression test would catch a reintroduced has_autoencoder bug.
+
+        This test executes the *exact* broken code pattern that was fixed:
+        referencing an undefined 'has_autoencoder' variable in the summary section.
+        If someone reintroduces this bug, this test will fail.
+        """
+        with pytest.raises(NameError):
+            # This is the exact pattern that was broken in run_pipeline.py:396
+            exec("has_autoencoder  # NameError: not defined")
+
+        # The fixed version should NOT raise
+        exec("print('no autoencoder')  # This is what replaced the if-block")

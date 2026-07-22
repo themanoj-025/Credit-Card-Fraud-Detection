@@ -73,20 +73,35 @@ all completed phases.
 | **4. LLM Cost Tracking** | ✅ | `src/fraudlens/llm/cost_tracker.py`, Prometheus counters, `/v1/admin/llm-usage` endpoint, wired into CaseNarrator |
 | **4b. LLM Cost Persistence** | ✅ | `LlmCallModel` + `llm_calls` table (migration 003), auto-flush on admin API query, merge_summaries() for DB + in-memory combining |
 | **5. Feature Engineering** | ✅ | Documented in MODEL_CARD.md — V1-V28 already PCA components, engineered features redundant |
-| **6. Autoencoder Removal** | ✅ | Removed `AutoencoderDetector`, TF/Keras deps, autoencoder config. ADR-0001 documents decision |
+| **6. Autoencoder Removal** | ✅ | Removed `AutoencoderDetector`, TF/Keras deps, autoencoder config. ADR-0001 documents decision. **Phase 14b:** Fixed `has_autoencoder` dangling reference in `run_pipeline.py:396` that crashed the pipeline summary section. Added pipeline smoke test (`tests/test_pipeline_smoke.py`) as regression guard. |
 | **7. Automated Retraining** | ✅ | `src/fraudlens/retraining/` module with drift+feedback triggers, MLflow candidate registration, K8s CronJob, admin endpoints (`GET /v1/admin/models/candidates`, `POST .../promote`, `POST .../reject`, `GET .../compare`), alembic migration 002 for `model_candidates` table |
 | **7b. Model Governance UI** | ✅ | New Streamlit page (`app/pages/model_governance.py`) with pending candidates table, metrics vs production comparison, promote/reject buttons, history tab. Requires `FRAUDLENS_DASHBOARD_API_KEY` env var |
-| **8. Audit Score Verification** | ✅ | Audit scores updated below |
+| **8. Audit Score Verification** | ✅ | See below. Pipeline now runs to completion (NameError fixed). |
+| **Phase 14b: Final Closeout** | ✅ | See details below. |
 
-### Updated Audit Scores (Phase 14)
+### Phase 14b — Final Closeout Details
 
-| Category | Phase 0 | Phase 9 | Phase 14 |
-|----------|:-------:|:-------:|:--------:|
-| Scalability | 2 | 6 | **8** |
-| Production Readiness | 2 | 7 | **9** |
-| UI/UX | 6 | 7 | **8** |
-| Performance | 4 | 7 | **8** |
-| **OVERALL** | **4.8** | **7.8** | **9.1** |
+| Gap | Status | Key Changes |
+|-----|--------|-------------|
+| **0. Pipeline crash fix** | ✅ | Removed dangling `has_autoencoder` reference in `run_pipeline.py:396`. Added `tests/test_pipeline_smoke.py` — a regression smoke test that directly exercises the summary code path with synthetic data. |
+| **1a. EDA test bug fix** | ✅ | Fixed `test_run_eda_creates_figures` which caught `FileNotFoundError` (false positive). The real bugs were: (1) `_save_fig` ignored `output_dir` (always saved to global `FIGURES_DIR`), and (2) `pairplot_colors` dict used integer keys for string-keyed `COLORS` dict. Both source bugs fixed; test now uses patched `_load_data` with real file-existence assertions. |
+| **1b. EDA cache tests** | ✅ | `TestFeatureImportanceCache`: cache miss → populated, cache hit → returns cached (spy confirms `fit()` not called again), cache invalidation → `run_eda()` recomputes fresh data. |
+| **1c. HPO tests** | ✅ | `TestHPOFailurePath`: trial failure does not crash caller; import-error fallback returns sensible defaults. `TestHPOBestParamsPassThrough`: mock constructor spy verifies `best_params` reach model kwargs. |
+| **1d. LLM mocked-client tests** | ✅ | `TestMockedAnthropicPath`: 3 tests using conftest's auto-used mock. `TestMockedAnthropicEdgeCases`: timeout, empty response, malformed response, circuit breaker — all fail closed to fallback. `TestFactualityChecker`: 5 golden-set checks testing the *checker* logic against matched/hallucinated features. |
+| **2. Redis shared-counter test** | ✅ | `tests/test_rate_limit_shared.py` — two `Limiter` instances sharing Redis verify multi-worker safety. Includes negative test (separate in-memory backends diverge). Referenced from `SECURITY.md`. |
+
+### Updated Audit Scores (Phase 14b)
+
+| Category | Phase 0 | Phase 9 | Phase 14 | Phase 14b |
+|----------|:-------:|:-------:|:--------:|:---------:|
+| Scalability | 2 | 6 | 8 | **8** |
+| Production Readiness | 2 | 7 | 9 | **9** |
+| UI/UX | 6 | 7 | 8 | **8** |
+| Performance | 4 | 7 | 8 | **8** |
+| Testing | 5 | 8 | 8 | **8.5** |
+| **OVERALL** | **4.8** | **7.8** | **9.1** | **9.1** |
+
+**Verification:** Pipeline runs to completion (NameError fixed). Coverage at **78%** (up from 76% pre-Phase 14b). Redis integration tests added; LLM code path now exercised with mocked client (not just fallback). EDA function tests have real assertions (not just "doesn't raise"). Target 85% coverage deferred to a future phase focused on persistence repositories (currently 28–33%).
 
 ## Target State
 
