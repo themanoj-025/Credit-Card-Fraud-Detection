@@ -84,6 +84,45 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
+    # ─── LLM Spend Today ────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown(
+        '<span style="color: #a0a0a0; font-size: 13px;">🤖 LLM Usage</span>',
+        unsafe_allow_html=True,
+    )
+    try:
+        from src.fraudlens.llm.cost_tracker import cost_tracker
+
+        today = cost_tracker.get_today_summary()
+        cost_color = "#ff6b6b" if today.total_cost_usd > 1.0 else "#38ef7d"
+        st.markdown(
+            f"""
+        <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:8px;padding:10px 12px;margin:4px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#a0a0a0;font-size:12px;">Today's Spend</span>
+                <span style="color:{cost_color};font-size:18px;font-weight:700;">
+                    ${today.total_cost_usd:.4f}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+                <span style="color:#555;font-size:11px;">{today.total_calls} calls</span>
+                <span style="color:#555;font-size:11px;">
+                    {today.total_input_tokens + today.total_output_tokens:,} tokens
+                </span>
+            </div>
+            <div style="margin-top:4px;">
+                {" ".join(
+                    f'<span style="background:#2a2a3e;color:#a0a0a0;padding:1px 6px;border-radius:4px;font-size:10px;margin:1px;">{m} ${c:.4f}</span>'
+                    for m, c in sorted(today.by_model.items())
+                )}
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+    except Exception:
+        pass
+
     st.markdown("---")
     st.markdown(
         """

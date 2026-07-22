@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### LLM Cost Persistence to Database (Phase 14 — Gap 4 follow-up)
+- `LlmCallModel` — SQLAlchemy ORM model with `llm_calls` table (`alembic/versions/003_llm_calls.py`)
+- `LlmCallRepository` — async repository with period-based aggregation queries
+- `CostTracker.merge_summaries()` — merges in-memory (recent) + DB (historical) cost data
+- `CostTracker.get_pending_records()` / `clear_pending()` — flush management helpers
+- `GET /v1/admin/llm-usage` now queries both DB and in-memory tracker and merges results
+- Streamlit dashboard sidebar now shows **LLM Spend Today** with cost, call count, token usage, and per-model breakdown in a styled card
+
 #### Automated Retraining Trigger (Phase 14 — Gap 7)
 - `src/fraudlens/retraining/` package — automated retraining trigger module
 - Drift trigger: checks for CRITICAL drift events since last training
