@@ -135,6 +135,32 @@ class FeedbackModel(Base):
         return f"<Feedback {self.id[:8]} confirmed_fraud={self.confirmed_fraud}>"
 
 
+class LlmCallModel(Base):
+    """Record of a single LLM API call for cost tracking and analysis.
+
+    Persists per-call cost data so historical spend is queryable
+    beyond the in-memory CostTracker (which resets on restart).
+    """
+
+    __tablename__ = "llm_calls"
+
+    id = _uuid_column()
+    model = Column(String(64), nullable=False, index=True)
+    endpoint = Column(String(64), nullable=False, index=True)
+    input_tokens = Column(Integer, nullable=False, default=0)
+    output_tokens = Column(Integer, nullable=False, default=0)
+    cost_usd = Column(Float, nullable=False, default=0.0)
+    status = Column(String(16), nullable=False, default="success")  # success, error
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    def __repr__(self) -> str:
+        return (
+            f"<LlmCall {self.model} {self.endpoint} "
+            f"tokens={self.input_tokens}/{self.output_tokens} "
+            f"cost=${self.cost_usd:.6f}>"
+        )
+
+
 class ModelCandidateModel(Base):
     """A model version candidate ready for human review and promotion.
 
