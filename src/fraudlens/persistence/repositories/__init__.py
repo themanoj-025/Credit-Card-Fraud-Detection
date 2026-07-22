@@ -14,6 +14,7 @@ Usage:
 from .api_keys import ApiKeyRepository
 from .drift_events import DriftEventRepository
 from .feedback import FeedbackRepository
+from .llm_calls import LlmCallRepository
 from .model_candidates import ModelCandidateRepository
 from .predictions import PredictionRepository
 
@@ -21,6 +22,7 @@ __all__ = [
     "ApiKeyRepository",
     "DriftEventRepository",
     "FeedbackRepository",
+    "LlmCallRepository",
     "ModelCandidateRepository",
     "PredictionRepository",
 ]
