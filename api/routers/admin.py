@@ -197,10 +197,13 @@ async def get_llm_usage(
 
         # Clear in-memory records that were just persisted
         cost_tracker.clear_pending()
+
+        # Re-read memory summary — now only has records created during/after flush
+        memory_summary = cost_tracker.get_period_summary_dict(period)
     except Exception as e:
         logger.warning("DB cost query failed, using in-memory only: %s", e)
 
-    # Step 3: Merge DB (historical) + in-memory (since flush, should be empty)
+    # Step 3: Merge DB (historical) + in-memory (records created during flush)
     if db_summary:
         merged = CostTracker.merge_summaries(memory_summary, db_summary)
     else:

@@ -164,12 +164,15 @@ class RetrainingTrigger:
             if e.get("alert_type") == "CRITICAL"
             or e.get("alert", "") == "CRITICAL"
         ]
-        # Filter by time if timestamps available
+        # Filter by time if timestamps available.
+        # Events with unparseable timestamps are included conservatively
+        # (they might be recent). Events with parseable timestamps but
+        # outside the window are excluded.
         critical_in_window = [
             e
             for e in critical_events
-            if (ts := self._parse_timestamp(e)) is not None and ts >= cutoff
-        ] or critical_events  # fallback: use all if can't parse timestamps
+            if (ts := self._parse_timestamp(e)) is None or ts >= cutoff
+        ]
 
         count = len(critical_in_window)
         met = count >= self.drift_critical_threshold

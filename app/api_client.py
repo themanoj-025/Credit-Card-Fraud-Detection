@@ -205,6 +205,110 @@ class FraudLensAPI:
             label="chat",
         )
 
+    # ─── Admin: Model Management ────────────────────────────────────────
+
+    def get_candidates(
+        self,
+        status_filter: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict:
+        """
+        List model candidates with optional status filter.
+
+        Requires FRAUDLENS_DASHBOARD_API_KEY env var with admin-level key.
+        """
+        path = "/v1/admin/models/candidates"
+        params = f"?limit={limit}&offset={offset}"
+        if status_filter:
+            params += f"&status_filter={status_filter}"
+        return self._admin_request("GET", f"{path}{params}", label="list candidates")
+
+    def promote_candidate(self, model_version: str) -> dict:
+        """Promote a candidate model to production.
+
+        Requires FRAUDLENS_DASHBOARD_API_KEY env var with admin-level key.
+        """
+        return self._admin_request(
+            "POST",
+            f"/v1/admin/models/candidates/{model_version}/promote",
+            label=f"promote {model_version}",
+        )
+
+    def reject_candidate(self, model_version: str) -> dict:
+        """Reject a candidate model.
+
+        Requires FRAUDLENS_DASHBOARD_API_KEY env var with admin-level key.
+        """
+        return self._admin_request(
+            "POST",
+            f"/v1/admin/models/candidates/{model_version}/reject",
+            label=f"reject {model_version}",
+        )
+
+    def compare_candidate(self, model_version: str) -> dict:
+        """Compare a candidate against the current production model.
+
+        Requires FRAUDLENS_DASHBOARD_API_KEY env var with admin-level key.
+        """
+        return self._admin_request(
+            "GET",
+            f"/v1/admin/models/candidates/{model_version}/compare",
+            label=f"compare {model_version}",
+        )
+
+    # ─── Admin Helpers ───────────────────────────────────────────────────
+
+    def _admin_request(
+        self,
+        method: str,
+        path: str,
+        json_data: Optional[dict] = None,
+        label: str = "admin request",
+    ) -> dict:
+        """Make an authenticated admin API request using the dashboard API key."""
+        import os
+
+        api_key = os.environ.get("FRAUDLENS_DASHBOARD_API_KEY", "")
+        if not api_key:
+            raise FraudLensAPIError(
+                "Admin operations require FRAUDLENS_DASHBOARD_API_KEY environment "
+                "variable with an admin-level API key.",
+                status_code=401,
+            )
+
+        with httpx.Client(
+            base_url=self.base_url,
+            timeout=httpx.Timeout(self.timeout),
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-API-Key": api_key,
+            },
+        ) as admin_client:
+            last_error: Optional[Exception] = None
+            for attempt in range(self.max_retries + 1):
+                try:
+                    response = admin_client.request(method, path, json=json_data)
+                    return self._handle_response(response, label)
+                except (httpx.ConnectError, httpx.TimeoutException) as e:
+                    last_error = e
+                    if attempt < self.max_retries:
+                        time.sleep(_DEFAULT_RETRY_DELAY * (2**attempt))
+                        continue
+                except FraudLensAPIError:
+                    raise
+                except Exception as e:
+                    last_error = e
+                    if attempt < self.max_retries:
+                        time.sleep(_DEFAULT_RETRY_DELAY)
+                        continue
+                    break
+
+        raise FraudLensAPIError(
+            f"{label} failed after {self.max_retries} retries: {last_error}"
+        )
+
     def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
