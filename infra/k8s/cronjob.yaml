@@ -1,5 +1,4 @@
-# ════════════════════════════════════════════════════════════════
-# FraudLens — Retraining CronJob
+# FraudLens -- Retraining CronJob
 # Kubernetes CronJob for automated retraining trigger checks.
 #
 # Schedule: daily at 2 AM (adjust via spec.schedule)
@@ -9,8 +8,8 @@
 #   3. Registers the trained model as a candidate (never auto-promotes)
 #   4. Stores candidate metadata in model_candidates table
 #
-# To manually trigger: kubectl create job --from=cronjob/fraudlens-retrain-check manual-trigger
-# ════════════════════════════════════════════════════════════════
+# To manually trigger:
+#   kubectl create job --from=cronjob/fraudlens-retrain-check manual-trigger
 apiVersion: batch/v1
 kind: CronJob
 metadata:
