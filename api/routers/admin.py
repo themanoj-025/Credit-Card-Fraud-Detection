@@ -144,22 +144,50 @@ async def get_llm_usage(
     """
     Get LLM API cost and usage summary.
 
+    Merges data from:
+    - In-memory CostTracker (recent calls since server start)
+    - Database llm_calls table (historical data that survives restarts)
+
     Query param `period`: today | month | total
     Requires an admin-level API key.
     """
-    if period == "month":
-        summary = cost_tracker.get_month_summary()
-    elif period == "total":
-        summary = cost_tracker.get_total_summary()
+    # Get in-memory summary (recent, not yet persisted)
+    memory_summary = cost_tracker.get_period_summary_dict(period)
+
+    # Try to get DB summary (historical, persisted)
+    db_summary = None
+    try:
+        from datetime import datetime, timedelta
+        from src.fraudlens.persistence import get_session
+        from src.fraudlens.persistence.repositories import LlmCallRepository
+
+        now = datetime.utcnow()
+        if period == "today":
+            since = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "month":
+            since = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            since = datetime(2020, 1, 1)  # far past for "total"
+
+        async for session in get_session():
+            repo = LlmCallRepository(session)
+            db_summary = await repo.get_period_summary(since)
+            break
+    except Exception as e:
+        logger.warning("DB cost query failed, using in-memory only: %s", e)
+
+    # Merge: DB for historical, in-memory for recent
+    if db_summary:
+        merged = CostTracker.merge_summaries(memory_summary, db_summary)
     else:
-        summary = cost_tracker.get_today_summary()
+        merged = memory_summary
 
     return LLMUsageResponse(
-        date=summary.date,
-        total_cost_usd=summary.total_cost_usd,
-        total_calls=summary.total_calls,
-        total_input_tokens=summary.total_input_tokens,
-        total_output_tokens=summary.total_output_tokens,
-        by_model=summary.by_model,
-        by_endpoint=summary.by_endpoint,
+        date=merged.get("date", datetime.utcnow().strftime("%Y-%m-%d")),
+        total_cost_usd=merged["total_cost_usd"],
+        total_calls=merged["total_calls"],
+        total_input_tokens=merged["total_input_tokens"],
+        total_output_tokens=merged["total_output_tokens"],
+        by_model=merged.get("by_model", {}),
+        by_endpoint=merged.get("by_endpoint", {}),
     )

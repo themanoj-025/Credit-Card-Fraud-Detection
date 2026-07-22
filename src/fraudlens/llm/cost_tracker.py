@@ -216,6 +216,92 @@ class CostTracker:
         }
 
 
+    def get_pending_records(self) -> List[CallRecord]:
+        """
+        Get all pending (in-memory) records that haven't been persisted yet.
+
+        Returns a copy of the records list. Used by the admin API to
+        flush records to the database.
+        """
+        with self._lock:
+            return list(self._records)
+
+    def clear_pending(self) -> None:
+        """Clear in-memory records after they've been persisted to DB.
+
+        Only clears records older than 1 minute to avoid losing records
+        that were just added but not yet available in a DB query.
+        """
+        cutoff = time.time() - 60  # 1 minute ago
+        with self._lock:
+            self._records = [r for r in self._records if r.timestamp > cutoff]
+
+    def get_period_summary_dict(
+        self, period: str = "today"
+    ) -> Dict[str, Any]:
+        """
+        Get summary as a JSON-serializable dict (from in-memory data).
+
+        Args:
+            period: "today", "month", or "total"
+
+        Returns:
+            Dict with total_cost_usd, total_calls, total_input_tokens,
+            total_output_tokens, by_model, by_endpoint
+        """
+        if period == "month":
+            summary = self.get_month_summary()
+        elif period == "total":
+            summary = self.get_total_summary()
+        else:
+            summary = self.get_today_summary()
+        return self.to_dict(summary)
+
+    @staticmethod
+    def merge_summaries(
+        memory_summary: Dict[str, Any],
+        db_summary: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Merge in-memory and database summaries for a complete picture.
+
+        DB provides historical data (survives restarts).
+        In-memory provides recent data (not yet flushed).
+        """
+        combined = dict(db_summary)
+        combined["total_cost_usd"] = round(
+            db_summary.get("total_cost_usd", 0)
+            + memory_summary.get("total_cost_usd", 0),
+            6,
+        )
+        combined["total_calls"] = (
+            db_summary.get("total_calls", 0)
+            + memory_summary.get("total_calls", 0)
+        )
+        combined["total_input_tokens"] = (
+            db_summary.get("total_input_tokens", 0)
+            + memory_summary.get("total_input_tokens", 0)
+        )
+        combined["total_output_tokens"] = (
+            db_summary.get("total_output_tokens", 0)
+            + memory_summary.get("total_output_tokens", 0)
+        )
+
+        # Merge by_model dicts
+        by_model = dict(db_summary.get("by_model", {}))
+        for model, cost in memory_summary.get("by_model", {}).items():
+            by_model[model] = round(by_model.get(model, 0) + cost, 6)
+        combined["by_model"] = by_model
+
+        # Merge by_endpoint dicts
+        by_endpoint = dict(db_summary.get("by_endpoint", {}))
+        for endpoint, cost in memory_summary.get("by_endpoint", {}).items():
+            by_endpoint[endpoint] = round(by_endpoint.get(endpoint, 0) + cost, 6)
+        combined["by_endpoint"] = by_endpoint
+
+        return combined
+
+
 # ─── Singleton ─────────────────────────────────────────────────────────────
 
 cost_tracker = CostTracker()
