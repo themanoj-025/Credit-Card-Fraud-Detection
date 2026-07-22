@@ -7,12 +7,11 @@ charts, auto-selects the best, and saves artifacts for the API/dashboard.
 Models:
   Supervised: Logistic Regression, Random Forest, Gradient Boosting,
               XGBoost, LightGBM, CatBoost
-  Unsupervised: Isolation Forest, Autoencoder
+  Unsupervised: Isolation Forest (anomaly detection)
 
 Output:
   - models/best_fraud_model.pkl       (selected supervised best)
   - models/anomaly_detector.pkl       (Isolation Forest, always saved)
-  - models/autoencoder_detector.pkl   (Autoencoder, if TensorFlow available)
   - models/threshold.txt              (optimal decision threshold)
   - reports/model_comparison_fraud.csv
   - data/processed/comprehensive_comparison.png
@@ -41,7 +40,6 @@ matplotlib.use("Agg")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.fraudlens.config import (
-    AUTOENCODER_ENCODING_DIM,
     AVG_FRAUD_LOSS,
     HPO_ENABLED,
     HPO_MODELS,
@@ -70,7 +68,7 @@ from src.fraudlens.data.loaders import DataLoader
 from src.fraudlens.data.preprocessing import FraudPreprocessor, Resampler
 from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
 from src.fraudlens.evaluation.metrics import FraudEvaluator, print_evaluation_summary
-from src.fraudlens.models.anomaly import AutoencoderDetector, IsolationForestDetector
+from src.fraudlens.models.anomaly import IsolationForestDetector
 from src.fraudlens.models.hpo import HyperparameterOptimizer
 from src.fraudlens.models.model_selection import ModelSelector
 from src.fraudlens.models.train import FraudTrainer
@@ -84,7 +82,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 
 print("=" * 70)
 print("  FRAUDLENS — Rigorous Model Comparison Pipeline")
-print("  Stage 4: 6 Supervised + 2 Unsupervised Models")
+print("  Stage 4: 6 Supervised + 1 Unsupervised Model")
 print("=" * 70)
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -184,26 +182,14 @@ iso_detector.fit(X_train, y_train)
 iso_trained = iso_detector.model
 print(f"    Isolation Forest{'':<9}: trained on legitimate transactions only")
 
-# 4d. Autoencoder (unsupervised, optional — requires TensorFlow)
-autoencoder = None
-try:
-    autoencoder = AutoencoderDetector(encoding_dim=16, epochs=20, batch_size=32)
-    autoencoder.fit(X_train)
-    has_autoencoder = True
-    print(f"    Autoencoder{'':<14}: trained ({AUTOENCODER_ENCODING_DIM}-dim bottleneck)")
-except (ImportError, Exception) as e:
-    has_autoencoder = False
-    print(f"    Autoencoder{'':<14}: SKIPPED — {e}")
-
 t_train = time.time() - t_start
 print(f"\n  Training completed in {t_train:.1f}s")
-print(f"  Models trained: {len(models) + 1 + (1 if has_autoencoder else 0)}")
+print(f"  Models trained: {len(models) + 1}")
 
 # Save all model artifacts
 trainer.save_all_models(str(MODELS_DIR))
 joblib.dump(iso_trained, MODELS_DIR / "anomaly_detector.pkl")
-if has_autoencoder and autoencoder is not None:
-    joblib.dump(autoencoder.model, MODELS_DIR / "autoencoder_detector.pkl")
+
 
 # ══════════════════════════════════════════════════════════════════════════
 # STAGE 5: Evaluation & Comparison
@@ -240,17 +226,6 @@ result_if = evaluator.evaluate_model(y_test, iso_probas, threshold=th_if,
                                        model_name="Isolation Forest", business_cost=biz_if)
 print(print_evaluation_summary(result_if))
 
-# Evaluate Autoencoder (if available)
-if has_autoencoder and autoencoder is not None:
-    ae_probas = autoencoder.predict_proba_as_fraud(X_test)
-    predictions["Autoencoder"] = ae_probas
-    th_ae, biz_ae = cost_calc.find_optimal_threshold(y_test, ae_probas)
-    thresholds["Autoencoder"] = th_ae
-    business_costs["Autoencoder"] = biz_ae
-    result_ae = evaluator.evaluate_model(y_test, ae_probas, threshold=th_ae,
-                                           model_name="Autoencoder", business_cost=biz_ae)
-    print(print_evaluation_summary(result_ae))
-
 # Build comparison table
 comparison = evaluator.compare_models(y_test, predictions, thresholds, business_costs)
 
@@ -273,8 +248,6 @@ print("-" * 70)
 
 selector = ModelSelector(metric="PR-AUC")
 all_trained: Dict[str, Any] = {**models, "Isolation Forest": iso_trained}
-if has_autoencoder and autoencoder is not None:
-    all_trained["Autoencoder"] = autoencoder
 
 selection = selector.select(comparison, all_trained)
 selector.save_best_model(str(MODELS_DIR / "best_fraud_model.pkl"))
@@ -421,7 +394,6 @@ print(f"\n  Saved Artifacts:")
 print(f"    Best model:       models/best_fraud_model.pkl")
 print(f"    Anomaly detector: models/anomaly_detector.pkl")
 if has_autoencoder:
-    print(f"    Autoencoder:      models/autoencoder_detector.pkl")
 print(f"    Threshold:        models/threshold.txt")
 print(f"    Comparison CSV:   reports/model_comparison_fraud.csv")
 print(f"    Charts:           data/processed/*.png")

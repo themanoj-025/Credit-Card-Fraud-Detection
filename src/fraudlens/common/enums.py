@@ -72,4 +72,3 @@ class ModelName(str, Enum):
     LIGHTGBM = "lightgbm"
     CATBOOST = "catboost"
     ISOLATION_FOREST = "Isolation Forest"
-    AUTOENCODER = "Autoencoder"

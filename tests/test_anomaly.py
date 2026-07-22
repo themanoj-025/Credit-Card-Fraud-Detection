@@ -1,7 +1,8 @@
 """
 FraudLens — Anomaly Detection Tests
 
-Tests for IsolationForestDetector and AutoencoderDetector.
+Tests for IsolationForestDetector only.
+AutoencoderDetector was removed per ADR-0001.
 """
 
 from unittest.mock import MagicMock
@@ -10,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.fraudlens.models.anomaly import AutoencoderDetector, IsolationForestDetector
+from src.fraudlens.models.anomaly import IsolationForestDetector
 
 
 @pytest.fixture
@@ -126,62 +127,3 @@ class TestIsolationForestDetector:
         assert detector.model is not None
 
 
-class TestAutoencoderDetector:
-    """Tests for AutoencoderDetector."""
-
-    def test_init_defaults(self):
-        """Test default initialization."""
-        detector = AutoencoderDetector()
-        assert detector.encoding_dim == 16
-        assert detector.epochs == 20
-        assert detector.batch_size == 32
-        assert detector._fitted is False
-
-    def test_build_model_raises_without_tf(self, normal_data):
-        """Test _build_model raises ImportError when TF is not available."""
-        detector = AutoencoderDetector()
-        with pytest.raises(ImportError, match="TensorFlow is required"):
-            detector._build_model(input_dim=30)
-
-    def test_fit_raises_without_tf(self, normal_data):
-        """Test fit raises ImportError when TF is not available."""
-        detector = AutoencoderDetector()
-        with pytest.raises(ImportError, match="TensorFlow is required"):
-            detector.fit(normal_data)
-
-    def test_score_not_fitted(self, normal_data):
-        """Test score raises ValueError before fitting."""
-        detector = AutoencoderDetector()
-        with pytest.raises(ValueError, match="Model not fitted"):
-            detector.score(normal_data)
-
-    def test_predict_proba_not_fitted(self, normal_data):
-        """Test predict_proba_as_fraud raises ValueError before fitting."""
-        detector = AutoencoderDetector()
-        with pytest.raises(ValueError, match="Model not fitted"):
-            detector.predict_proba_as_fraud(normal_data)
-
-    def test_score_returns_array_when_fitted(self, normal_data):
-        """Test score returns array when model is fitted (mocked)."""
-        detector = AutoencoderDetector()
-        detector._fitted = True
-        detector.model = MagicMock()
-        detector.model.predict.return_value = np.zeros((len(normal_data), 30))
-
-        scores = detector.score(normal_data)
-
-        assert isinstance(scores, np.ndarray)
-        assert len(scores) == len(normal_data)
-
-    def test_predict_proba_range_when_fitted(self, normal_data):
-        """Test predict_proba returns values in [0, 1]."""
-        detector = AutoencoderDetector()
-        detector._fitted = True
-        detector.model = MagicMock()
-        detector.model.predict.return_value = np.zeros((len(normal_data), 30))
-
-        probas = detector.predict_proba_as_fraud(normal_data)
-
-        assert len(probas) == len(normal_data)
-        assert probas.min() >= 0.0
-        assert probas.max() <= 1.0
