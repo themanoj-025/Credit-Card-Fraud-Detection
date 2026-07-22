@@ -356,7 +356,6 @@ No module-level `_predictor = None` patterns exist.
 
 1. **Feature engineering underused** — `FeatureEngineer` exists and is wired but not critical for current accuracy; no controlled ablation in MODEL_CARD.md
 2. **Coverage gap** — 80% coverage (target 85%). Remaining gaps in EDA (~54%), HPO (~62%), LLM modules (~60-70%)
-3. **No automated retraining** — feedback loop is manual (CLI command); drift + feedback triggers not implemented; no candidate model promotion endpoints
 4. **LLM cost not persisted to DB** — cost tracked in-memory only; no database table for historical cost analysis
 5. **Dashboard LLM spend** — Streamlit dashboard does not yet surface LLM spend today
 

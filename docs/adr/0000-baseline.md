@@ -73,7 +73,7 @@ all completed phases.
 | **4. LLM Cost Tracking** | ✅ | `src/fraudlens/llm/cost_tracker.py`, Prometheus counters, `/v1/admin/llm-usage` endpoint, wired into CaseNarrator |
 | **5. Feature Engineering** | ✅ | Documented in MODEL_CARD.md — V1-V28 already PCA components, engineered features redundant |
 | **6. Autoencoder Removal** | ✅ | Removed `AutoencoderDetector`, TF/Keras deps, autoencoder config. ADR-0001 documents decision |
-| **7. Automated Retraining** | ✅ | Drift + feedback triggers documented in retraining ADR, candidate model flow planned |
+| **7. Automated Retraining** | ✅ | `src/fraudlens/retraining/` module with drift+feedback triggers, MLflow candidate registration, K8s CronJob, admin endpoints (`GET /v1/admin/models/candidates`, `POST .../promote`, `POST .../reject`, `GET .../compare`), alembic migration 002 for `model_candidates` table |
 | **8. Audit Score Verification** | ✅ | Audit scores updated below |
 
 ### Updated Audit Scores (Phase 14)
@@ -95,4 +95,5 @@ After all phases, the target is:
 - Architecture: dependency injection, no globals, clean layering
 - DevOps: multi-stage Docker under 400MB, CI/CD, K8s manifests
 - Documentation: ADRs, model card, system design doc, live demo video
+- **Retraining:** Automated drift + feedback triggers, human-gated promotion via admin API, K8s CronJob, MLflow candidate tracking
 - Overall score: target 9+/10 across all categories

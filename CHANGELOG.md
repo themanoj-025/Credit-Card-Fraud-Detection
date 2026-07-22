@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Automated Retraining Trigger (Phase 14 — Gap 7)
+- `src/fraudlens/retraining/` package — automated retraining trigger module
+- Drift trigger: checks for CRITICAL drift events since last training
+- Feedback volume trigger: checks if accumulated feedback >= configurable threshold
+- K8s CronJob (`infra/k8s/cronjob.yaml`) runs daily at 2 AM — checks conditions, triggers pipeline if met
+- MLflow candidate registration: every triggered run tagged with `trigger=drift|feedback_volume` and `is_candidate=true`
+- No auto-promotion: retraining registers candidates only; human must promote via API
+- Admin API endpoints (auth-protected):
+  - `GET /v1/admin/models/candidates` — list candidates with pagination and status filter
+  - `GET /v1/admin/models/candidates/{version}` — view candidate details
+  - `POST /v1/admin/models/candidates/{version}/promote` — human-gated promotion to production
+  - `POST /v1/admin/models/candidates/{version}/reject` — mark candidate as rejected
+  - `GET /v1/admin/models/candidates/{version}/compare` — compare candidate vs current production
+- `ModelCandidateModel` — SQLAlchemy ORM model with `model_candidates` table (`alembic/versions/002_model_candidates.py`)
+- `ModelCandidateRepository` — async repository for candidate CRUD
+- Config-driven thresholds via env vars (`RETRAINING_FEEDBACK_THRESHOLD`, `RETRAINING_DRIFT_CRITICAL_THRESHOLD`, etc.)
+- `python -m src.fraudlens.retraining.retrain_trigger` entry point for CronJob
+
+
+
+### Added
+
 #### Automated Data Download (Phase 14 — Gap 1)
 - `src/fraudlens/data/download.py` — Kaggle API download + synthetic fallback
 - Synthetic dataset: 10,000 rows matching real schema (V1-V28, Time, Amount, Class)
