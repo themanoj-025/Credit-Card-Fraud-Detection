@@ -56,6 +56,7 @@ with st.sidebar:
         "Live Monitor": "📡",
         "Case Investigator": "🔍",
         "Model Performance": "📊",
+        "Model Governance": "🏛️",
         "Analyst Copilot": "🤖",
     }
 
@@ -146,6 +147,10 @@ elif page == "Case Investigator":
     show()
 elif page == "Model Performance":
     from app.pages.model_performance import show
+
+    show()
+elif page == "Model Governance":
+    from app.pages.model_governance import show
 
     show()
 elif page == "Analyst Copilot":
