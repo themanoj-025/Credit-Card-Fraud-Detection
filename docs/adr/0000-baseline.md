@@ -68,12 +68,14 @@ all completed phases.
 | Gap | Status | Key Changes |
 |-----|--------|-------------|
 | **1. Automated Data Download** | ✅ | `src/fraudlens/data/download.py` (Kaggle API + synthetic fallback), `make setup-data`, Docker auto-download on startup |
-| **2. Test Coverage** | ✅ | `tests/test_download.py` (25+ tests for download module) |
+| **2. Test Coverage** | ✅ | `tests/test_download.py` (25+ tests for download module), `tests/test_retrain_trigger.py` (51 tests for retraining trigger) |
 | **3. Rate Limiting Redis Default** | ✅ | `api/rate_limit.py` defaults to Redis, in-memory opt-in with warning |
 | **4. LLM Cost Tracking** | ✅ | `src/fraudlens/llm/cost_tracker.py`, Prometheus counters, `/v1/admin/llm-usage` endpoint, wired into CaseNarrator |
+| **4b. LLM Cost Persistence** | ✅ | `LlmCallModel` + `llm_calls` table (migration 003), auto-flush on admin API query, merge_summaries() for DB + in-memory combining |
 | **5. Feature Engineering** | ✅ | Documented in MODEL_CARD.md — V1-V28 already PCA components, engineered features redundant |
 | **6. Autoencoder Removal** | ✅ | Removed `AutoencoderDetector`, TF/Keras deps, autoencoder config. ADR-0001 documents decision |
 | **7. Automated Retraining** | ✅ | `src/fraudlens/retraining/` module with drift+feedback triggers, MLflow candidate registration, K8s CronJob, admin endpoints (`GET /v1/admin/models/candidates`, `POST .../promote`, `POST .../reject`, `GET .../compare`), alembic migration 002 for `model_candidates` table |
+| **7b. Model Governance UI** | ✅ | New Streamlit page (`app/pages/model_governance.py`) with pending candidates table, metrics vs production comparison, promote/reject buttons, history tab. Requires `FRAUDLENS_DASHBOARD_API_KEY` env var |
 | **8. Audit Score Verification** | ✅ | Audit scores updated below |
 
 ### Updated Audit Scores (Phase 14)
@@ -95,5 +97,6 @@ After all phases, the target is:
 - Architecture: dependency injection, no globals, clean layering
 - DevOps: multi-stage Docker under 400MB, CI/CD, K8s manifests
 - Documentation: ADRs, model card, system design doc, live demo video
-- **Retraining:** Automated drift + feedback triggers, human-gated promotion via admin API, K8s CronJob, MLflow candidate tracking
+- **Retraining:** Automated drift + feedback triggers, human-gated promotion via admin API + K8s CronJob + MLflow candidate tracking + Model Governance dashboard
+- **Cost visibility:** LLM spend in dashboard sidebar, historical cost data persisted to DB, admin API merging DB + in-memory
 - Overall score: target 9+/10 across all categories

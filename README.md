@@ -67,11 +67,14 @@ docker compose up
 | **Multi-Model Training** | XGBoost, LightGBM, Random Forest, Logistic Regression, Isolation Forest |
 | **SHAP Explainability** | Every prediction comes with feature importance explanations |
 | **LLM Case Narration** | Plain-English analyst summaries via Anthropic Claude |
+| **LLM Cost Tracking** | Per-call cost logging, Prometheus counters, persisted to DB |
 | **RAG Similar Cases** | FAISS-based retrieval of historical fraud precedents |
-| **Real-time Dashboard** | Streamlit UI with live transaction monitoring |
+| **Real-time Dashboard** | Streamlit UI with 5 pages: Live Monitor, Case Investigator, Model Performance, Model Governance, Analyst Copilot |
+| **Model Governance** | Review, compare, and promote/reject retrained model candidates from the UI |
+| **Automated Retraining** | Drift + feedback volume triggers, K8s CronJob, MLflow candidate tracking, human-gated promotion |
 | **Production API** | FastAPI with auth, rate limiting, CORS, RFC 7807 errors |
-| **Observability** | Structured logging, Prometheus metrics, Jaeger tracing |
-| **Kubernetes Ready** | Docker multi-stage build (~400MB), K8s manifests, HPA |
+| **Observability** | Structured logging, Prometheus metrics, Jaeger tracing, Grafana dashboards |
+| **Kubernetes Ready** | Docker multi-stage build (~400MB), K8s manifests (deployment, HPA, CronJob, Ingress) |
 
 ---
 
@@ -141,10 +144,13 @@ Key environment variables:
 |----------|-------------|---------|
 | `ANTHROPIC_API_KEY` | Anthropic API key for LLM features | — |
 | `FRAUDLENS_API_KEYS` | API key auth (semicolon-delimited) | — |
+| `FRAUDLENS_DASHBOARD_API_KEY` | Admin API key for dashboard Model Governance page | — |
 | `DATABASE_URL` | PostgreSQL connection string | SQLite fallback |
 | `REDIS_URL` | Redis connection string | In-memory fallback |
 | `KAGGLE_USERNAME` | Kaggle username for data download | — |
 | `KAGGLE_KEY` | Kaggle API key | — |
+| `RETRAINING_FEEDBACK_THRESHOLD` | Min feedback labels to trigger retraining | `100` |
+| `RETRAINING_DRIFT_CRITICAL_THRESHOLD` | Min CRITICAL drift events to trigger | `3` |
 
 ---
 

@@ -9,12 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Model Governance Dashboard (Phase 14 — Gap 7 follow-up)
+- New **Model Governance** Streamlit page (`app/pages/model_governance.py`) with 3-tab layout:
+  - **Pending Candidates tab:** summary stats, status filter, expandable cards with PR-AUC/F1/Precision/Recall deltas (▲ green / ▼ red vs production), and Promote/Reject buttons
+  - **History tab:** lists previously promoted/rejected candidates with timestamps
+  - **About tab:** explains the governance workflow (drift trigger, feedback volume, no auto-promotion)
+- Admin API client methods: `get_candidates()`, `promote_candidate()`, `reject_candidate()`, `compare_candidate()`
+- `FRAUDLENS_DASHBOARD_API_KEY` env var for dashboard-to-API admin auth
+- Demo fallback content with realistic sample candidates when no admin API key configured
+
 #### LLM Cost Persistence to Database (Phase 14 — Gap 4 follow-up)
 - `LlmCallModel` — SQLAlchemy ORM model with `llm_calls` table (`alembic/versions/003_llm_calls.py`)
 - `LlmCallRepository` — async repository with period-based aggregation queries
 - `CostTracker.merge_summaries()` — merges in-memory (recent) + DB (historical) cost data
 - `CostTracker.get_pending_records()` / `clear_pending()` — flush management helpers
-- `GET /v1/admin/llm-usage` now queries both DB and in-memory tracker and merges results
+- `GET /v1/admin/llm-usage` now flushes pending records to DB before querying, then merges DB + in-memory results — cost data survives restarts
 - Streamlit dashboard sidebar now shows **LLM Spend Today** with cost, call count, token usage, and per-model breakdown in a styled card
 
 #### Automated Retraining Trigger (Phase 14 — Gap 7)
@@ -31,9 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `POST /v1/admin/models/candidates/{version}/reject` — mark candidate as rejected
   - `GET /v1/admin/models/candidates/{version}/compare` — compare candidate vs current production
 - `ModelCandidateModel` — SQLAlchemy ORM model with `model_candidates` table (`alembic/versions/002_model_candidates.py`)
-- `ModelCandidateRepository` — async repository for candidate CRUD
+- `ModelCandidateRepository` — async repository with candidate CRUD and promotion logic
 - Config-driven thresholds via env vars (`RETRAINING_FEEDBACK_THRESHOLD`, `RETRAINING_DRIFT_CRITICAL_THRESHOLD`, etc.)
 - `python -m src.fraudlens.retraining.retrain_trigger` entry point for CronJob
+- 51 tests in `tests/test_retrain_trigger.py` covering all trigger conditions, timestamp parsing edge cases, dry-run mode, pipeline failure paths, and integration scenarios
+
 
 
 

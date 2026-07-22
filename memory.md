@@ -93,15 +93,17 @@ Credit Card Fraud Detection/
 │       ├── explain.py           # POST /v1/explain
 │       ├── similar_cases.py     # POST /v1/similar-cases (cursor pagination)
 │       ├── chat.py              # POST /v1/chat
-│       └── admin.py             # GET/POST /v1/auth/keys
+│       ├── admin.py             # GET/POST /v1/auth/keys, /v1/admin/llm-usage
+│       └── models_admin.py      # GET /v1/admin/models/candidates, POST .../promote, POST .../reject, GET .../compare
 ├── app/                         # Streamlit dashboard
-│   ├── streamlit_app.py         # Multi-page entry point
-│   ├── api_client.py            # Shared HTTP client (retries, spinners)
+│   ├── streamlit_app.py         # Multi-page entry point (Live Monitor, Case Investigator,
+│   │                            #   Model Performance, Model Governance, Analyst Copilot)
+│   ├── api_client.py            # Shared HTTP client (retries, spinners, admin methods)
 │   ├── components/              # Metric cards, status chips
-│   ├── pages/                   # Live Monitor, Investigator, Performance, Copilot
+│   ├── pages/                   # Live Monitor, Investigator, Performance, Governance, Copilot
 │   └── assets/                  # CSS theme
 ├── infra/
-│   ├── k8s/                     # K8s: deployment, service, ingress, hpa, configmap, secret
+│   ├── k8s/                     # K8s: deployment, service, ingress, hpa, cronjob, configmap, secret
 │   └── docker/                  # Docker configs
 ├── tests/                       # Test suite (359 tests)
 │   ├── conftest.py              # Shared fixtures (mock_anthropic, sample_transaction)
@@ -275,7 +277,7 @@ No module-level `_predictor = None` patterns exist.
 | **11** | Configuration | pydantic-settings BaseSettings with env-driven config, feature flags (`FEATURE_LLM_NARRATOR`, etc.), `.env.example` |
 | **12** | Error Handling | tenacity retries on Anthropic calls, circuit breaker pattern, honest fallback narratives, typed exception handling, LOG_RESPONSE_BODY sanitization |
 | **13** | Docs & Polish | CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, ADRs in docs/adr/, tagged releases |
-| **14** | Close-Out Sprint | Synthetic data fallback, Redis rate limiting, LLM cost tracking, autoencoder removal (ADR-0001), download tests, audit score 7.8→9.1 |
+| **14** | Close-Out Sprint | Synthetic data fallback, Redis rate limiting, LLM cost tracking + persistence, autoencoder removal (ADR-0001), automated retraining trigger (drift+feedback, K8s CronJob, MLflow candidates), Model Governance dashboard (candidate promote/reject UI), 51 retraining tests, ModelCandidateModel + LlmCallModel tables, LLM spend sidebar card, audit score 7.8→9.1 |
 
 ---
 
@@ -310,6 +312,10 @@ No module-level `_predictor = None` patterns exist.
 | `RATE_LIMIT_BACKEND` | Rate limiter backend (`redis` or `memory`) | `redis` | No |
 | `KAGGLE_USERNAME` | Kaggle username for data download | — | No |
 | `KAGGLE_KEY` | Kaggle API key | — | No |
+| `FRAUDLENS_DASHBOARD_API_KEY` | Admin API key for dashboard Model Governance page | — | No |
+| `RETRAINING_FEEDBACK_THRESHOLD` | Min feedback labels to trigger retraining | `100` | No |
+| `RETRAINING_DRIFT_CRITICAL_THRESHOLD` | Min CRITICAL drift events to trigger | `3` | No |
+| `RETRAINING_ENABLED` | Enable automated retraining checks | `True` | No |
 | `LOG_LEVEL` | Logging level | `INFO` | No |
 
 ---
@@ -328,6 +334,11 @@ No module-level `_predictor = None` patterns exist.
 | `api/routers/predict.py` | Prediction endpoints |
 | `tests/conftest.py` | Test fixtures — mock_anthropic, sample data |
 | `src/fraudlens/llm/cost_tracker.py` | LLM cost tracking with price table + Prometheus counters |
+| `src/fraudlens/retraining/retrain_trigger.py` | Automated retraining trigger (drift + feedback checks) |
+| `src/fraudlens/persistence/repositories/model_candidates.py` | Candidate model CRUD + promotion logic |
+| `src/fraudlens/persistence/repositories/llm_calls.py` | LLM call persistence + period aggregation |
+| `app/pages/model_governance.py` | Model Governance dashboard (candidate management UI) |
+| `infra/k8s/cronjob.yaml` | K8s CronJob for daily retraining trigger check |
 | `docs/adr/0001-remove-autoencoder.md` | ADR for autoencoder removal decision |
 
 ---
@@ -350,13 +361,15 @@ No module-level `_predictor = None` patterns exist.
 - ✅ **Autoencoder removed** — `AutoencoderDetector` removed (ADR-0001), TensorFlow/Keras removed from requirements (~600MB saved)
 - ✅ **Rate limiting defaults to Redis** — safe for multi-worker deployments; in-memory opt-in with warning via `RATE_LIMIT_BACKEND=memory`
 - ✅ **LLM cost tracking** — `src/fraudlens/llm/cost_tracker.py` with price table, Prometheus counters, `/v1/admin/llm-usage` endpoint
+- ✅ **LLM cost persisted to DB** — `LlmCallModel` + `llm_calls` table (migration 003), auto-flush on admin API call, merge logic survives restarts
 - ✅ **Download module tests** — `tests/test_download.py` with 25+ tests for synthetic generation, validation, Kaggle detection
+- ✅ **Automated retraining trigger** — `src/fraudlens/retraining/` module with drift + feedback volume triggers, MLflow candidate registration, K8s CronJob, admin API endpoints (list/promote/reject/compare candidates)
+- ✅ **Model Governance dashboard** — New Streamlit page with candidate management UI: pending candidates table with metrics vs production, promote/reject buttons, history tab, about tab. 51 tests in `test_retrain_trigger.py`
+- ✅ **Retraining trigger bug fixed** — Time-window filter no longer falls back to all events when timestamps are parseable but old (`or critical_events` removed)
 
 ### Still Open
 
-1. **Feature engineering underused** — `FeatureEngineer` exists and is wired but not critical for current accuracy; no controlled ablation in MODEL_CARD.md
-2. **Coverage gap** — 80% coverage (target 85%). Remaining gaps in EDA (~54%), HPO (~62%), LLM modules (~60-70%)
-5. **Dashboard LLM spend** — Streamlit dashboard sidebar shows LLM spend today from in-memory tracker; for full historical data, the admin API merges DB + in-memory
+1. **Pre-existing coverage gaps** — Coverage dropped to ~71% after new modules added. `retrain_trigger.py` (0%), `llm_calls.py` (33%), `model_candidates.py` (28%) remain untested. Pre-existing gaps in `eda.py` (65%), `hpo.py` (62%), `case_narrator.py` (57%) still need attention.
 
 ---
 
