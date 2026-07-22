@@ -58,9 +58,9 @@ def _load_data() -> pd.DataFrame:
     return df
 
 
-def _save_fig(fig: plt.Figure, name: str) -> None:
+def _save_fig(fig: plt.Figure, name: str, output_dir: Path = FIGURES_DIR) -> None:
     """Save a figure to reports/figures/."""
-    path = FIGURES_DIR / name
+    path = output_dir / name
     fig.savefig(path, dpi=DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [OK] Saved: {path}")
@@ -466,7 +466,7 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
     df_plot["Class"] = df_plot["Class"].map(LABELS)
 
     # Derive pairplot palette from existing COLORS/LABELS (avoid duplicating hex values)
-    pairplot_colors = {v: COLORS[k] for k, v in LABELS.items()}
+    pairplot_colors = {v: COLORS[v.lower()] for v in LABELS.values()}
     _g = sns.pairplot(
         df_plot,
         hue="Class",
@@ -533,7 +533,7 @@ def run_eda(output_dir: Path = FIGURES_DIR) -> None:
     ]
 
     for name, fig in charts:
-        _save_fig(fig, name)
+        _save_fig(fig, name, output_dir)
 
     # ─── Summary ─────────────────────────────────────────────────────
     print(f"\n{'=' * 70}")

@@ -393,7 +393,6 @@ if biz:
 print(f"\n  Saved Artifacts:")
 print(f"    Best model:       models/best_fraud_model.pkl")
 print(f"    Anomaly detector: models/anomaly_detector.pkl")
-if has_autoencoder:
 print(f"    Threshold:        models/threshold.txt")
 print(f"    Comparison CSV:   reports/model_comparison_fraud.csv")
 print(f"    Charts:           data/processed/*.png")
