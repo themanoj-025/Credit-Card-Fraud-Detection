@@ -5,6 +5,46 @@ All notable changes to FraudLens will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] — 2026-07-22
+### Fixed
+
+#### Pipeline Crash: `has_autoencoder` NameError (Phase 14b)
+- Removed dangling `has_autoencoder` reference in `run_pipeline.py:396` that caused a `NameError` during the summary print step — the pipeline could not complete end-to-end
+- Added `tests/test_pipeline_smoke.py` — regression smoke test that directly exercises the summary code path with synthetic data, including a test that proves `exec("has_autoencoder")` raises `NameError`
+
+#### EDA Bugs Discovered During Test Fixing
+- `_save_fig()` ignored the `output_dir` parameter passed to `run_eda()` — always saved to the global `FIGURES_DIR` instead (real assertion test now catches this)
+- `plot_pairplot_top_features()` used integer keys (`COLORS[0]`) for a string-keyed `COLORS` dict, causing `KeyError: 0` — fixed to `COLORS[v.lower()]`
+
+### Added
+
+#### EDA Feature Importance Cache Tests (Phase 14b)
+- `TestFeatureImportanceCache` (3 tests):
+  - Cache miss → populates and returns computed value
+  - Cache hit → returns cached value without calling `RandomForestClassifier.fit()` again (spy verification)
+  - Cache invalidation → `run_eda()` recomputes fresh data (not stale from prior call)
+
+#### HPO Failure Path & Best-Params Tests (Phase 14b)
+- `TestHPOFailurePath` (2 tests):
+  - Trial failure → error caught gracefully at caller level, study continues
+  - Import-error fallback → returns sensible default parameters
+- `TestHPOBestParamsPassThrough` (1 test):
+  - Mock constructor spy verifies `best_params` from Optuna study reach model kwargs
+
+#### LLM Mocked-Client Tests (Phase 14b)
+- `TestMockedAnthropicPath` (3 tests): exercises the actual API-call code path via conftest's auto-used `mock_anthropic` fixture
+- `TestMockedAnthropicEdgeCases` (4 tests): timeout, empty response, malformed response, circuit breaker — all fail closed to fallback narrative
+- `TestFactualityChecker` (5 tests): golden-set factuality checks using minimal checker logic
+
+#### Redis Shared-Counter Integration Test (Phase 14b)
+- `tests/test_rate_limit_shared.py` — two `Limiter` instances sharing Redis verify multi-worker safety
+- Negative test: separate in-memory limiters show different state (proves positive test is not a false positive)
+- Referenced from `SECURITY.md` rate-limiting section as evidence for the multi-worker-safety claim
+
+### Changed
+- `SECURITY.md`: Added shared-counter test reference to rate-limiting section with run command
+- `docs/adr/0000-baseline.md`: Updated with Phase 14b results (coverage, test additions, EDA bug fixes, pipeline fix)
+
 ## [2.1.0] — 2026-07-22
 ### Added
 

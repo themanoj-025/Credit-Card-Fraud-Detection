@@ -6,7 +6,7 @@ Uses mocked optuna (via sys.modules) to avoid expensive real optimization
 runs and to prevent Windows urllib3 threading issues from real optuna import.
 """
 
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -323,7 +323,6 @@ class TestHPOBestParamsPassThrough:
 
         # Track the kwargs passed to XGBClassifier constructor
         constructor_kwargs = []
-        original_xgb = None
 
         def _capture_constructor(**kwargs):
             constructor_kwargs.append(kwargs)

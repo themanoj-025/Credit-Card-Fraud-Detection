@@ -5,8 +5,8 @@ Handles database operations for LLM API call records.
 Used for historical cost analysis and dashboard queries.
 """
 
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -12,9 +12,7 @@ pipeline outputs and running the code block that was broken.
 """
 
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -52,7 +50,7 @@ class TestPipelineSummarySmoke:
                 "net_benefit_usd": 7500.0,
             },
         }
-        comparison = pd.DataFrame({
+        pd.DataFrame({
             "Model": ["xgboost", "random_forest"],
             "PR-AUC": [0.85, 0.80],
             "F1": [0.80, 0.75],
@@ -81,19 +79,19 @@ class TestPipelineSummarySmoke:
 
             biz = business_costs.get(selection["best_model_name"], {})
             if biz:
-                print(f"\n  Business Impact (Best Model):")
+                print("\n  Business Impact (Best Model):")
                 print(f"    Fraud Caught:    ${biz.get('fraud_caught_usd', 0):,.2f}")
                 print(f"    Fraud Missed:    ${biz.get('fraud_missed_usd', 0):,.2f}")
                 print(f"    Review Costs:    ${biz.get('review_costs_usd', 0):,.2f}")
                 print(f"    Net Benefit:     ${biz.get('net_benefit_usd', 0):,.2f}")
 
-            print(f"\n  Saved Artifacts:")
-            print(f"    Best model:       models/best_fraud_model.pkl")
-            print(f"    Anomaly detector: models/anomaly_detector.pkl")
+            print("\n  Saved Artifacts:")
+            print("    Best model:       models/best_fraud_model.pkl")
+            print("    Anomaly detector: models/anomaly_detector.pkl")
             # This `if has_autoencoder:` was the bug — removed in the fix
-            print(f"    Threshold:        models/threshold.txt")
-            print(f"    Comparison CSV:   reports/model_comparison_fraud.csv")
-            print(f"    Charts:           data/processed/*.png")
+            print("    Threshold:        models/threshold.txt")
+            print("    Comparison CSV:   reports/model_comparison_fraud.csv")
+            print("    Charts:           data/processed/*.png")
             print("=" * 70)
         finally:
             sys.stdout = old_stdout
@@ -113,7 +111,6 @@ class TestPipelineSummarySmoke:
             "metric_value": 0.85,
             "reasoning": "Highest PR-AUC",
         }
-        best_threshold = 0.45
         cv_results = {}
         business_costs = {}
 
@@ -132,7 +129,7 @@ class TestPipelineSummarySmoke:
 
             biz = business_costs.get(selection["best_model_name"], {})
             if biz:
-                print(f"\n  Business Impact (Best Model):")
+                print("\n  Business Impact (Best Model):")
                 print(f"    Net Benefit:     ${biz.get('net_benefit_usd', 0):,.2f}")
         finally:
             sys.stdout = old_stdout
@@ -161,10 +158,10 @@ class TestPipelineSummarySmoke:
         This is the closest we can get to a full pipeline run without
         requiring the real 284k-row dataset.
         """
-        from src.fraudlens.models.train import FraudTrainer
         from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
         from src.fraudlens.evaluation.metrics import FraudEvaluator
         from src.fraudlens.models.model_selection import ModelSelector
+        from src.fraudlens.models.train import FraudTrainer
 
         df = tiny_synthetic_data
         feature_cols = [f"V{i}" for i in range(1, 29)] + ["Time", "Amount"]
@@ -177,7 +174,6 @@ class TestPipelineSummarySmoke:
         cv_results = trainer.cross_validate(X, y)
 
         # Compute predictions
-        from sklearn.metrics import average_precision_score
         model = models["logistic_regression"]
         y_proba = model.predict_proba(X)[:, 1]
 
@@ -218,12 +214,12 @@ class TestPipelineSummarySmoke:
             if biz:
                 print(f"    Net Benefit:     ${biz.get('net_benefit_usd', 0):,.2f}")
 
-            print(f"  Saved Artifacts:")
-            print(f"    Best model:       models/best_fraud_model.pkl")
-            print(f"    Anomaly detector: models/anomaly_detector.pkl")
-            print(f"    Threshold:        models/threshold.txt")
-            print(f"    Comparison CSV:   reports/model_comparison_fraud.csv")
-            print(f"    Charts:           data/processed/*.png")
+            print("  Saved Artifacts:")
+            print("    Best model:       models/best_fraud_model.pkl")
+            print("    Anomaly detector: models/anomaly_detector.pkl")
+            print("    Threshold:        models/threshold.txt")
+            print("    Comparison CSV:   reports/model_comparison_fraud.csv")
+            print("    Charts:           data/processed/*.png")
             print("=" * 70)
         finally:
             sys.stdout = old_stdout

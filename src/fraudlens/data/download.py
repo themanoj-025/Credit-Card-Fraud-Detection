@@ -121,7 +121,7 @@ def _generate_synthetic_dataset(target_path: Path) -> pd.DataFrame:
 
     n_total = _SYNTHETIC_N_ROWS
     n_fraud = int(n_total * _SYNTHETIC_FRAUD_RATE)
-    n_legit = n_total - n_fraud
+    n_total - n_fraud
 
     # Generate legitimate transactions
     features = {}

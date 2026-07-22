@@ -10,7 +10,7 @@ Tests for src/fraudlens/data/download.py covering:
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,6 @@ from src.fraudlens.data.download import (
     ensure_data_ready,
     get_or_create_data,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 

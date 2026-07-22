@@ -105,7 +105,7 @@ Credit Card Fraud Detection/
 ├── infra/
 │   ├── k8s/                     # K8s: deployment, service, ingress, hpa, cronjob, configmap, secret
 │   └── docker/                  # Docker configs
-├── tests/                       # Test suite (359 tests)
+├── tests/                       # Test suite (450+ tests)
 │   ├── conftest.py              # Shared fixtures (mock_anthropic, sample_transaction)
 │   ├── test_api.py              # API endpoint tests
 │   ├── test_integration.py      # End-to-end training→prediction
@@ -149,7 +149,7 @@ Credit Card Fraud Detection/
 ├── infra/
 │   ├── k8s/                     # K8s: deployment, service, ingress, hpa, configmap, secret
 │   └── docker/                  # Docker configs
-├── tests/                       # 🧪 Test suite (359 tests)
+├── tests/                       # 🧪 Test suite (450+ tests)
 │   ├── conftest.py              # Shared fixtures (mock_anthropic, sample_transaction)
 │   ├── test_api.py              # API endpoint tests
 │   ├── test_integration.py      # End-to-end training→prediction
@@ -278,6 +278,7 @@ No module-level `_predictor = None` patterns exist.
 | **12** | Error Handling | tenacity retries on Anthropic calls, circuit breaker pattern, honest fallback narratives, typed exception handling, LOG_RESPONSE_BODY sanitization |
 | **13** | Docs & Polish | CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, ADRs in docs/adr/, tagged releases |
 | **14** | Close-Out Sprint | Synthetic data fallback, Redis rate limiting, LLM cost tracking + persistence, autoencoder removal (ADR-0001), automated retraining trigger (drift+feedback, K8s CronJob, MLflow candidates), Model Governance dashboard (candidate promote/reject UI), 51 retraining tests, ModelCandidateModel + LlmCallModel tables, LLM spend sidebar card, audit score 7.8→9.1 |
+| **14b** | **Final Closeout** | Fixed has_autoencoder pipeline crash, EDA bug fixes (_save_fig output_dir, pairplot_colors), pipeline smoke test, EDA cache tests, HPO failure path tests, LLM mocked-client tests, Redis shared-counter test, SECURITY.md evidence, ADR update, coverage 78% |
 
 ---
 
@@ -367,9 +368,18 @@ No module-level `_predictor = None` patterns exist.
 - ✅ **Model Governance dashboard** — New Streamlit page with candidate management UI: pending candidates table with metrics vs production, promote/reject buttons, history tab, about tab. 51 tests in `test_retrain_trigger.py`
 - ✅ **Retraining trigger bug fixed** — Time-window filter no longer falls back to all events when timestamps are parseable but old (`or critical_events` removed)
 
+### Addressed (done during Phase 14b)
+
+- ✅ **Pipeline crash fixed** — Dangling has_autoencoder reference removed from run_pipeline.py, pipeline smoke test added
+- ✅ **EDA bugs fixed** — _save_fig output_dir bug and pairplot_colors KeyError:0 fixed, EDA cache tests added
+- ✅ **HPO tests added** — Failure path and best_params pass-through
+- ✅ **LLM mocked-client tests added** — Actual API code path exercised via conftest mock, edge cases (timeout/empty/malformed), circuit breaker, factuality golden-set
+- ✅ **Redis shared-counter test** — Multi-worker safety proven, referenced from SECURITY.md
+- ✅ **Coverage up to 78%** — EDA (65%→77%), HPO (62%→70%), case_narrator (57%→75%), new pipeline smoke and Redis tests
+
 ### Still Open
 
-1. **Pre-existing coverage gaps** — Coverage dropped to ~71% after new modules added. `retrain_trigger.py` (0%), `llm_calls.py` (33%), `model_candidates.py` (28%) remain untested. Pre-existing gaps in `eda.py` (65%), `hpo.py` (62%), `case_narrator.py` (57%) still need attention.
+1. **Persistence repository coverage** — `llm_calls.py` (33%), `model_candidates.py` (28%) remain the largest gaps. `retrain_trigger.py` (53%), `download.py` (63%), `cost_tracker.py` (38%), `rag_similar_cases.py` (69%) also below 75% target.
 
 ---
 

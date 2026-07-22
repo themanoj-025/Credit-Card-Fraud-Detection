@@ -12,7 +12,6 @@ All endpoints require admin-level API keys.
 """
 
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -221,11 +220,11 @@ async def promote_candidate(
     Requires an admin-level API key.
     """
     try:
+        from src.fraudlens.config import MODELS_DIR
         from src.fraudlens.persistence import get_session
         from src.fraudlens.persistence.repositories import (
             ModelCandidateRepository,
         )
-        from src.fraudlens.config import MODELS_DIR
 
         promoted = None
         candidate = None
@@ -255,7 +254,6 @@ async def promote_candidate(
 
         # Copy the model artifact to the production path
         try:
-            import joblib
             import shutil
 
             # Find the model artifact

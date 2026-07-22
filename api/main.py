@@ -47,7 +47,14 @@ from api.providers import (  # noqa: E402
     get_predictor,
 )
 from api.rate_limit import limiter  # noqa: E402
-from api.routers import admin, chat, explain, models_admin, predict, similar_cases  # noqa: E402
+from api.routers import (  # noqa: E402
+    admin,
+    chat,
+    explain,
+    models_admin,
+    predict,
+    similar_cases,
+)
 from src.fraudlens.config import AVG_FRAUD_LOSS, MODELS_DIR, REVIEW_COST  # noqa: E402
 from src.fraudlens.explainability.shap_explainer import ShapExplainer  # noqa: E402
 from src.fraudlens.llm.case_narrator import CaseNarrator  # noqa: E402

@@ -55,7 +55,6 @@ class TestSharedRedisCounter:
 
         test_key = "test:shared:worker"
         # Use a single IP for both limiters
-        fake_ip = "192.168.1.100"
 
         try:
             # ─── Fire requests through limiter A ────────────────────────
@@ -106,7 +105,6 @@ class TestSharedRedisCounter:
         limiter_b = Limiter(key_func=get_remote_address)  # Also in-memory (different instance)
 
         test_key = "test:separate:worker"
-        fake_ip = "192.168.1.200"
 
         # Fire through limiter A
         with limiter_a.rate_limit(key=test_key):

@@ -1,7 +1,7 @@
 # FraudLens — Credit Card Fraud Detection
 
 [![CI](https://github.com/your-org/fraudlens/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/fraudlens/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-green)](https://github.com/your-org/fraudlens)
+[![Coverage](https://img.shields.io/badge/coverage-78%25-yellowgreen)](https://github.com/your-org/fraudlens)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Production-grade credit card fraud detection** with SHAP explainability, LLM-powered case narratives, and RAG-based similar case retrieval.

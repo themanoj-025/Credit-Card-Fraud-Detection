@@ -8,9 +8,8 @@ the automated retraining trigger.
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from uuid import UUID
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import ModelCandidateModel

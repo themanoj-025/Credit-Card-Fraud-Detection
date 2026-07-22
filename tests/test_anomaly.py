@@ -5,7 +5,6 @@ Tests for IsolationForestDetector only.
 AutoencoderDetector was removed per ADR-0001.
 """
 
-from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd

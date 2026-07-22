@@ -107,10 +107,10 @@ class TestEDARun:
         from this test because they require larger sample sizes and may fail
         on the small synthetic fixture.
         """
-        from src.fraudlens.analysis.eda import run_eda
-
         # Patch out the problematic charts for the small synthetic dataset
         import matplotlib.pyplot as plt
+
+        from src.fraudlens.analysis.eda import run_eda
 
         def _dummy_fig():
             fig, ax = plt.subplots(figsize=(4, 4))
@@ -193,8 +193,9 @@ class TestFeatureImportanceCache:
         We mock the underlying RandomForestClassifier to prove that
         a second call to _get_feature_importances does NOT call fit().
         """
-        from src.fraudlens.analysis import eda
         from sklearn.ensemble import RandomForestClassifier
+
+        from src.fraudlens.analysis import eda
 
         # Populate cache
         eda._FEATURE_IMPORTANCE_CACHE = None
@@ -224,8 +225,9 @@ class TestFeatureImportanceCache:
         repopulated during chart generation. This test verifies the cache
         is not stale from a previous call.
         """
-        from src.fraudlens.analysis import eda
         import pandas as pd
+
+        from src.fraudlens.analysis import eda
 
         # Populate cache with a marker value
         eda._FEATURE_IMPORTANCE_CACHE = "STALE_CACHE_MARKER"

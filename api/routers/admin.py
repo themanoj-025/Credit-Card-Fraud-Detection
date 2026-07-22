@@ -158,7 +158,8 @@ async def get_llm_usage(
     # Step 2: Persist pending records to DB so they survive restarts
     db_summary = None
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime
+
         from src.fraudlens.persistence import get_session
         from src.fraudlens.persistence.repositories import LlmCallRepository
 
