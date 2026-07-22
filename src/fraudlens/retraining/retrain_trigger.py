@@ -168,7 +168,7 @@ class RetrainingTrigger:
         critical_in_window = [
             e
             for e in critical_events
-            if self._parse_timestamp(e) >= cutoff if self._parse_timestamp(e)
+            if (ts := self._parse_timestamp(e)) is not None and ts >= cutoff
         ] or critical_events  # fallback: use all if can't parse timestamps
 
         count = len(critical_in_window)

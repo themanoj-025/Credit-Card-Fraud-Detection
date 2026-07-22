@@ -132,12 +132,13 @@ async def list_candidates(
             ModelCandidateRepository,
         )
 
-        async with get_session() as session:
+        async for session in get_session():
             repo = ModelCandidateRepository(session)
             candidates = await repo.get_candidates(
                 status=status_filter, limit=limit, offset=offset
             )
             stats = await repo.get_statistics()
+            break
 
         return ModelCandidateListResponse(
             candidates=[_candidate_to_out(c) for c in candidates],
@@ -176,9 +177,11 @@ async def get_candidate(
             ModelCandidateRepository,
         )
 
-        async with get_session() as session:
+        candidate = None
+        async for session in get_session():
             repo = ModelCandidateRepository(session)
             candidate = await repo.get_by_version(model_version)
+            break
 
         if candidate is None:
             raise HTTPException(
@@ -224,7 +227,9 @@ async def promote_candidate(
         )
         from src.fraudlens.config import MODELS_DIR
 
-        async with get_session() as session:
+        promoted = None
+        candidate = None
+        async for session in get_session():
             repo = ModelCandidateRepository(session)
             candidate = await repo.get_by_version(model_version)
 
@@ -246,12 +251,7 @@ async def promote_candidate(
 
             # Promote in database
             promoted = await repo.promote(model_version)
-
-            if promoted is None:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Failed to promote '{model_version}'",
-                )
+            break
 
         # Copy the model artifact to the production path
         try:
@@ -315,7 +315,7 @@ async def reject_candidate(
             ModelCandidateRepository,
         )
 
-        async with get_session() as session:
+        async for session in get_session():
             repo = ModelCandidateRepository(session)
             rejected = await repo.reject(model_version)
 
@@ -334,6 +334,7 @@ async def reject_candidate(
                         f"status can be rejected"
                     ),
                 )
+            break
 
         logger.info("Model %s rejected by admin", model_version)
 
@@ -374,10 +375,13 @@ async def compare_candidate(
             ModelCandidateRepository,
         )
 
-        async with get_session() as session:
+        candidate = None
+        production = None
+        async for session in get_session():
             repo = ModelCandidateRepository(session)
             candidate = await repo.get_by_version(model_version)
             production = await repo.get_latest_promoted()
+            break
 
         if candidate is None:
             raise HTTPException(
