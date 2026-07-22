@@ -227,6 +227,30 @@ class Settings(BaseSettings):
     HPO_MODELS: List[str] = Field(["xgboost", "lightgbm"], env="HPO_MODELS")
 
     # ════════════════════════════════════════════════════════════════
+    # Automated Retraining
+    # ════════════════════════════════════════════════════════════════
+    RETRAINING_ENABLED: bool = Field(
+        True,
+        env="RETRAINING_ENABLED",
+        description="Enable automated retraining trigger checks",
+    )
+    RETRAINING_FEEDBACK_THRESHOLD: int = Field(
+        100,
+        env="RETRAINING_FEEDBACK_THRESHOLD",
+        description="Min new confirmed feedback labels to trigger retraining",
+    )
+    RETRAINING_DRIFT_CRITICAL_THRESHOLD: int = Field(
+        3,
+        env="RETRAINING_DRIFT_CRITICAL_THRESHOLD",
+        description="Min CRITICAL drift events to trigger retraining",
+    )
+    RETRAINING_DRIFT_WINDOW_DAYS: int = Field(
+        7,
+        env="RETRAINING_DRIFT_WINDOW_DAYS",
+        description="Lookback window for drift events (days)",
+    )
+
+    # ════════════════════════════════════════════════════════════════
     # Feature Flags
     # ════════════════════════════════════════════════════════════════
     FEATURE_LLM_NARRATOR: bool = Field(
