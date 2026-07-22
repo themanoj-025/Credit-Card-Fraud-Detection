@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from api.auth import require_admin_key
 from api.rate_limit import limiter
-from src.fraudlens.llm.cost_tracker import cost_tracker
+from src.fraudlens.llm.cost_tracker import CostTracker, cost_tracker
 
 logger = logging.getLogger(__name__)
 
