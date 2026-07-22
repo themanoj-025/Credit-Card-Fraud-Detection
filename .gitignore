@@ -80,6 +80,8 @@ htmlcov/
 .hypothesis/
 .tox/
 .benchmarks/
+.baseline_test_output.txt
+test_*.db
 
 # ─── Jupyter ─────────────────────────────────────────────────
 .ipynb_checkpoints/
