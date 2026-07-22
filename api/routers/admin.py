@@ -151,10 +151,11 @@ async def get_llm_usage(
     Query param `period`: today | month | total
     Requires an admin-level API key.
     """
-    # Get in-memory summary (recent, not yet persisted)
+    # Step 1: Get in-memory summary (recent, not yet persisted)
     memory_summary = cost_tracker.get_period_summary_dict(period)
+    pending_records = cost_tracker.get_pending_records()
 
-    # Try to get DB summary (historical, persisted)
+    # Step 2: Persist pending records to DB so they survive restarts
     db_summary = None
     try:
         from datetime import datetime, timedelta
@@ -171,19 +172,42 @@ async def get_llm_usage(
 
         async for session in get_session():
             repo = LlmCallRepository(session)
+
+            # Flush pending in-memory records to DB
+            for record in pending_records:
+                try:
+                    await repo.create_call(
+                        model=record.model,
+                        endpoint=record.endpoint,
+                        input_tokens=record.input_tokens,
+                        output_tokens=record.output_tokens,
+                        cost_usd=record.cost_usd,
+                        status=record.status,
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "Failed to persist LLM call record: %s", e
+                    )
+
+            await session.commit()
+
+            # Now query DB for the requested period
             db_summary = await repo.get_period_summary(since)
             break
+
+        # Clear in-memory records that were just persisted
+        cost_tracker.clear_pending()
     except Exception as e:
         logger.warning("DB cost query failed, using in-memory only: %s", e)
 
-    # Merge: DB for historical, in-memory for recent
+    # Step 3: Merge DB (historical) + in-memory (since flush, should be empty)
     if db_summary:
         merged = CostTracker.merge_summaries(memory_summary, db_summary)
     else:
         merged = memory_summary
 
     return LLMUsageResponse(
-        date=merged.get("date", datetime.utcnow().strftime("%Y-%m-%d")),
+        date=merged["date"],
         total_cost_usd=merged["total_cost_usd"],
         total_calls=merged["total_calls"],
         total_input_tokens=merged["total_input_tokens"],
