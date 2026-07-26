@@ -23,7 +23,7 @@ from fastapi.security import APIKeyHeader
 
 logger = logging.getLogger(__name__)
 
-# ─── Configuration ────────────────────────────────────────────────────────
+# Configuration
 
 # Load API keys from environment (semicolon-separated for multiple keys)
 # Format: FRAUDLENS_API_KEYS="key1_hash=admin;key2_hash=readonly"
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 _API_KEY_CONFIG = os.environ.get("FRAUDLENS_API_KEYS", "")
 _ADMIN_SECRET = os.environ.get("FRAUDLENS_ADMIN_SECRET", "")
 
-# ─── Security scheme ──────────────────────────────────────────────────────
+# Security scheme
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 

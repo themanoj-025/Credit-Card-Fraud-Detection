@@ -31,7 +31,7 @@ from src.fraudlens.retraining.retrain_trigger import (
     check_and_trigger,
 )
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -156,7 +156,7 @@ def drift_events_with_datetime_objects() -> list:
     ]
 
 
-# ─── Tests: Initialization ────────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestRetrainingTriggerInit:
@@ -188,7 +188,7 @@ class TestRetrainingTriggerInit:
         assert "models" in str(t.models_dir)
 
 
-# ─── Tests: generate_candidate_version ────────────────────────────────────
+# Tests: generate_candidate_version
 
 
 class TestGenerateCandidateVersion:
@@ -210,7 +210,7 @@ class TestGenerateCandidateVersion:
         assert isinstance(v2, str)
 
 
-# ─── Tests: check_drift_condition ─────────────────────────────────────────
+# Tests: check_drift_condition
 
 
 class TestCheckDriftCondition:
@@ -282,7 +282,7 @@ class TestCheckDriftCondition:
         assert result["count"] == 2
 
 
-# ─── Tests: check_feedback_condition ──────────────────────────────────────
+# Tests: check_feedback_condition
 
 
 class TestCheckFeedbackCondition:
@@ -329,7 +329,7 @@ class TestCheckFeedbackCondition:
             assert result["met"] is False  # Default 0 feedback
 
 
-# ─── Tests: check_conditions (combined) ───────────────────────────────────
+# Tests: check_conditions (combined)
 
 
 class TestCheckConditions:
@@ -380,7 +380,7 @@ class TestCheckConditions:
         assert "AND" in result["primary_reason"]
 
 
-# ─── Tests: trigger (dry-run mode) ────────────────────────────────────────
+# Tests: trigger (dry-run mode)
 
 
 class TestTriggerDryRun:
@@ -468,7 +468,7 @@ class TestTriggerDryRun:
         assert result.triggered is True
 
 
-# ─── Tests: trigger (non-dry-run, pipeline failure path) ──────────────────
+# Tests: trigger (non-dry-run, pipeline failure path)
 
 
 class TestTriggerPipelineFailure:
@@ -489,7 +489,7 @@ class TestTriggerPipelineFailure:
         assert "failed" in result.error or "Pipeline" in (result.error or "")
 
 
-# ─── Tests: check_and_trigger convenience function ────────────────────────
+# Tests: check_and_trigger convenience function
 
 
 class TestCheckAndTrigger:
@@ -524,7 +524,7 @@ class TestCheckAndTrigger:
         assert hasattr(result, "trigger_metrics")
 
 
-# ─── Tests: TriggerResult dataclass ───────────────────────────────────────
+# Tests: TriggerResult dataclass
 
 
 class TestTriggerResult:
@@ -554,7 +554,7 @@ class TestTriggerResult:
         assert result.candidate_metrics["pr_auc"] == 0.88
 
 
-# ─── Tests: CandidateInfo dataclass ───────────────────────────────────────
+# Tests: CandidateInfo dataclass
 
 
 class TestCandidateInfo:
@@ -612,7 +612,7 @@ class TestCandidateInfo:
         assert info.version == "v1"
 
 
-# ─── Tests: Integration scenarios (simulated full flow) ───────────────────
+# Tests: Integration scenarios (simulated full flow)
 
 
 class TestIntegrationScenarios:
@@ -713,7 +713,7 @@ class TestIntegrationScenarios:
         assert result.triggered is True
 
 
-# ─── Tests: Timestamp parsing edge cases ──────────────────────────────────
+# Tests: Timestamp parsing edge cases
 
 
 class TestTimestampParsing:

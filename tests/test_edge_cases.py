@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from api.schemas import TransactionInput
 
-# ─── NaN/Inf Tests (at Pydantic model level) ────────────────────────────
+# NaN/Inf Tests (at Pydantic model level)
 
 
 class TestNanInfAtModelLevel:

@@ -42,7 +42,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# ─── Configuration ──────────────────────────────────────────────────────
+# Configuration
 
 OTLP_ENDPOINT = os.environ.get("OTLP_ENDPOINT", "http://jaeger:4317")
 SERVICE_NAME = os.environ.get("OTEL_SERVICE_NAME", "fraudlens-api")

@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# ─── Internal State (set by api/main.py during startup) ───────────
+# Internal State (set by api/main.py during startup)
 _predictor = None
 _anomaly_detector = None
 _case_narrator = None
@@ -20,7 +20,7 @@ _case_retriever = None
 _copilot_client = None
 
 
-# ─── Setter functions (called from api/main.py lifespan) ──────────
+# Setter functions (called from api/main.py lifespan)
 
 
 def set_predictor(predictor) -> None:
@@ -48,7 +48,7 @@ def set_copilot_client(client) -> None:
     _copilot_client = client
 
 
-# ─── Getter functions (called from routers) ───────────────────────
+# Getter functions (called from routers)
 
 
 def get_predictor():

@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.case_narrator import CaseNarrator
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def sample_transaction() -> Dict[str, Any]:
     }
 
 
-# ─── Eval Tests: Factuality ──────────────────────────────────────────────
+# Eval Tests: Factuality
 
 
 class TestFactuality:
@@ -111,7 +111,7 @@ class TestFactuality:
         assert "V14" in narrative
 
 
-# ─── Eval Tests: Probability Accuracy ───────────────────────────────────
+# Eval Tests: Probability Accuracy
 
 
 class TestProbabilityAccuracy:
@@ -141,7 +141,7 @@ class TestProbabilityAccuracy:
         assert "99.0%" in n2
 
 
-# ─── Eval Tests: Consistency ─────────────────────────────────────────────
+# Eval Tests: Consistency
 
 
 class TestConsistency:
@@ -187,7 +187,7 @@ class TestConsistency:
         assert n1 == n2, "Fallback narrative should be deterministic"
 
 
-# ─── Eval Tests: Edge Cases ──────────────────────────────────────────────
+# Eval Tests: Edge Cases
 
 
 class TestEdgeCases:
@@ -230,7 +230,7 @@ class TestEdgeCases:
         assert "100.0%" in n2
 
 
-# ─── Eval Tests: Business Readability ────────────────────────────────────
+# Eval Tests: Business Readability
 
 
 class TestBusinessReadability:

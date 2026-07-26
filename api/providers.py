@@ -32,7 +32,7 @@ from src.fraudlens.prediction.model_loader import ModelLoader
 logger = logging.getLogger(__name__)
 
 
-# ─── Database Session Provider ──────────────────────────────────────────────
+# Database Session Provider
 
 
 async def get_db_session():
@@ -57,7 +57,7 @@ async def get_db_session():
             raise
 
 
-# ─── Types ─────────────────────────────────────────────────────────────────
+# Types
 
 
 class PredictionCache:
@@ -263,7 +263,7 @@ class FraudPredictor:
             logger.warning("Async SHAP computation failed: %s", e)
 
 
-# ─── Providers ──────────────────────────────────────────────────────────────
+# Providers
 
 
 def _get_request_state(request: Optional[Request] = None):

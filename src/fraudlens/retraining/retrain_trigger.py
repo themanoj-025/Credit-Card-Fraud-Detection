@@ -40,7 +40,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# ─── MLflow Setup ──────────────────────────────────────────────────────────
+# MLflow Setup
 
 try:
     import mlflow
@@ -49,7 +49,7 @@ try:
 except ImportError:
     MLFLOW_AVAILABLE = False
 
-# ─── Trigger Result ────────────────────────────────────────────────────────
+# Trigger Result
 
 
 @dataclass
@@ -82,7 +82,7 @@ class CandidateInfo:
     created_at: str = ""
 
 
-# ─── RetrainingTrigger ─────────────────────────────────────────────────────
+# RetrainingTrigger
 
 
 class RetrainingTrigger:
@@ -566,7 +566,7 @@ class RetrainingTrigger:
         )
 
 
-# ─── Standalone CLI Entrypoint ─────────────────────────────────────────────
+# Standalone CLI Entrypoint
 
 
 def check_and_trigger(

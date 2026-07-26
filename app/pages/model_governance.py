@@ -20,7 +20,7 @@ import streamlit as st
 from app.api_client import FraudLensAPIError, get_api_client
 from app.components.metric_cards import metric_card
 
-# ─── Constants ─────────────────────────────────────────────────────────────
+# Constants
 
 CANDIDATE_COLORS = {
     "candidate": {"bg": "#1a2a3a", "fg": "#667eea", "border": "#667eea33"},
@@ -97,7 +97,7 @@ def _has_api_key() -> bool:
     return bool(os.environ.get("FRAUDLENS_DASHBOARD_API_KEY", ""))
 
 
-# ─── Main Page ─────────────────────────────────────────────────────────────
+# Main Page
 
 
 def show() -> None:
@@ -145,7 +145,7 @@ def show() -> None:
         _show_about_tab()
 
 
-# ─── Tab: Pending Candidates ─────────────────────────────────────────────
+# Tab: Pending Candidates
 
 
 def _show_pending_tab() -> None:
@@ -394,7 +394,7 @@ def _handle_reject(client: Any, version: str) -> None:
             st.error(f"❌ Unexpected error: {e}")
 
 
-# ─── Tab: History ──────────────────────────────────────────────────────────
+# Tab: History
 
 
 def _show_history_tab() -> None:
@@ -457,7 +457,7 @@ def _show_history_tab() -> None:
         st.error(f"❌ API Error: {e}")
 
 
-# ─── Tab: About ────────────────────────────────────────────────────────────
+# Tab: About
 
 
 def _show_about_tab() -> None:
@@ -517,7 +517,7 @@ def _show_about_tab() -> None:
     )
 
 
-# ─── Demo Content (when no API key) ───────────────────────────────────────
+# Demo Content (when no API key)
 
 
 def _show_demo_content() -> None:

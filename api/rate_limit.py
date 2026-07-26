@@ -21,7 +21,7 @@ from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
-# ─── Storage Backend Selection ─────────────────────────────────────────────
+# Storage Backend Selection
 # Default: Redis (safe for horizontal scaling).
 # Opt-in memory: Set RATE_LIMIT_BACKEND=memory for local dev without Redis.
 # If REDIS_URL is not set and backend=redis, falls back to memory with warning.

@@ -20,7 +20,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
-# ─── Integration: Training → Prediction → Evaluation ────────────────────
+# Integration: Training → Prediction → Evaluation
 
 
 class TestTrainingToPredictionPipeline:
@@ -67,7 +67,7 @@ class TestTrainingToPredictionPipeline:
         assert all(d in ("FRAUD", "LEGITIMATE") for d in decisions)
 
 
-# ─── Integration: API with Model ─────────────────────────────────────────
+# Integration: API with Model
 
 
 class TestApiWithModel:
@@ -114,7 +114,7 @@ class TestApiWithModel:
             assert data["summary"]["total"] == 2
 
 
-# ─── Integration: Feature Engineering Parity ────────────────────────────
+# Integration: Feature Engineering Parity
 
 
 class TestFeatureEngineeringParity:
@@ -157,7 +157,7 @@ class TestFeatureEngineeringParity:
         assert list(result1.columns) == list(result2.columns)
 
 
-# ─── Integration: SHAP Output ───────────────────────────────────────────
+# Integration: SHAP Output
 
 
 class TestShapOutput:

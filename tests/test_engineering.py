@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.features.engineering import FeatureEngineer
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def sample_df() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestFeatureEngineerInit:
@@ -49,7 +49,7 @@ class TestFeatureEngineerInit:
         assert not fe.create_bins
 
 
-# ─── Tests: Feature Transformation ───────────────────────────────────────
+# Tests: Feature Transformation
 
 
 class TestFeatureTransformation:
@@ -117,7 +117,7 @@ class TestFeatureTransformation:
         assert len(result) == len(sample_df)
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:
@@ -161,7 +161,7 @@ class TestEdgeCases:
         assert result["Amount_log"].iloc[0] == 0.0
 
 
-# ─── Tests: Static Methods ───────────────────────────────────────────────
+# Tests: Static Methods
 
 
 class TestStaticMethods:

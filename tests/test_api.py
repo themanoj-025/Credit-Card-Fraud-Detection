@@ -19,7 +19,7 @@ from api.main import app
 client = TestClient(app)
 
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def sample_transaction() -> dict:
     return tx
 
 
-# ─── Tests: Health ────────────────────────────────────────────────────────
+# Tests: Health
 
 
 class TestHealth:
@@ -62,7 +62,7 @@ class TestHealth:
         assert data["status"] in ("healthy", "degraded", "error")
 
 
-# ─── Tests: Prediction ─────────────────────────────────────────────────────
+# Tests: Prediction
 
 
 class TestPrediction:
@@ -104,7 +104,7 @@ class TestPrediction:
         assert response.status_code == 422
 
 
-# ─── Tests: Batch Prediction ─────────────────────────────────────────────
+# Tests: Batch Prediction
 
 
 class TestBatchPrediction:
@@ -141,7 +141,7 @@ class TestBatchPrediction:
         assert response.status_code == 422
 
 
-# ─── Tests: Model Info ────────────────────────────────────────────────────
+# Tests: Model Info
 
 
 class TestModelInfo:
@@ -159,7 +159,7 @@ class TestModelInfo:
         assert isinstance(data, dict)
 
 
-# ─── Tests: /v1/explain Endpoint ──────────────────────────────────────────
+# Tests: /v1/explain Endpoint
 
 
 class TestExplainEndpoint:
@@ -180,7 +180,7 @@ class TestExplainEndpoint:
             assert "shap_values" in data
 
 
-# ─── Tests: /v1/chat Endpoint ────────────────────────────────────────────
+# Tests: /v1/chat Endpoint
 
 
 class TestChatEndpoint:
@@ -219,7 +219,7 @@ class TestChatEndpoint:
         assert response.status_code == 422
 
 
-# ─── Tests: /v1/similar-cases Endpoint ────────────────────────────────────
+# Tests: /v1/similar-cases Endpoint
 
 
 class TestSimilarCasesEndpoint:
@@ -231,7 +231,7 @@ class TestSimilarCasesEndpoint:
         assert response.status_code in (200, 503)
 
 
-# ─── Tests: /v1/explain Endpoint Validation ──────────────────────────────
+# Tests: /v1/explain Endpoint Validation
 
 
 class TestExplainValidation:

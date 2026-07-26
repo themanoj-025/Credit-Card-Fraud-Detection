@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.monitoring.drift import DriftDetector, simulate_drift
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def detector(reference_data) -> DriftDetector:
     )
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestDetectorInit:
@@ -81,7 +81,7 @@ class TestDetectorInit:
         assert "std" in detector.ref_stats["V1"]
 
 
-# ─── Tests: Drift Detection ─────────────────────────────────────────────
+# Tests: Drift Detection
 
 
 class TestDetectDrift:
@@ -119,7 +119,7 @@ class TestDetectDrift:
         assert results["V1"]["p_value"] > 0.05
 
 
-# ─── Tests: Drift Score ─────────────────────────────────────────────────
+# Tests: Drift Score
 
 
 class TestDriftScore:
@@ -148,7 +148,7 @@ class TestDriftScore:
         assert score == 1.0
 
 
-# ─── Tests: Report Generation ───────────────────────────────────────────
+# Tests: Report Generation
 
 
 class TestReport:
@@ -170,7 +170,7 @@ class TestReport:
         assert any(f in report for f in ["V1", "V14", "Amount"])
 
 
-# ─── Tests: Drift History ───────────────────────────────────────────────
+# Tests: Drift History
 
 
 class TestDriftHistory:
@@ -192,7 +192,7 @@ class TestDriftHistory:
         assert "n_warnings" in entry
 
 
-# ─── Tests: simulate_drift ───────────────────────────────────────────────
+# Tests: simulate_drift
 
 
 class TestSimulateDrift:
@@ -220,7 +220,7 @@ class TestSimulateDrift:
         )
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:

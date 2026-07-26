@@ -82,7 +82,7 @@ def trained_model(small_training_data):
     return model, trainer
 
 
-# ─── Anthropic API Mock ──────────────────────────────────────────────────
+# Anthropic API Mock
 
 
 @pytest.fixture(autouse=True)
@@ -114,7 +114,7 @@ def mock_anthropic(monkeypatch):
     return MockAnthropic
 
 
-# ─── Feature Engineering Fixture ────────────────────────────────────────
+# Feature Engineering Fixture
 
 
 @pytest.fixture

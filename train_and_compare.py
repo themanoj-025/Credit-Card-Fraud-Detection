@@ -10,13 +10,11 @@ import os
 import sys
 import time
 import warnings
-from pathlib import Path
 
 import joblib
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 
 warnings.filterwarnings("ignore")
@@ -43,7 +41,7 @@ print("=" * 70)
 print("  FRAUDLENS — Comprehensive ML Training & Comparison")
 print("=" * 70)
 
-# ─── STAGE 1: Load and preprocess ────────────────────────────────────────
+# STAGE 1: Load and preprocess
 print("\n[1/6] Loading and preprocessing data...")
 df, stats = DataLoader().load(), None
 loader = DataLoader()
@@ -57,7 +55,7 @@ y_train, y_test = data["y_train"], data["y_test"]
 print(f"  Train: {len(X_train)} samples, Test: {len(X_test)} samples")
 print(f"  Fraud in train: {y_train.sum()} ({y_train.mean()*100:.4f}%)")
 
-# ─── STAGE 2: Train all models ──────────────────────────────────────────
+# STAGE 2: Train all models
 print("\n[2/6] Training all ML models...")
 trainer = FraudTrainer()
 t_start = time.time()
@@ -77,7 +75,7 @@ trainer.save_all_models(str(MODELS_DIR))
 preprocessor.save_scaler(str(MODELS_DIR / "scaler.pkl"))
 joblib.dump(iso_detector.model, MODELS_DIR / "anomaly_detector.pkl")
 
-# ─── STAGE 3: Evaluate ───────────────────────────────────────────────────
+# STAGE 3: Evaluate
 print("\n[3/6] Evaluating all models...")
 evaluator = FraudEvaluator(avg_fraud_loss=AVG_FRAUD_LOSS, review_cost=REVIEW_COST)
 cost_calc = BusinessCostCalculator(avg_fraud_loss=AVG_FRAUD_LOSS, review_cost=REVIEW_COST)
@@ -105,7 +103,7 @@ comparison = evaluator.compare_models(y_test, predictions, thresholds, business_
 print("\n=== MODEL COMPARISON ===")
 print(comparison.to_string(index=False))
 
-# ─── STAGE 4: Auto-Select Best Model ──────────────────────────────────────
+# STAGE 4: Auto-Select Best Model
 print("\n[4/6] Auto-selecting best model...")
 all_models = {**models, "Isolation Forest": iso_detector.model}
 selector = ModelSelector(metric="PR-AUC")
@@ -117,7 +115,7 @@ best_threshold = thresholds.get(selection["best_model_name"], 0.5)
 with open(MODELS_DIR / "threshold.txt", "w") as f:
     f.write(str(best_threshold))
 
-# ─── STAGE 5: Generate Charts ────────────────────────────────────────────
+# STAGE 5: Generate Charts
 print("\n[5/6] Generating comparison charts...")
 
 fig, axes = plt.subplots(2, 3, figsize=(20, 12))
@@ -193,7 +191,7 @@ plt.savefig(str(PROCESSED_DATA_DIR / "comprehensive_comparison.png"), dpi=150, b
 plt.close()
 print("  [OK] Comprehensive comparison chart saved")
 
-# ─── STAGE 6: Summary ────────────────────────────────────────────────────
+# STAGE 6: Summary
 print("\n[6/6] Final Summary")
 print("=" * 70)
 print(f"  TRAINING COMPLETE")

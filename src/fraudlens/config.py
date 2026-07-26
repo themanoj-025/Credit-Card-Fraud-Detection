@@ -304,15 +304,13 @@ class Settings(BaseSettings):
             case_sensitive = True
 
 
-# ─── Singleton Instance ──────────────────────────────────────────────────
+# Singleton Instance
 # All modules should import from this instance for runtime config.
 # Module-level aliases below provide backward compatibility.
 
 settings = Settings()
 
-# ═════════════════════════════════════════════════════════════════════════
 # Backward-Compatible Module-Level Constants
-# ═════════════════════════════════════════════════════════════════════════
 # These aliases let existing imports continue to work unchanged.
 # New code should prefer `from src.fraudlens.config import settings`.
 

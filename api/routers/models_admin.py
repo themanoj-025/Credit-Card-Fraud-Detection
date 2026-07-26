@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/admin/models", tags=["admin-models"])
 
 
-# ─── Pydantic Schemas ──────────────────────────────────────────────────────
+# Pydantic Schemas
 
 
 class ModelCandidateOut(BaseModel):
@@ -73,7 +73,7 @@ class CompareResponse(BaseModel):
     metrics_delta: Optional[Dict[str, float]] = None
 
 
-# ─── Helper: Convert ORM to Pydantic ──────────────────────────────────────
+# Helper: Convert ORM to Pydantic
 
 
 def _candidate_to_out(candidate: Any) -> ModelCandidateOut:
@@ -105,7 +105,7 @@ def _candidate_to_out(candidate: Any) -> ModelCandidateOut:
     )
 
 
-# ─── Endpoints ─────────────────────────────────────────────────────────────
+# Endpoints
 
 
 @router.get("/candidates", response_model=ModelCandidateListResponse)

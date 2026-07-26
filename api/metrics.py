@@ -21,7 +21,7 @@ Usage:
 from prometheus_client import Counter, Gauge, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 
-# ─── Custom FraudLens Metrics ──────────────────────────────────────────
+# Custom FraudLens Metrics
 
 # Prediction outcomes
 PREDICTION_COUNTER = Counter(
@@ -75,7 +75,7 @@ LLM_AVAILABLE_GAUGE = Gauge(
     "Whether the LLM is available (1 = yes, 0 = no)",
 )
 
-# ─── LLM Cost Tracking ────────────────────────────────────────────────────
+# LLM Cost Tracking
 
 LLM_COST_TOTAL = Counter(
     "fraudlens_llm_cost_usd_total",

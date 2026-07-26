@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.case_narrator import CaseNarrator, create_case_narrator
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -73,7 +73,7 @@ def sample_shap_explanation() -> list:
     ]
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestCaseNarratorInit:
@@ -99,7 +99,7 @@ class TestCaseNarratorInit:
         assert narrator.api_key == ""
 
 
-# ─── Tests: Fallback Narrative ───────────────────────────────────────────
+# Tests: Fallback Narrative
 
 
 class TestFallbackNarrative:
@@ -140,7 +140,7 @@ class TestFallbackNarrative:
         assert "increases" in narrative
 
 
-# ─── Tests: Prompt Building ──────────────────────────────────────────────
+# Tests: Prompt Building
 
 
 class TestPromptBuilding:
@@ -189,7 +189,7 @@ class TestPromptBuilding:
         assert "3.8" in prompt
 
 
-# ─── Tests: Narrate Method (Fallback Path) ──────────────────────────────
+# Tests: Narrate Method (Fallback Path)
 
 
 class TestNarrate:
@@ -233,7 +233,7 @@ class TestNarrate:
         assert "manual review" in result.lower()
 
 
-# ─── Tests: Factory Function ─────────────────────────────────────────────
+# Tests: Factory Function
 
 
 class TestCreateCaseNarrator:
@@ -251,7 +251,7 @@ class TestCreateCaseNarrator:
         assert n1 is not n2
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:
@@ -285,9 +285,7 @@ class TestEdgeCases:
         assert isinstance(result, str)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
 # Mocked Anthropic Client Tests (exercises the actual API-call code path)
-# ═══════════════════════════════════════════════════════════════════════════
 
 
 class TestMockedAnthropicPath:
@@ -492,9 +490,7 @@ class TestMockedAnthropicEdgeCases:
         assert "Automated summary" in result
 
 
-# ═══════════════════════════════════════════════════════════════════════════
 # Golden-Set Factuality Checks
-# ═══════════════════════════════════════════════════════════════════════════
 
 
 class TestFactualityChecker:

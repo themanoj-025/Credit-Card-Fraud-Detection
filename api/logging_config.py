@@ -18,7 +18,7 @@ from typing import Any
 
 import structlog
 
-# ─── Configuration ──────────────────────────────────────────────────────
+# Configuration
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
 LOG_FORMAT = os.environ.get("LOG_FORMAT", "json")  # "json" or "console"

@@ -22,7 +22,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 logger = logging.getLogger(__name__)
 
-# ─── Engine & Session ──────────────────────────────────────────────────────
+# Engine & Session
 
 # Determine database URL from environment, with sensible default for dev
 _DATABASE_URL = os.environ.get(

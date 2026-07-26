@@ -34,7 +34,7 @@ from slowapi.middleware import SlowAPIMiddleware
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# ─── Observability — initialize structlog before anything else ─────
+# Observability — initialize structlog before anything else
 from api.logging_config import get_logger, setup_structlog
 
 setup_structlog()
@@ -62,7 +62,7 @@ from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever  # noqa: E4
 from src.fraudlens.persistence import init_db  # noqa: E402
 from src.fraudlens.prediction.model_loader import ModelLoader  # noqa: E402
 
-# ─── Attempt to load optional dependencies ───────────────────────────────
+# Attempt to load optional dependencies
 
 
 def _try_load_copilot(app: FastAPI):
@@ -104,7 +104,7 @@ def _try_load_rag_retriever(app: FastAPI):
         logger.info("No RAG index found at %s", index_path)
 
 
-# ─── Lifecycle ────────────────────────────────────────────────────────────
+# Lifecycle
 
 
 @asynccontextmanager
@@ -193,7 +193,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-# ─── App Creation (must be before any @app decorators) ───────────────────
+# App Creation (must be before any @app decorators)
 
 app = FastAPI(
     title="FraudLens API",
@@ -208,7 +208,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
-# ─── Correlation ID Middleware ─────────────────────────────────────────────
+# Correlation ID Middleware
 
 
 @app.middleware("http")
@@ -233,7 +233,7 @@ from api.errors import register_error_handlers  # noqa: E402
 
 register_error_handlers(app)
 
-# ─── CORS (locked to explicit origins) ────────────────────────────────────
+# CORS (locked to explicit origins)
 
 app.add_middleware(
     CORSMiddleware,
@@ -248,12 +248,12 @@ app.add_middleware(
     allow_headers=["X-API-Key", "Content-Type", "Authorization"],
 )
 
-# ─── Rate Limiting Middleware ─────────────────────────────────────────────
+# Rate Limiting Middleware
 
 app.add_middleware(SlowAPIMiddleware)
 
 
-# ─── Security Headers ────────────────────────────────────────────────────
+# Security Headers
 
 
 @app.middleware("http")
@@ -277,7 +277,7 @@ async def add_security_headers(request, call_next):
     return response
 
 
-# ─── Routes (with optional auth) ─────────────────────────────────────────
+# Routes (with optional auth)
 
 app.include_router(admin.router)
 app.include_router(predict.router)
@@ -286,7 +286,7 @@ app.include_router(similar_cases.router)
 app.include_router(chat.router)
 app.include_router(models_admin.router)
 
-# ─── Observability: Metrics & Tracing (AFTER all routes are registered) ──
+# Observability: Metrics & Tracing (AFTER all routes are registered)
 
 # Setup Prometheus metrics
 setup_metrics(app)

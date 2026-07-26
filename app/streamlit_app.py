@@ -25,11 +25,11 @@ st.set_page_config(
 )
 
 
-# ─── Inject dark theme ────────────────────────────────────────────────────
+# Inject dark theme
 with open(Path(__file__).parent / "assets" / "theme.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# ─── Sidebar ─────────────────────────────────────────────────────────────
+# Sidebar
 with st.sidebar:
     st.markdown(
         """
@@ -128,13 +128,13 @@ with st.sidebar:
     st.markdown(
         """
         <div style="font-size: 12px; color: #555; text-align: center;">
-            Built with Python, XGBoost, SHAP, FastAPI, Streamlit
+            Python, XGBoost, SHAP, FastAPI, Streamlit
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# ─── Page Router ─────────────────────────────────────────────────────────
+# Page Router
 page = st.session_state.page
 
 if page == "Live Monitor":

@@ -320,7 +320,7 @@ class FraudLensAPI:
         self.close()
 
 
-# ─── Streamlit Integration Helpers ────────────────────────────────────────
+# Streamlit Integration Helpers
 
 
 @st.cache_resource

@@ -25,13 +25,11 @@ import os
 import sys
 import time
 import warnings
-from pathlib import Path
 
 import joblib
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 
 warnings.filterwarnings("ignore")
@@ -53,7 +51,7 @@ from src.fraudlens.config import (
     REVIEW_COST,
 )
 
-# ─── MLflow Experiment Tracking ────────────────────────────────────────────
+# MLflow Experiment Tracking
 try:
     import mlflow
 
@@ -85,9 +83,7 @@ print("  FRAUDLENS — Rigorous Model Comparison Pipeline")
 print("  Stage 4: 6 Supervised + 1 Unsupervised Model")
 print("=" * 70)
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 1: Data Loading
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [1/6] Data Loading")
 print("-" * 70)
@@ -105,9 +101,7 @@ stats = loader.get_basic_stats()
 for k, v in stats.items():
     print(f"    {k}: {v}")
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 2: Preprocessing
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [2/6] Preprocessing (No Data Leakage)")
 print("-" * 70)
@@ -122,9 +116,7 @@ print(f"    Test:  {X_test.shape[0]} samples ({y_test.sum()} fraud, {y_test.mean
 
 preprocessor.save_scaler(str(MODELS_DIR / "scaler.pkl"))
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 3: Resampling Comparison
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [3/6] Resampling Strategy Comparison")
 print("-" * 70)
@@ -136,9 +128,7 @@ resampled = resampler.compare_strategies(X_train, y_train, strategies)
 for strat, (X_r, y_r) in resampled.items():
     print(f"    {strat:<20}: {len(X_r):>8} samples, {int(y_r.sum()):>5} fraud ({y_r.mean()*100:.2f}%)")
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 3.5: Hyperparameter Optimization (Optuna) — optional
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [3.5/6] Hyperparameter Optimization (Optuna)")
 print("-" * 70)
@@ -157,9 +147,7 @@ if HPO_ENABLED:
 else:
     print("  HPO disabled (set HPO_ENABLED=True to enable)")
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 4: Train All Models (6 Supervised + 2 Unsupervised)
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [4/6] Training All Models")
 print("-" * 70)
@@ -191,9 +179,7 @@ trainer.save_all_models(str(MODELS_DIR))
 joblib.dump(iso_trained, MODELS_DIR / "anomaly_detector.pkl")
 
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 5: Evaluation & Comparison
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [5/6] Evaluation & Comparison")
 print("-" * 70)
@@ -239,9 +225,7 @@ print(f"\n  Comparison saved to:")
 print(f"    reports/model_comparison_fraud.csv")
 print(f"    data/processed/model_comparison.csv")
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 6: Auto-Select Best Model
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "-" * 70)
 print("  [6/6] Auto-Select Best Model + Generate Charts")
 print("-" * 70)
@@ -259,21 +243,19 @@ best_threshold = thresholds.get(selection["best_model_name"], 0.5)
 with open(MODELS_DIR / "threshold.txt", "w") as f:
     f.write(str(best_threshold))
 
-# ══════════════════════════════════════════════════════════════════════════
 # STAGE 7: Generate Comprehensive Charts
-# ══════════════════════════════════════════════════════════════════════════
 print("\n  Generating comparison charts...")
 
 charts_dir = PROCESSED_DATA_DIR
 
-# ─── Chart 1: PR Curves Overlay ─────────────────────────────────────
+# Chart 1: PR Curves Overlay
 print("    PR Curves...")
 evaluator.plot_precision_recall_curve(
     y_test, predictions,
     save_path=str(charts_dir / "pr_curves.png"),
 )
 
-# ─── Chart 2: Cost vs Threshold ──────────────────────────────────────
+# Chart 2: Cost vs Threshold
 print("    Cost vs Threshold...")
 best_name = selection["best_model_name"]
 cost_calc.plot_cost_vs_threshold(
@@ -282,14 +264,14 @@ cost_calc.plot_cost_vs_threshold(
     save_path=str(charts_dir / "cost_vs_threshold.png"),
 )
 
-# ─── Chart 3: Confusion Matrices (Top 3) ────────────────────────────
+# Chart 3: Confusion Matrices (Top 3)
 print("    Confusion Matrices...")
 evaluator.plot_confusion_matrices(
     y_test, predictions, top_n=3,
     save_path=str(charts_dir / "confusion_matrices.png"),
 )
 
-# ─── Chart 4: Multi-Panel Comparison ────────────────────────────────
+# Chart 4: Multi-Panel Comparison
 print("    Comprehensive comparison chart...")
 fig, axes = plt.subplots(2, 3, figsize=(20, 12))
 
@@ -370,9 +352,7 @@ plt.tight_layout()
 plt.savefig(str(charts_dir / "comprehensive_comparison.png"), dpi=150, bbox_inches="tight")
 plt.close()
 
-# ══════════════════════════════════════════════════════════════════════════
 # FINAL SUMMARY
-# ══════════════════════════════════════════════════════════════════════════
 print("\n" + "=" * 70)
 print("  PIPELINE COMPLETE — Summary")
 print("=" * 70)

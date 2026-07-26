@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# ─── Price Table (per 1M tokens) ──────────────────────────────────────────
+# Price Table (per 1M tokens)
 # Config-driven: update here when Anthropic changes pricing.
 # Source: https://docs.anthropic.com/en/docs/about-claude/models
 PRICING_TABLE: Dict[str, Dict[str, float]] = {
@@ -302,6 +302,6 @@ class CostTracker:
         return combined
 
 
-# ─── Singleton ─────────────────────────────────────────────────────────────
+# Singleton
 
 cost_tracker = CostTracker()

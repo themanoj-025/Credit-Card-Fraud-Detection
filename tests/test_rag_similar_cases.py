@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.llm.rag_similar_cases import SimilarCaseRetriever, create_retriever
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def query_transaction() -> dict:
     }
 
 
-# ─── Tests: Build Index ─────────────────────────────────────────────────
+# Tests: Build Index
 
 
 class TestBuildIndex:
@@ -98,7 +98,7 @@ class TestBuildIndex:
         assert "is_fraud" in retriever.historical_cases.columns
 
 
-# ─── Tests: Retrieve ───────────────────────────────────────────────────
+# Tests: Retrieve
 
 
 class TestRetrieve:
@@ -150,7 +150,7 @@ class TestRetrieve:
             retriever.retrieve(query_transaction)
 
 
-# ─── Tests: Save / Load ─────────────────────────────────────────────────
+# Tests: Save / Load
 
 
 class TestSaveLoad:
@@ -203,7 +203,7 @@ class TestSaveLoad:
             assert retriever2._initialized
 
 
-# ─── Tests: Factory Function ─────────────────────────────────────────────
+# Tests: Factory Function
 
 
 class TestFactory:
@@ -222,7 +222,7 @@ class TestFactory:
         assert retriever._initialized
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:

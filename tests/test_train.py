@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.models.train import FraudTrainer
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def small_dataset():
     return df, y
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestFraudTrainerInit:
@@ -51,7 +51,7 @@ class TestFraudTrainerInit:
         assert trainer.models_to_train == ["logistic_regression", "random_forest"]
 
 
-# ─── Tests: Training ─────────────────────────────────────────────────────
+# Tests: Training
 
 
 class TestTraining:
@@ -94,7 +94,7 @@ class TestTraining:
         assert result["n_features"] == X.shape[1]
 
 
-# ─── Tests: Cross-Validation ─────────────────────────────────────────────
+# Tests: Cross-Validation
 
 
 class TestCrossValidation:
@@ -120,7 +120,7 @@ class TestCrossValidation:
         assert len(result["scores"]) == 2
 
 
-# ─── Tests: Model Persistence ───────────────────────────────────────────
+# Tests: Model Persistence
 
 
 class TestModelPersistence:
@@ -154,7 +154,7 @@ class TestModelPersistence:
             trainer.save_model("non_existent")
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:

@@ -26,7 +26,7 @@ from src.fraudlens.data.download import (
     get_or_create_data,
 )
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -52,10 +52,10 @@ def valid_csv(tmp_data_dir):
     return target
 
 
-# ─── Tests: Checksum ──────────────────────────────────────────────────────
+# Tests: Checksum
 
 
-# ─── Tests: Kaggle Available ──────────────────────────────────────────────
+# Tests: Kaggle Available
 
 
 class TestKaggleAvailable:
@@ -86,7 +86,7 @@ class TestKaggleAvailable:
         assert _kaggle_available() is False
 
 
-# ─── Tests: Synthetic Dataset Generation ──────────────────────────────────
+# Tests: Synthetic Dataset Generation
 
 
 class TestSyntheticDataset:
@@ -160,7 +160,7 @@ class TestSyntheticDataset:
         pd.testing.assert_frame_equal(df1, df2)
 
 
-# ─── Tests: Dataset Validation ────────────────────────────────────────────
+# Tests: Dataset Validation
 
 
 class TestDatasetValidation:
@@ -195,7 +195,7 @@ class TestDatasetValidation:
         assert _is_valid_dataset(f) is False
 
 
-# ─── Tests: ensure_data_ready ─────────────────────────────────────────────
+# Tests: ensure_data_ready
 
 
 class TestEnsureDataReady:
@@ -248,7 +248,7 @@ class TestEnsureDataReady:
                     assert isinstance(df, pd.DataFrame)
 
 
-# ─── Tests: get_or_create_data ────────────────────────────────────────────
+# Tests: get_or_create_data
 
 
 class TestGetOrCreateData:

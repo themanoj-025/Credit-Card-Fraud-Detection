@@ -31,7 +31,7 @@ from src.fraudlens.config import (
 
 logger = logging.getLogger(__name__)
 
-# ─── MLflow setup ────────────────────────────────────────────────────────
+# MLflow setup
 try:
     import mlflow
 

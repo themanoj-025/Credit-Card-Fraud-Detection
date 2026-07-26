@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 class ModelLoadError(Exception):
     """Raised when a model artifact cannot be loaded or verified."""
 
-    pass
 
 
 class ModelLoader:

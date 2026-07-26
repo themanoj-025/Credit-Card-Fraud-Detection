@@ -37,9 +37,7 @@ def mock_session():
     return session
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # PredictionRepository Tests
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class TestPredictionRepository:
@@ -174,9 +172,7 @@ class TestPredictionRepository:
         assert stats["total_predictions"] == 50
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # FeedbackRepository Tests
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class TestFeedbackRepository:
@@ -274,9 +270,7 @@ class TestFeedbackRepository:
         assert stats["confirmed_legitimate"] == 20
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # DriftEventRepository Tests
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class TestDriftEventRepository:
@@ -363,9 +357,7 @@ class TestDriftEventRepository:
         assert stats["total_events"] == 25
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # ApiKeyRepository Tests
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class TestApiKeyRepository:

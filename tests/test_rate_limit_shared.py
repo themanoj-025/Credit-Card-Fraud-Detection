@@ -12,7 +12,7 @@ import os
 
 import pytest
 
-# ─── Markers ──────────────────────────────────────────────────────────────
+# Markers
 # This test requires Redis. On CI it always runs; locally it's skippable.
 pytestmark = [
     pytest.mark.integration,

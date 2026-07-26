@@ -24,7 +24,7 @@ from src.fraudlens.config import (
     SIMULATION_FRAUD_RATE,
 )
 
-# ─── Drift detection (lazy-loaded) ─────────────────────────────────────────
+# Drift detection (lazy-loaded)
 _DRIFT_DETECTOR = None
 
 

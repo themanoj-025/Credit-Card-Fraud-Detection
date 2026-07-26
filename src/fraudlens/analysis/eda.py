@@ -38,7 +38,7 @@ from src.fraudlens.data.loaders import DataLoader  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-# ─── Style Configuration ──────────────────────────────────────────────────
+# Style Configuration
 
 COLORS = {"legitimate": "#2ecc71", "fraud": "#e74c3c"}
 LABELS = {0: "Legitimate", 1: "Fraud"}
@@ -483,7 +483,7 @@ def plot_pairplot_top_features(df: pd.DataFrame, sample_size: int = 5000) -> plt
     return fig
 
 
-# ─── Main Pipeline ────────────────────────────────────────────────────────
+# Main Pipeline
 
 
 def run_eda(output_dir: Path = FIGURES_DIR) -> None:

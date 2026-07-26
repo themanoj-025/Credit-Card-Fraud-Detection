@@ -17,7 +17,7 @@ from typing import Set
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
-# ─── Required endpoints (enforced on every test run) ─────────────────────
+# Required endpoints (enforced on every test run)
 
 _REQUIRED_ENDPOINTS: Set[str] = {
     "GET /health",

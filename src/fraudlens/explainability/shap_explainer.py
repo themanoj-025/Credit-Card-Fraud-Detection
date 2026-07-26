@@ -189,7 +189,7 @@ class ShapExplainer:
         return importance
 
 
-# ─── Internal helpers ──────────────────────────────────────────────────────
+# Internal helpers
 
 
 def _extract_positive_class_values(shap_values, idx: int = 0):

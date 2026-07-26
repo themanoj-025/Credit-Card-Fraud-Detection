@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.explainability.shap_utils import FraudPredictor
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def sample_transaction():
     return tx
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestFraudPredictorInit:
@@ -79,7 +79,7 @@ class TestFraudPredictorInit:
         assert len(predictor.feature_names) == 3
 
 
-# ─── Tests: Prediction ─────────────────────────────────────────────────
+# Tests: Prediction
 
 
 class TestPrediction:
@@ -141,7 +141,7 @@ class TestPrediction:
         assert isinstance(result["fraud_probability"], float)
 
 
-# ─── Tests: SHAP Explanation ────────────────────────────────────────────
+# Tests: SHAP Explanation
 
 
 class TestShapExplanation:
@@ -184,7 +184,7 @@ class TestShapExplanation:
             predictor.predict_single({"V1": 0.0}, return_shap=False)
 
 
-# ─── Tests: Format Explanation ─────────────────────────────────────────
+# Tests: Format Explanation
 
 
 class TestFormatExplanation:
@@ -209,7 +209,7 @@ class TestFormatExplanation:
         assert "No strong" in result
 
 
-# ─── Tests: Global Feature Importance ───────────────────────────────────
+# Tests: Global Feature Importance
 
 
 class TestGlobalImportance:

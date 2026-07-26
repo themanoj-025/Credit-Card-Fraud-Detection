@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.fraudlens.config import ALL_FEATURES
 from src.fraudlens.data.preprocessing import FraudPreprocessor, Resampler
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def sample_data() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-# ─── Tests: FraudPreprocessor ─────────────────────────────────────────────
+# Tests: FraudPreprocessor
 
 
 class TestFraudPreprocessor:
@@ -150,7 +150,7 @@ class TestFraudPreprocessor:
         assert scaler is None
 
 
-# ─── Tests: Resampler ────────────────────────────────────────────────────
+# Tests: Resampler
 
 
 class TestResampler:

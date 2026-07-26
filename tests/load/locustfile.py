@@ -20,7 +20,7 @@ from typing import Dict, List
 
 from locust import HttpUser, between, task
 
-# ─── Sample transaction data (generated from PCA distribution) ────────────
+# Sample transaction data (generated from PCA distribution)
 
 _SAMPLE_TRANSACTIONS: List[Dict[str, float]] = []
 for _ in range(100):

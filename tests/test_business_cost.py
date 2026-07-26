@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.fraudlens.evaluation.business_cost import BusinessCostCalculator
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture
@@ -79,7 +79,7 @@ def sample_probabilities() -> tuple:
     return y_true, y_proba
 
 
-# ─── Tests: Initialization ───────────────────────────────────────────────
+# Tests: Initialization
 
 
 class TestCalculatorInit:
@@ -98,7 +98,7 @@ class TestCalculatorInit:
         assert calc.review_cost == 10.0
 
 
-# ─── Tests: Cost Computation ─────────────────────────────────────────────
+# Tests: Cost Computation
 
 
 class TestComputeBusinessCost:
@@ -213,7 +213,7 @@ class TestComputeBusinessCost:
         assert cost["net_benefit_usd"] == 290.0  # 300 - 10
 
 
-# ─── Tests: Threshold Optimization ───────────────────────────────────────
+# Tests: Threshold Optimization
 
 
 class TestFindOptimalThreshold:
@@ -289,7 +289,7 @@ class TestFindOptimalThreshold:
         assert threshold <= 0.5
 
 
-# ─── Tests: Edge Cases ───────────────────────────────────────────────────
+# Tests: Edge Cases
 
 
 class TestEdgeCases:
@@ -341,7 +341,7 @@ class TestEdgeCases:
         assert cost["review_costs_usd"] == 0.0
 
 
-# ─── Tests: Cost Values are Reasonable ───────────────────────────────────
+# Tests: Cost Values are Reasonable
 
 
 class TestCostReasonableness:
@@ -388,7 +388,7 @@ class TestCostReasonableness:
         assert cost_high["fraud_missed_usd"] > cost_low["fraud_missed_usd"]
 
 
-# ─── Tests: Smoke Tests for Additional Methods ──────────────────────────
+# Tests: Smoke Tests for Additional Methods
 
 
 class TestSmokeAdditionalMethods:

@@ -28,7 +28,7 @@ from src.fraudlens.llm.cost_tracker import cost_tracker
 
 logger = logging.getLogger(__name__)
 
-# ─── Tenacity retry policy for LLM calls ──────────────────────────────────
+# Tenacity retry policy for LLM calls
 # Retry up to 3 times with exponential backoff (2s, 4s, 8s)
 _LLM_RETRY = retry(
     stop=stop_after_attempt(3),

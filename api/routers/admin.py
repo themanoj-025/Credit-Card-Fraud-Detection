@@ -113,7 +113,7 @@ async def list_api_keys(
     return KeyListResponse(keys=keys, count=len(keys))
 
 
-# ─── LLM Usage Endpoint ───────────────────────────────────────────────────
+# LLM Usage Endpoint
 
 
 class LLMUsageResponse(BaseModel):

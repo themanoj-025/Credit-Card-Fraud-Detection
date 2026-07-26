@@ -30,9 +30,7 @@ from fastapi import HTTPException, status
 logger = logging.getLogger(__name__)
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # Domain-Specific Exceptions (inherit from HTTPException for correct status)
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class ModelNotLoadedError(HTTPException):
@@ -96,9 +94,7 @@ class InvalidInputError(HTTPException):
         )
 
 
-# ═════════════════════════════════════════════════════════════════════════
 # Circuit Breaker for LLM Calls
-# ═════════════════════════════════════════════════════════════════════════
 
 
 class LLMCircuitBreaker:
