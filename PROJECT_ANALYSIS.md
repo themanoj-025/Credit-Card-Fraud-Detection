@@ -277,7 +277,7 @@ ERROR tests/test_preprocessing.py
 ERROR tests/test_train.py
 !!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 3 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!
-55 warnings, 3 errors in 9.09s
+55 warnings, 3 errors in 4.69s
 `
 
 ## 3. Operations & Release Checklist
