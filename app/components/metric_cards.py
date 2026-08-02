@@ -43,10 +43,10 @@ def metric_card(
             <span style="color: #a0a0a0; font-size: 13px; font-weight: 500;">
                 {icon} {label}
             </span>
-            {'<span style="color: #555; cursor: help;" title="' + help_text + '">ⓘ</span>' if help_text else ''}
+            {'<span style="color: #555; cursor: help;" title="' + help_text + '">ⓘ</span>' if help_text else ""}
         </div>
         <div style="
-            color: {'#e0e0e0' if 'red' not in color else '#ff6b6b'};
+            color: {"#e0e0e0" if "red" not in color else "#ff6b6b"};
             font-size: 28px;
             font-weight: 700;
             margin-top: 4px;
@@ -54,7 +54,7 @@ def metric_card(
         ">
             {value}
         </div>
-        {f'<div style="color: {color}; font-size: 13px; margin-top: 2px;">{delta}</div>' if delta else ''}
+        {f'<div style="color: {color}; font-size: 13px; margin-top: 2px;">{delta}</div>' if delta else ""}
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
@@ -80,8 +80,8 @@ def status_chip(status: str) -> str:
     c = colors.get(status.upper(), {"bg": "#2a2a2a", "fg": "#a0a0a0"})
     return f"""
     <span style="
-        background: {c['bg']};
-        color: {c['fg']};
+        background: {c["bg"]};
+        color: {c["fg"]};
         padding: 3px 10px;
         border-radius: 12px;
         font-size: 12px;

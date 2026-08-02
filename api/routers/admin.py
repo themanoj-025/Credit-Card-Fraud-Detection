@@ -186,9 +186,7 @@ async def get_llm_usage(
                         status=record.status,
                     )
                 except Exception as e:
-                    logger.warning(
-                        "Failed to persist LLM call record: %s", e
-                    )
+                    logger.warning("Failed to persist LLM call record: %s", e)
 
             await session.commit()
 

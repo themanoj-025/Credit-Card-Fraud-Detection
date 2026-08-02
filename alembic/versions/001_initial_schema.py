@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-07-21
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -33,7 +34,9 @@ def upgrade() -> None:
         sa.Column("model_version", sa.String(64), nullable=True),
         sa.Column("latency_ms", sa.Float(), nullable=True),
         sa.Column("features", JSONB().with_variant(sa.JSON(), "sqlite"), nullable=True),
-        sa.Column("shap_values", JSONB().with_variant(sa.JSON(), "sqlite"), nullable=True),
+        sa.Column(
+            "shap_values", JSONB().with_variant(sa.JSON(), "sqlite"), nullable=True
+        ),
         sa.Column("anomaly_score", sa.Float(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False, index=True),
     )
@@ -45,7 +48,9 @@ def upgrade() -> None:
         sa.Column("key_hash", sa.String(64), nullable=False, unique=True, index=True),
         sa.Column("role", sa.String(32), nullable=False, server_default="readonly"),
         sa.Column("description", sa.String(255), nullable=True),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
+        sa.Column(
+            "is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")
+        ),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("last_used_at", sa.DateTime(), nullable=True),
     )
@@ -78,9 +83,17 @@ def upgrade() -> None:
     )
 
     # ─── Indexes ──────────────────────────────────────────────
-    op.create_index("ix_predictions_decision_created", "predictions", ["decision", "created_at"])
-    op.create_index("ix_feedback_prediction_created", "feedback", ["prediction_id", "created_at"])
-    op.create_index("ix_drift_events_feature_created", "drift_events", ["feature_name", "created_at"])
+    op.create_index(
+        "ix_predictions_decision_created", "predictions", ["decision", "created_at"]
+    )
+    op.create_index(
+        "ix_feedback_prediction_created", "feedback", ["prediction_id", "created_at"]
+    )
+    op.create_index(
+        "ix_drift_events_feature_created",
+        "drift_events",
+        ["feature_name", "created_at"],
+    )
 
 
 def downgrade() -> None:

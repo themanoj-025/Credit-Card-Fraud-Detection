@@ -255,7 +255,6 @@ class FraudTrainer:
 
                 # Log the model artifact
                 try:
-
                     mlflow.sklearn.log_model(model, artifact_path="model")
                 except Exception:
                     import tempfile
@@ -284,7 +283,7 @@ class FraudTrainer:
                 mlflow.log_metric("cv_mean_score", cv_results["mean_score"])
                 mlflow.log_metric("cv_std_score", cv_results["std_score"])
                 for i, s in enumerate(cv_results["scores"]):
-                    mlflow.log_metric(f"cv_fold_{i+1}_score", s)
+                    mlflow.log_metric(f"cv_fold_{i + 1}_score", s)
         except Exception as e:
             logger.warning("  MLflow CV logging failed for %s: %s", name, e)
 

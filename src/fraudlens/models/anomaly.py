@@ -116,4 +116,3 @@ class IsolationForestDetector:
         max_score = scores.max()
         probas = 1 - (scores - min_score) / (max_score - min_score + 1e-10)
         return probas
-

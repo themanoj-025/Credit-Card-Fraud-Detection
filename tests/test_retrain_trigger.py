@@ -322,9 +322,7 @@ class TestCheckFeedbackCondition:
 
     def test_none_with_training_history(self, trigger):
         """None input with training artifacts → does not raise."""
-        with patch.object(
-            trigger, "_get_last_training_time", return_value=1000000.0
-        ):
+        with patch.object(trigger, "_get_last_training_time", return_value=1000000.0):
             result = trigger.check_feedback_condition(None)
             assert result["met"] is False  # Default 0 feedback
 
@@ -478,9 +476,7 @@ class TestTriggerPipelineFailure:
         """If pipeline script doesn't exist, returns error."""
         trigger.pipeline_script = "/nonexistent/pipeline.py"
         result = trigger.trigger(
-            recent_drift_events=[
-                {"feature_name": "V14", "alert_type": "CRITICAL"}
-            ] * 2,
+            recent_drift_events=[{"feature_name": "V14", "alert_type": "CRITICAL"}] * 2,
             new_feedback_count=0,
             dry_run=False,
         )
@@ -727,17 +723,13 @@ class TestTimestampParsing:
 
     def test_iso_string(self, trigger):
         """ISO format strings should be parsed."""
-        result = trigger._parse_timestamp(
-            {"created_at": "2026-07-22T12:00:00"}
-        )
+        result = trigger._parse_timestamp({"created_at": "2026-07-22T12:00:00"})
         assert result is not None
         assert result.year == 2026
 
     def test_timestamp_key_fallback(self, trigger):
         """'timestamp' key should be used when 'created_at' is missing."""
-        result = trigger._parse_timestamp(
-            {"timestamp": "2026-07-22T12:00:00"}
-        )
+        result = trigger._parse_timestamp({"timestamp": "2026-07-22T12:00:00"})
         assert result is not None
         assert result.year == 2026
 

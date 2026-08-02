@@ -121,7 +121,10 @@ class TestEDARun:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
             with patch("src.fraudlens.analysis.eda._load_data", return_value=sample_df):
-                with patch("src.fraudlens.analysis.eda.plot_pairplot_top_features", return_value=_dummy_fig()):
+                with patch(
+                    "src.fraudlens.analysis.eda.plot_pairplot_top_features",
+                    return_value=_dummy_fig(),
+                ):
                     run_eda(output_dir)
 
             # Assert actual output was created — real assertion, not just "doesn't raise"
@@ -214,7 +217,9 @@ class TestFeatureImportanceCache:
             result = eda._get_feature_importances(sample_df)
 
         # fit() should NOT have been called — cache hit means we skip training
-        assert len(fit_called) == 0, "fit() was called despite cache being populated — cache miss bug"
+        assert len(fit_called) == 0, (
+            "fit() was called despite cache being populated — cache miss bug"
+        )
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 28
 

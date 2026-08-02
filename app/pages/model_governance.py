@@ -40,8 +40,8 @@ def _status_chip_html(status: str) -> str:
     label = status.capitalize()
     return f"""
     <span style="
-        background: {c['bg']};
-        color: {c['fg']};
+        background: {c["bg"]};
+        color: {c["fg"]};
         padding: 2px 10px;
         border-radius: 12px;
         font-size: 12px;
@@ -62,11 +62,16 @@ def _trigger_chip_html(trigger: str) -> str:
         font-size: 12px;
         font-weight: 600;
         border: 1px solid {color}44;
-    ">{trigger.replace('_', ' ').title()}</span>
+    ">{trigger.replace("_", " ").title()}</span>
     """
 
 
-def _delta_html(label: str, candidate_val: Optional[float], prod_val: Optional[float], fmt: str = ".4f") -> str:
+def _delta_html(
+    label: str,
+    candidate_val: Optional[float],
+    prod_val: Optional[float],
+    fmt: str = ".4f",
+) -> str:
     """Render a metrics delta with color-coded change indicator."""
     if candidate_val is None or prod_val is None:
         delta = None
@@ -77,11 +82,17 @@ def _delta_html(label: str, candidate_val: Optional[float], prod_val: Optional[f
     if delta is None:
         delta_str = "<span style='color:#555;font-size:11px;'>N/A</span>"
     elif delta > 0.001:
-        delta_str = f"<span style='color:#38ef7d;font-size:11px;'>▲ +{delta:{fmt}}</span>"
+        delta_str = (
+            f"<span style='color:#38ef7d;font-size:11px;'>▲ +{delta:{fmt}}</span>"
+        )
     elif delta < -0.001:
-        delta_str = f"<span style='color:#ff6b6b;font-size:11px;'>▼ {delta:{fmt}}</span>"
+        delta_str = (
+            f"<span style='color:#ff6b6b;font-size:11px;'>▼ {delta:{fmt}}</span>"
+        )
     else:
-        delta_str = f"<span style='color:#a0a0a0;font-size:11px;'>— {delta:{fmt}}</span>"
+        delta_str = (
+            f"<span style='color:#a0a0a0;font-size:11px;'>— {delta:{fmt}}</span>"
+        )
 
     return f"""
     <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:6px;padding:8px 12px;text-align:center;">
@@ -120,9 +131,9 @@ def show() -> None:
             "Generate a key via the API:\n"
             "```bash\n"
             "curl -X POST http://localhost:8000/v1/auth/keys \\\n"
-            "  -H \"X-API-Key: your-admin-key\" \\\n"
-            "  -H \"Content-Type: application/json\" \\\n"
-            "  -d '{\"role\": \"admin\"}'\n"
+            '  -H "X-API-Key: your-admin-key" \\\n'
+            '  -H "Content-Type: application/json" \\\n'
+            '  -d \'{"role": "admin"}\'\n'
             "```\n\n"
             "Then set `FRAUDLENS_DASHBOARD_API_KEY=fl_...` in your `.env` file.",
         )
@@ -163,19 +174,31 @@ def _show_pending_tab() -> None:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             metric_card(
-                "Total Candidates", str(total), icon="📦", color="#667eea",
+                "Total Candidates",
+                str(total),
+                icon="📦",
+                color="#667eea",
             )
         with col2:
             metric_card(
-                "Pending Review", str(pending_count), icon="⏳", color="#f1c40f",
+                "Pending Review",
+                str(pending_count),
+                icon="⏳",
+                color="#f1c40f",
             )
         with col3:
             metric_card(
-                "Promoted", str(promoted_count), icon="✅", color="#38ef7d",
+                "Promoted",
+                str(promoted_count),
+                icon="✅",
+                color="#38ef7d",
             )
         with col4:
             metric_card(
-                "Rejected", str(rejected_count), icon="❌", color="#ff6b6b",
+                "Rejected",
+                str(rejected_count),
+                icon="❌",
+                color="#ff6b6b",
             )
 
         # ─── Filter Controls ────────────────────────────────────────
@@ -268,15 +291,15 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
                 <h4 style="color:#e0e0e0;margin:0 0 8px 0;">{version}</h4>
                 <table style="width:100%;font-size:13px;">
                     <tr><td style="color:#a0a0a0;">Trigger</td>
-                        <td style="color:{trigger_color};font-weight:600;">{trigger.replace('_', ' ').title()}</td></tr>
+                        <td style="color:{trigger_color};font-weight:600;">{trigger.replace("_", " ").title()}</td></tr>
                     <tr><td style="color:#a0a0a0;">Detail</td>
-                        <td style="color:#e0e0e0;">{trigger_detail or '—'}</td></tr>
+                        <td style="color:#e0e0e0;">{trigger_detail or "—"}</td></tr>
                     <tr><td style="color:#a0a0a0;">Status</td>
                         <td style="color:{status_color};">{status.title()}</td></tr>
                     <tr><td style="color:#a0a0a0;">Created</td>
-                        <td style="color:#e0e0e0;">{created_at[:10] if created_at else '—'}</td></tr>
+                        <td style="color:#e0e0e0;">{created_at[:10] if created_at else "—"}</td></tr>
                     <tr><td style="color:#a0a0a0;">MLflow Run</td>
-                        <td style="color:#e0e0e0;font-size:11px;">{mlflow_run_id or '—'}</td></tr>
+                        <td style="color:#e0e0e0;font-size:11px;">{mlflow_run_id or "—"}</td></tr>
                 </table>
             </div>
             """,
@@ -290,7 +313,8 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
             with m1:
                 st.markdown(
                     _delta_html(
-                        "PR-AUC", pr_auc,
+                        "PR-AUC",
+                        pr_auc,
                         production_data.get("pr_auc") if production_data else None,
                     ),
                     unsafe_allow_html=True,
@@ -298,7 +322,8 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
             with m2:
                 st.markdown(
                     _delta_html(
-                        "F1", f1,
+                        "F1",
+                        f1,
                         production_data.get("f1_score") if production_data else None,
                     ),
                     unsafe_allow_html=True,
@@ -306,7 +331,8 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
             with m3:
                 st.markdown(
                     _delta_html(
-                        "Precision", precision,
+                        "Precision",
+                        precision,
                         production_data.get("precision") if production_data else None,
                     ),
                     unsafe_allow_html=True,
@@ -314,7 +340,8 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
             with m4:
                 st.markdown(
                     _delta_html(
-                        "Recall", recall,
+                        "Recall",
+                        recall,
                         production_data.get("recall") if production_data else None,
                     ),
                     unsafe_allow_html=True,
@@ -323,9 +350,7 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
             # ─── Production Model Info ──────────────────────────────
             if production_data:
                 prod_version = production_data.get("model_version", "unknown")
-                st.caption(
-                    f"📊 Comparing against production model: **{prod_version}**"
-                )
+                st.caption(f"📊 Comparing against production model: **{prod_version}**")
 
             # ─── Action Buttons (only for pending candidates) ───────
             if is_pending:
@@ -364,7 +389,9 @@ def _handle_promote(client: Any, version: str) -> None:
                 st.session_state["gov_force_refresh"] = True
                 st.rerun()
             else:
-                st.error(f"❌ Promotion failed: {result.get('message', 'Unknown error')}")
+                st.error(
+                    f"❌ Promotion failed: {result.get('message', 'Unknown error')}"
+                )
         except FraudLensAPIError as e:
             if e.status_code == 409:
                 st.warning(f"⚠️ Candidate already processed: {e}")
@@ -384,7 +411,9 @@ def _handle_reject(client: Any, version: str) -> None:
                 st.session_state["gov_force_refresh"] = True
                 st.rerun()
             else:
-                st.error(f"❌ Rejection failed: {result.get('message', 'Unknown error')}")
+                st.error(
+                    f"❌ Rejection failed: {result.get('message', 'Unknown error')}"
+                )
         except FraudLensAPIError as e:
             if e.status_code == 409:
                 st.warning(f"⚠️ Candidate already processed: {e}")
@@ -434,7 +463,9 @@ def _show_history_tab() -> None:
 
         # ─── Rejected History ────────────────────────────────────────
         if rejected_list:
-            st.markdown("<h3 style='margin-top:24px;'>❌ Rejected</h3>", unsafe_allow_html=True)
+            st.markdown(
+                "<h3 style='margin-top:24px;'>❌ Rejected</h3>", unsafe_allow_html=True
+            )
             for r in rejected_list:
                 v = r.get("model_version", "?")
                 t = r.get("trigger", "?")

@@ -58,14 +58,14 @@ def show() -> None:
     st.markdown(
         f"""
     <div style="display:flex;gap:16px;margin-bottom:16px;">
-        <div style="background:#1a1a2e;border:1px solid {'#38ef7d33' if api_available else '#3a1a1a'};border-radius:8px;padding:8px 12px;">
-            <span style="color:{'#38ef7d' if api_available else '#ff6b6b'};font-size:12px;font-weight:600;">
-                {'🟢' if api_available else '🔴'} API: {'Connected' if api_available else 'Offline'}
+        <div style="background:#1a1a2e;border:1px solid {"#38ef7d33" if api_available else "#3a1a1a"};border-radius:8px;padding:8px 12px;">
+            <span style="color:{"#38ef7d" if api_available else "#ff6b6b"};font-size:12px;font-weight:600;">
+                {"🟢" if api_available else "🔴"} API: {"Connected" if api_available else "Offline"}
             </span>
         </div>
-        <div style="background:#1a1a2e;border:1px solid {'#38ef7d33' if has_api_key else '#3a3a1a'};border-radius:8px;padding:8px 12px;">
-            <span style="color:{'#38ef7d' if has_api_key else '#f1c40f'};font-size:12px;font-weight:600;">
-                {'🟢' if has_api_key else '🟡'} LLM: {'Connected' if has_api_key else 'API Key Missing'}
+        <div style="background:#1a1a2e;border:1px solid {"#38ef7d33" if has_api_key else "#3a3a1a"};border-radius:8px;padding:8px 12px;">
+            <span style="color:{"#38ef7d" if has_api_key else "#f1c40f"};font-size:12px;font-weight:600;">
+                {"🟢" if has_api_key else "🟡"} LLM: {"Connected" if has_api_key else "API Key Missing"}
             </span>
         </div>
     </div>

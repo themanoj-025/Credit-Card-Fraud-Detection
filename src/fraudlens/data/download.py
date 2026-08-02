@@ -25,7 +25,12 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Target path
-_DATA_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "raw" / "creditcard.csv"
+_DATA_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent
+    / "data"
+    / "raw"
+    / "creditcard.csv"
+)
 
 # Synthetic dataset parameters (mimics real creditcard.csv statistics)
 _SYNTHETIC_N_ROWS = 10000
@@ -92,9 +97,7 @@ def _download_from_kaggle(target_path: Path) -> bool:
         return False
 
     except ImportError:
-        logger.warning(
-            "kaggle package not installed. Install with: pip install kaggle"
-        )
+        logger.warning("kaggle package not installed. Install with: pip install kaggle")
         return False
     except Exception as e:
         logger.warning("Kaggle download failed: %s", e)

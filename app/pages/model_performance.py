@@ -73,7 +73,7 @@ def show() -> None:
             f"""
         <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🏆 Best Model</span>
-            <div style="color:#e0e0e0;font-size:24px;font-weight:700;">{best_row['Model']}</div>
+            <div style="color:#e0e0e0;font-size:24px;font-weight:700;">{best_row["Model"]}</div>
         </div>
         """,
             unsafe_allow_html=True,
@@ -83,7 +83,7 @@ def show() -> None:
             f"""
         <div style="background:#1a1a2e;border:1px solid #38ef7d33;border-left:4px solid #38ef7d;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🎯 PR-AUC</span>
-            <div style="color:#38ef7d;font-size:24px;font-weight:700;">{best_row['PR-AUC']:.4f}</div>
+            <div style="color:#38ef7d;font-size:24px;font-weight:700;">{best_row["PR-AUC"]:.4f}</div>
         </div>
         """,
             unsafe_allow_html=True,
@@ -93,7 +93,7 @@ def show() -> None:
             f"""
         <div style="background:#1a1a2e;border:1px solid #667eea33;border-left:4px solid #667eea;border-radius:8px;padding:16px;">
             <span style="color:#a0a0a0;font-size:13px;">🔄 F1 Score</span>
-            <div style="color:#667eea;font-size:24px;font-weight:700;">{best_row['F1']:.4f}</div>
+            <div style="color:#667eea;font-size:24px;font-weight:700;">{best_row["F1"]:.4f}</div>
         </div>
         """,
             unsafe_allow_html=True,
@@ -201,7 +201,7 @@ def show() -> None:
     <div style="background:#1a1a2e;border:1px solid #667eea33;border-left:4px solid #667eea;border-radius:8px;padding:16px;">
         <p style="color:#e0e0e0;line-height:1.6;">
         <strong>Selection Rule:</strong> Model with highest PR-AUC is selected as best.<br><br>
-        <strong>Winner:</strong> <code>{best_row['Model']}</code> with PR-AUC of {best_row['PR-AUC']:.4f}.<br><br>
+        <strong>Winner:</strong> <code>{best_row["Model"]}</code> with PR-AUC of {best_row["PR-AUC"]:.4f}.<br><br>
         <strong>Why PR-AUC?</strong> With only 0.17% fraud in the dataset, ROC-AUC is misleading 
         (a random model can score 0.5+). PR-AUC evaluates performance on the minority class 
         honestly — it's the standard metric for imbalanced fraud detection.<br><br>

@@ -50,6 +50,7 @@ _DEFAULT_PRICING = {"input_per_1m": 3.00, "output_per_1m": 15.00}
 @dataclass
 class CallRecord:
     """A single LLM API call record."""
+
     timestamp: float
     model: str
     endpoint: str
@@ -62,6 +63,7 @@ class CallRecord:
 @dataclass
 class DailySummary:
     """Aggregate cost summary for a day."""
+
     date: str
     total_cost_usd: float
     total_calls: int
@@ -157,9 +159,7 @@ class CostTracker:
 
     def get_today_summary(self) -> DailySummary:
         """Get cost summary for today."""
-        today_start = datetime.now().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         return self._get_summary_since(today_start.timestamp())
 
     def get_month_summary(self) -> DailySummary:
@@ -187,9 +187,7 @@ class CostTracker:
         by_endpoint: Dict[str, float] = {}
         for r in records:
             by_model[r.model] = by_model.get(r.model, 0) + r.cost_usd
-            by_endpoint[r.endpoint] = (
-                by_endpoint.get(r.endpoint, 0) + r.cost_usd
-            )
+            by_endpoint[r.endpoint] = by_endpoint.get(r.endpoint, 0) + r.cost_usd
 
         return DailySummary(
             date=datetime.now().strftime("%Y-%m-%d"),
@@ -215,7 +213,6 @@ class CostTracker:
             "by_endpoint": summary.by_endpoint,
         }
 
-
     def get_pending_records(self) -> List[CallRecord]:
         """
         Get all pending (in-memory) records that haven't been persisted yet.
@@ -236,9 +233,7 @@ class CostTracker:
         with self._lock:
             self._records = [r for r in self._records if r.timestamp > cutoff]
 
-    def get_period_summary_dict(
-        self, period: str = "today"
-    ) -> Dict[str, Any]:
+    def get_period_summary_dict(self, period: str = "today") -> Dict[str, Any]:
         """
         Get summary as a JSON-serializable dict (from in-memory data).
 
@@ -274,18 +269,15 @@ class CostTracker:
             + memory_summary.get("total_cost_usd", 0),
             6,
         )
-        combined["total_calls"] = (
-            db_summary.get("total_calls", 0)
-            + memory_summary.get("total_calls", 0)
+        combined["total_calls"] = db_summary.get("total_calls", 0) + memory_summary.get(
+            "total_calls", 0
         )
-        combined["total_input_tokens"] = (
-            db_summary.get("total_input_tokens", 0)
-            + memory_summary.get("total_input_tokens", 0)
-        )
-        combined["total_output_tokens"] = (
-            db_summary.get("total_output_tokens", 0)
-            + memory_summary.get("total_output_tokens", 0)
-        )
+        combined["total_input_tokens"] = db_summary.get(
+            "total_input_tokens", 0
+        ) + memory_summary.get("total_input_tokens", 0)
+        combined["total_output_tokens"] = db_summary.get(
+            "total_output_tokens", 0
+        ) + memory_summary.get("total_output_tokens", 0)
 
         # Merge by_model dicts
         by_model = dict(db_summary.get("by_model", {}))

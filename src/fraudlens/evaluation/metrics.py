@@ -276,22 +276,22 @@ def print_evaluation_summary(results: Dict[str, Any]) -> str:
     Format evaluation results as a readable string.
     """
     lines = [
-        f"\n{'='*60}",
+        f"\n{'=' * 60}",
         f"  EVALUATION: {results['model_name']}",
-        f"{'='*60}",
+        f"{'=' * 60}",
         f"  Threshold:       {results['threshold']:.4f}",
         f"  PR-AUC:          {results['pr_auc']:.4f}  <-- PRIMARY METRIC",
         f"  ROC-AUC:         {results['roc_auc']:.4f}",
         f"  F1 Score:        {results['f1']:.4f}",
         f"  Precision:       {results['precision']:.4f}",
         f"  Recall:          {results['recall']:.4f}",
-        f"{'-'*60}",
+        f"{'-' * 60}",
         "  BUSINESS IMPACT:",
         f"  Fraud Caught:    ${results['business']['fraud_caught_usd']:>10,.2f}",
         f"  Fraud Missed:    ${results['business']['fraud_missed_usd']:>10,.2f}",
         f"  Review Costs:    ${results['business']['review_costs_usd']:>10,.2f}",
         "  --------------------------------------------",
         f"  Net Benefit:     ${results['business']['net_benefit_usd']:>10,.2f}",
-        f"{'='*60}",
+        f"{'=' * 60}",
     ]
     return "\n".join(lines)

@@ -346,7 +346,7 @@ def show() -> None:
             feed_html += f"""
             <div style="
                 background: #1a1a2e;
-                border: 1px solid {'#3a1a1a' if t['is_fraud'] else '#1a3a2a'};
+                border: 1px solid {"#3a1a1a" if t["is_fraud"] else "#1a3a2a"};
                 border-radius: 8px;
                 padding: 8px 12px;
                 margin: 4px 0;
@@ -354,9 +354,9 @@ def show() -> None:
                 justify-content: space-between;
                 align-items: center;
             ">
-                <span style="color: #a0a0a0;">{t['time']}</span>
-                <span style="color: #e0e0e0; font-weight: 600;">{t['amount']}</span>
-                <span style="color: #667eea;">{t['probability']}</span>
+                <span style="color: #a0a0a0;">{t["time"]}</span>
+                <span style="color: #e0e0e0; font-weight: 600;">{t["amount"]}</span>
+                <span style="color: #667eea;">{t["probability"]}</span>
                 <span>{status_label}</span>
             </div>
             """

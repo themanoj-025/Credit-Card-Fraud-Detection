@@ -355,20 +355,22 @@ class TestMockedAnthropicEdgeCases:
 
         def _raise_timeout(*args, **kwargs):
             import anthropic
+
             raise anthropic.APITimeoutError("Request timed out")
 
-        with patch.object(
-            narrator, "_client", None
-        ):
+        with patch.object(narrator, "_client", None):
             # Patch _init_client to set up a client whose create raises
             def _setup_timeout_client():
                 import anthropic
+
                 class TimeoutMessages:
                     def create(self, *args, **kwargs):
                         raise anthropic.APITimeoutError("Request timed out")
+
                 class TimeoutClient:
                     def __init__(self):
                         self.messages = TimeoutMessages()
+
                 narrator._client = TimeoutClient()
 
             with patch.object(narrator, "_init_client", _setup_timeout_client):
@@ -464,8 +466,10 @@ class TestMockedAnthropicEdgeCases:
         class OpenBreaker:
             def is_open(self):
                 return True
+
             def record_success(self):
                 pass
+
             def record_failure(self):
                 pass
 
@@ -510,6 +514,7 @@ class TestFactualityChecker:
         Returns dict with pass/fail and any hallucinated features.
         """
         import re
+
         actual_features = {f["feature"] for f in shap_features}
         mentioned_features = set(re.findall(r"V\d+", narrative))
         hallucinated = mentioned_features - actual_features
@@ -523,9 +528,19 @@ class TestFactualityChecker:
     def test_matched_case_passes(self):
         """Golden set: narrative mentions only expected features."""
         shap_features = [
-            {"feature": "V14", "value": -5.23, "shap_value": 0.34, "impact": "increases"},
+            {
+                "feature": "V14",
+                "value": -5.23,
+                "shap_value": 0.34,
+                "impact": "increases",
+            },
             {"feature": "V4", "value": 4.12, "shap_value": 0.22, "impact": "increases"},
-            {"feature": "V12", "value": -3.89, "shap_value": 0.18, "impact": "increases"},
+            {
+                "feature": "V12",
+                "value": -3.89,
+                "shap_value": 0.18,
+                "impact": "increases",
+            },
         ]
         narrative = "Transaction flagged due to unusual V14 and V4 patterns."
 
@@ -536,7 +551,12 @@ class TestFactualityChecker:
     def test_hallucinated_feature_fails(self):
         """Golden set: narrative mentions a feature not in SHAP contributors."""
         shap_features = [
-            {"feature": "V14", "value": -5.23, "shap_value": 0.34, "impact": "increases"},
+            {
+                "feature": "V14",
+                "value": -5.23,
+                "shap_value": 0.34,
+                "impact": "increases",
+            },
             {"feature": "V4", "value": 4.12, "shap_value": 0.22, "impact": "increases"},
         ]
         # V10 is NOT in the SHAP contributors
@@ -549,9 +569,19 @@ class TestFactualityChecker:
     def test_all_features_mentioned_passes(self):
         """Golden set: narrative mentions ALL actual SHAP features."""
         shap_features = [
-            {"feature": "V14", "value": -5.23, "shap_value": 0.34, "impact": "increases"},
+            {
+                "feature": "V14",
+                "value": -5.23,
+                "shap_value": 0.34,
+                "impact": "increases",
+            },
             {"feature": "V4", "value": 4.12, "shap_value": 0.22, "impact": "increases"},
-            {"feature": "V10", "value": 0.09, "shap_value": 0.11, "impact": "increases"},
+            {
+                "feature": "V10",
+                "value": 0.09,
+                "shap_value": 0.11,
+                "impact": "increases",
+            },
         ]
         narrative = "V14, V4, and V10 were the top contributing features."
 
@@ -561,7 +591,12 @@ class TestFactualityChecker:
     def test_no_features_mentioned_passes(self):
         """Narrative with no V-feature references should pass (no hallucination)."""
         shap_features = [
-            {"feature": "V14", "value": -5.23, "shap_value": 0.34, "impact": "increases"},
+            {
+                "feature": "V14",
+                "value": -5.23,
+                "shap_value": 0.34,
+                "impact": "increases",
+            },
         ]
         narrative = "Transaction appears legitimate with no strong fraud indicators."
 

@@ -84,8 +84,7 @@ class CaseNarrator:
             self._client = Anthropic(api_key=self.api_key)
         except ImportError:
             logger.error(
-                "anthropic package not installed. "
-                "Install with: pip install anthropic"
+                "anthropic package not installed. Install with: pip install anthropic"
             )
             raise
 
@@ -233,7 +232,7 @@ Be specific, concise, and avoid technical jargon. Write as if for a non-technica
         else:
             narrative = (
                 prefix + f"Transaction appears legitimate "
-                f"({1-fraud_probability:.1%} confidence). "
+                f"({1 - fraud_probability:.1%} confidence). "
                 f"No strong fraud indicators detected."
             )
 

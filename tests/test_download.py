@@ -234,9 +234,7 @@ class TestEnsureDataReady:
     def test_default_path(self):
         """Should use the default path when no target_path given."""
         # Just verify it doesn't raise
-        with patch(
-            "src.fraudlens.data.download._DATA_PATH"
-        ) as mock_path:
+        with patch("src.fraudlens.data.download._DATA_PATH") as mock_path:
             mock_path.return_value = Path("/tmp/test_default.csv")
             with patch(
                 "src.fraudlens.data.download._is_valid_dataset",
@@ -263,9 +261,7 @@ class TestGetOrCreateData:
 
     def test_creates_data_without_path(self):
         """Should work without specifying a path."""
-        with patch(
-            "src.fraudlens.data.download._DATA_PATH"
-        ) as mock_path:
+        with patch("src.fraudlens.data.download._DATA_PATH") as mock_path:
             mock_path.return_value = Path("/tmp/test_get_or_create.csv")
             with patch(
                 "src.fraudlens.data.download._is_valid_dataset",

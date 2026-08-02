@@ -96,11 +96,8 @@ def _candidate_to_out(candidate: Any) -> ModelCandidateOut:
         ),
         promoted_at=(
             candidate.promoted_at.isoformat()
-            if candidate.promoted_at
-            and hasattr(candidate.promoted_at, "isoformat")
-            else (
-                str(candidate.promoted_at) if candidate.promoted_at else None
-            )
+            if candidate.promoted_at and hasattr(candidate.promoted_at, "isoformat")
+            else (str(candidate.promoted_at) if candidate.promoted_at else None)
         ),
     )
 
@@ -395,9 +392,7 @@ async def compare_candidate(
             and production.pr_auc is not None
         ):
             metrics_delta = {
-                "pr_auc": round(
-                    (candidate.pr_auc or 0) - (production.pr_auc or 0), 6
-                ),
+                "pr_auc": round((candidate.pr_auc or 0) - (production.pr_auc or 0), 6),
                 "f1_score": round(
                     (candidate.f1_score or 0) - (production.f1_score or 0),
                     6,
@@ -406,15 +401,11 @@ async def compare_candidate(
                     (candidate.precision or 0) - (production.precision or 0),
                     6,
                 ),
-                "recall": round(
-                    (candidate.recall or 0) - (production.recall or 0), 6
-                ),
+                "recall": round((candidate.recall or 0) - (production.recall or 0), 6),
             }
 
         return CompareResponse(
-            current_production=(
-                _candidate_to_out(production) if production else None
-            ),
+            current_production=(_candidate_to_out(production) if production else None),
             candidate=_candidate_to_out(candidate),
             metrics_delta=metrics_delta,
         )

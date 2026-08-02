@@ -66,9 +66,7 @@ class ModelCandidateRepository(BaseRepository[ModelCandidateModel]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_version(
-        self, model_version: str
-    ) -> Optional[ModelCandidateModel]:
+    async def get_by_version(self, model_version: str) -> Optional[ModelCandidateModel]:
         """Get a candidate by its version string."""
         result = await self.session.execute(
             select(ModelCandidateModel).where(
@@ -91,9 +89,7 @@ class ModelCandidateRepository(BaseRepository[ModelCandidateModel]):
         await self.session.refresh(candidate)
         return candidate
 
-    async def reject(
-        self, model_version: str
-    ) -> Optional[ModelCandidateModel]:
+    async def reject(self, model_version: str) -> Optional[ModelCandidateModel]:
         """Reject a candidate (mark as rejected)."""
         candidate = await self.get_by_version(model_version)
         if candidate is None:

@@ -111,8 +111,12 @@ data = preprocessor.full_preprocess(df)
 X_train, X_test = data["X_train"], data["X_test"]
 y_train, y_test = data["y_train"], data["y_test"]
 
-print(f"    Train: {X_train.shape[0]} samples ({y_train.sum()} fraud, {y_train.mean()*100:.4f}%)")
-print(f"    Test:  {X_test.shape[0]} samples ({y_test.sum()} fraud, {y_test.mean()*100:.4f}%)")
+print(
+    f"    Train: {X_train.shape[0]} samples ({y_train.sum()} fraud, {y_train.mean() * 100:.4f}%)"
+)
+print(
+    f"    Test:  {X_test.shape[0]} samples ({y_test.sum()} fraud, {y_test.mean() * 100:.4f}%)"
+)
 
 preprocessor.save_scaler(str(MODELS_DIR / "scaler.pkl"))
 
@@ -126,7 +130,9 @@ strategies = ["none", "random_under", "smote", "adasyn", "smote_tomek"]
 resampled = resampler.compare_strategies(X_train, y_train, strategies)
 
 for strat, (X_r, y_r) in resampled.items():
-    print(f"    {strat:<20}: {len(X_r):>8} samples, {int(y_r.sum()):>5} fraud ({y_r.mean()*100:.2f}%)")
+    print(
+        f"    {strat:<20}: {len(X_r):>8} samples, {int(y_r.sum()):>5} fraud ({y_r.mean() * 100:.2f}%)"
+    )
 
 # STAGE 3.5: Hyperparameter Optimization (Optuna) — optional
 print("\n" + "-" * 70)
@@ -162,7 +168,9 @@ models = trainer.train_all(X_train, y_train)
 print("\n  Running 5-fold CV on supervised models...")
 cv_results = trainer.cross_validate(X_train, y_train)
 for name, result in cv_results.items():
-    print(f"    {name:<22}: PR-AUC = {result['mean_score']:.4f} ± {result['std_score']:.4f}")
+    print(
+        f"    {name:<22}: PR-AUC = {result['mean_score']:.4f} ± {result['std_score']:.4f}"
+    )
 
 # 4c. Isolation Forest (unsupervised, trained on legit only)
 iso_detector = IsolationForestDetector(contamination=0.005, n_estimators=200)
@@ -185,7 +193,9 @@ print("  [5/6] Evaluation & Comparison")
 print("-" * 70)
 
 evaluator = FraudEvaluator(avg_fraud_loss=AVG_FRAUD_LOSS, review_cost=REVIEW_COST)
-cost_calc = BusinessCostCalculator(avg_fraud_loss=AVG_FRAUD_LOSS, review_cost=REVIEW_COST)
+cost_calc = BusinessCostCalculator(
+    avg_fraud_loss=AVG_FRAUD_LOSS, review_cost=REVIEW_COST
+)
 
 predictions: Dict[str, np.ndarray] = {}
 thresholds: Dict[str, float] = {}
@@ -198,8 +208,9 @@ for name, model in models.items():
     threshold, biz_cost = cost_calc.find_optimal_threshold(y_test, y_proba)
     thresholds[name] = threshold
     business_costs[name] = biz_cost
-    result = evaluator.evaluate_model(y_test, y_proba, threshold=threshold,
-                                       model_name=name, business_cost=biz_cost)
+    result = evaluator.evaluate_model(
+        y_test, y_proba, threshold=threshold, model_name=name, business_cost=biz_cost
+    )
     print(print_evaluation_summary(result))
 
 # Evaluate Isolation Forest
@@ -208,8 +219,13 @@ predictions["Isolation Forest"] = iso_probas
 th_if, biz_if = cost_calc.find_optimal_threshold(y_test, iso_probas)
 thresholds["Isolation Forest"] = th_if
 business_costs["Isolation Forest"] = biz_if
-result_if = evaluator.evaluate_model(y_test, iso_probas, threshold=th_if,
-                                       model_name="Isolation Forest", business_cost=biz_if)
+result_if = evaluator.evaluate_model(
+    y_test,
+    iso_probas,
+    threshold=th_if,
+    model_name="Isolation Forest",
+    business_cost=biz_if,
+)
 print(print_evaluation_summary(result_if))
 
 # Build comparison table
@@ -251,7 +267,8 @@ charts_dir = PROCESSED_DATA_DIR
 # Chart 1: PR Curves Overlay
 print("    PR Curves...")
 evaluator.plot_precision_recall_curve(
-    y_test, predictions,
+    y_test,
+    predictions,
     save_path=str(charts_dir / "pr_curves.png"),
 )
 
@@ -259,7 +276,8 @@ evaluator.plot_precision_recall_curve(
 print("    Cost vs Threshold...")
 best_name = selection["best_model_name"]
 cost_calc.plot_cost_vs_threshold(
-    y_test, predictions[best_name],
+    y_test,
+    predictions[best_name],
     model_name=best_name,
     save_path=str(charts_dir / "cost_vs_threshold.png"),
 )
@@ -267,7 +285,9 @@ cost_calc.plot_cost_vs_threshold(
 # Chart 3: Confusion Matrices (Top 3)
 print("    Confusion Matrices...")
 evaluator.plot_confusion_matrices(
-    y_test, predictions, top_n=3,
+    y_test,
+    predictions,
+    top_n=3,
     save_path=str(charts_dir / "confusion_matrices.png"),
 )
 
@@ -286,24 +306,30 @@ f1_scores = comparison["F1"].values.astype(float)
 ax = axes[0, 0]
 for name, y_proba in predictions.items():
     from sklearn.metrics import precision_recall_curve, average_precision_score
+
     p, r, _ = precision_recall_curve(y_test, y_proba)
     ap = average_precision_score(y_test, y_proba)
     ax.plot(r, p, linewidth=2, label=f"{name} (AP={ap:.3f})")
-ax.set_xlabel("Recall"); ax.set_ylabel("Precision")
+ax.set_xlabel("Recall")
+ax.set_ylabel("Precision")
 ax.set_title("Precision-Recall Curves", fontsize=13, fontweight="bold")
-ax.legend(fontsize=7, loc="lower left"); ax.grid(True, alpha=0.3)
+ax.legend(fontsize=7, loc="lower left")
+ax.grid(True, alpha=0.3)
 
 # Panel 2: ROC Curves
 ax = axes[0, 1]
 from sklearn.metrics import roc_curve, roc_auc_score
+
 for name, y_proba in predictions.items():
     fpr, tpr, _ = roc_curve(y_test, y_proba)
     auc_score = roc_auc_score(y_test, y_proba)
     ax.plot(fpr, tpr, linewidth=2, label=f"{name} (AUC={auc_score:.3f})")
 ax.plot([0, 1], [0, 1], "k--", alpha=0.5, label="Random")
-ax.set_xlabel("FPR"); ax.set_ylabel("TPR")
+ax.set_xlabel("FPR")
+ax.set_ylabel("TPR")
 ax.set_title("ROC Curves", fontsize=13, fontweight="bold")
-ax.legend(fontsize=7, loc="lower right"); ax.grid(True, alpha=0.3)
+ax.legend(fontsize=7, loc="lower right")
+ax.grid(True, alpha=0.3)
 
 # Panel 3: PR-AUC Comparison
 ax = axes[0, 2]
@@ -311,9 +337,16 @@ colors = plt.cm.RdYlGn(np.linspace(0.3, 0.9, len(models_list)))
 bars = ax.barh(range(len(models_list)), pr_aucs, color=colors)
 ax.set_yticks(range(len(models_list)))
 ax.set_yticklabels(models_list, fontsize=10)
-ax.set_xlabel("PR-AUC"); ax.set_title("PR-AUC (higher is better)", fontsize=13, fontweight="bold")
+ax.set_xlabel("PR-AUC")
+ax.set_title("PR-AUC (higher is better)", fontsize=13, fontweight="bold")
 for bar, val in zip(bars, pr_aucs):
-    ax.text(val + 0.005, bar.get_y() + bar.get_height()/2, f"{val:.4f}", va="center", fontsize=9)
+    ax.text(
+        val + 0.005,
+        bar.get_y() + bar.get_height() / 2,
+        f"{val:.4f}",
+        va="center",
+        fontsize=9,
+    )
 ax.set_xlim(0, max(pr_aucs) * 1.15)
 
 # Panel 4: Business Impact
@@ -322,20 +355,35 @@ colors_biz = ["#38ef7d" if nb > 0 else "#ff416c" for nb in net_benefits]
 bars = ax.barh(range(len(models_list)), net_benefits, color=colors_biz)
 ax.set_yticks(range(len(models_list)))
 ax.set_yticklabels(models_list, fontsize=10)
-ax.set_xlabel("Net Benefit ($)"); ax.set_title("Business Impact", fontsize=13, fontweight="bold")
+ax.set_xlabel("Net Benefit ($)")
+ax.set_title("Business Impact", fontsize=13, fontweight="bold")
 for bar, val in zip(bars, net_benefits):
-    ax.text(val + 100, bar.get_y() + bar.get_height()/2, f"${val:,.0f}", va="center", fontsize=9)
+    ax.text(
+        val + 100,
+        bar.get_y() + bar.get_height() / 2,
+        f"${val:,.0f}",
+        va="center",
+        fontsize=9,
+    )
 
 # Panel 5: Precision vs Recall Scatter
 ax = axes[1, 1]
-scatter = ax.scatter(recalls, precisions, s=200, c=pr_aucs, cmap="RdYlGn",
-                      edgecolors="black", zorder=5)
+scatter = ax.scatter(
+    recalls, precisions, s=200, c=pr_aucs, cmap="RdYlGn", edgecolors="black", zorder=5
+)
 for i, name in enumerate(models_list):
-    ax.annotate(name, (recalls[i], precisions[i]),
-                textcoords="offset points", xytext=(5, 5), fontsize=8)
-ax.set_xlabel("Recall"); ax.set_ylabel("Precision")
+    ax.annotate(
+        name,
+        (recalls[i], precisions[i]),
+        textcoords="offset points",
+        xytext=(5, 5),
+        fontsize=8,
+    )
+ax.set_xlabel("Recall")
+ax.set_ylabel("Precision")
 ax.set_title("Precision vs Recall", fontsize=13, fontweight="bold")
-plt.colorbar(scatter, ax=ax, label="PR-AUC"); ax.grid(True, alpha=0.3)
+plt.colorbar(scatter, ax=ax, label="PR-AUC")
+ax.grid(True, alpha=0.3)
 
 # Panel 6: F1 Score
 ax = axes[1, 2]
@@ -343,13 +391,24 @@ colors_f1 = plt.cm.viridis(np.linspace(0.3, 0.9, len(models_list)))
 bars = ax.bar(range(len(models_list)), f1_scores, color=colors_f1)
 ax.set_xticks(range(len(models_list)))
 ax.set_xticklabels(models_list, rotation=45, ha="right", fontsize=9)
-ax.set_ylabel("F1 Score"); ax.set_title("F1 Score", fontsize=13, fontweight="bold")
+ax.set_ylabel("F1 Score")
+ax.set_title("F1 Score", fontsize=13, fontweight="bold")
 for bar, val in zip(bars, f1_scores):
-    ax.text(bar.get_x() + bar.get_width()/2, val + 0.01, f"{val:.4f}", ha="center", fontsize=9)
+    ax.text(
+        bar.get_x() + bar.get_width() / 2,
+        val + 0.01,
+        f"{val:.4f}",
+        ha="center",
+        fontsize=9,
+    )
 
-plt.suptitle("FraudLens — Comprehensive Model Comparison", fontsize=16, fontweight="bold", y=1.02)
+plt.suptitle(
+    "FraudLens — Comprehensive Model Comparison", fontsize=16, fontweight="bold", y=1.02
+)
 plt.tight_layout()
-plt.savefig(str(charts_dir / "comprehensive_comparison.png"), dpi=150, bbox_inches="tight")
+plt.savefig(
+    str(charts_dir / "comprehensive_comparison.png"), dpi=150, bbox_inches="tight"
+)
 plt.close()
 
 # FINAL SUMMARY
@@ -359,7 +418,9 @@ print("=" * 70)
 print(f"\n  Best Model:      {selection['best_model_name']}")
 print(f"  PR-AUC:          {selection['metric_value']:.4f}")
 print(f"  Threshold:       {best_threshold:.4f}")
-print(f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}")
+print(
+    f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}"
+)
 print(f"  Selection:       {selection['reasoning']}")
 
 biz = business_costs.get(selection["best_model_name"], {})

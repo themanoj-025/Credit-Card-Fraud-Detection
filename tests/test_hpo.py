@@ -275,6 +275,7 @@ class TestHPOFailurePath:
 
         # Simulate optuna not being available
         import builtins
+
         original_import = builtins.__import__
 
         def _mock_import(name, *args, **kwargs):
@@ -328,6 +329,7 @@ class TestHPOBestParamsPassThrough:
             constructor_kwargs.append(kwargs)
             # Return a real model for the CV to work
             from xgboost import XGBClassifier
+
             return XGBClassifier(**kwargs)
 
         with patch.dict("sys.modules", {"optuna": mock_optuna}):

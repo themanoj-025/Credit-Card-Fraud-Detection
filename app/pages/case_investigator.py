@@ -163,7 +163,7 @@ def show() -> None:
                     </span>
                     <span style="color: #a0a0a0; margin-left: 12px;">
                         Probability: {prob:.1%} | 
-                        Amount: ${tx.get('Amount', 0):,.2f}
+                        Amount: ${tx.get("Amount", 0):,.2f}
                     </span>
                 </div>
             </div>
@@ -257,14 +257,14 @@ def show() -> None:
                     f"""
                 <div style="
                     background: {color};
-                    border: 1px solid {'#ff6b6b33' if outcome == 'confirmed_fraud' else '#38ef7d33'};
+                    border: 1px solid {"#ff6b6b33" if outcome == "confirmed_fraud" else "#38ef7d33"};
                     border-radius: 8px;
                     padding: 10px 12px;
                     margin: 4px 0;
                 ">
                     <span style="color: #e0e0e0; font-weight: 600;">{label}</span>
                     <span style="color: #a0a0a0; margin-left: 8px;">
-                        Similarity: {case.get('similarity_score', 0):.2%}
+                        Similarity: {case.get("similarity_score", 0):.2%}
                     </span>
                 </div>
                 """,

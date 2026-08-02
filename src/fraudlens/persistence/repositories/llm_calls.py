@@ -82,15 +82,12 @@ class LlmCallRepository(BaseRepository[LlmCallModel]):
             Dict with total_cost_usd, total_calls, total_input_tokens,
             total_output_tokens, by_model, by_endpoint
         """
-        stmt = (
-            select(
-                func.count(LlmCallModel.id).label("total_calls"),
-                func.sum(LlmCallModel.input_tokens).label("total_input_tokens"),
-                func.sum(LlmCallModel.output_tokens).label("total_output_tokens"),
-                func.sum(LlmCallModel.cost_usd).label("total_cost_usd"),
-            )
-            .where(LlmCallModel.created_at >= since)
-        )
+        stmt = select(
+            func.count(LlmCallModel.id).label("total_calls"),
+            func.sum(LlmCallModel.input_tokens).label("total_input_tokens"),
+            func.sum(LlmCallModel.output_tokens).label("total_output_tokens"),
+            func.sum(LlmCallModel.cost_usd).label("total_cost_usd"),
+        ).where(LlmCallModel.created_at >= since)
         result = await self.session.execute(stmt)
         row = result.one()
 

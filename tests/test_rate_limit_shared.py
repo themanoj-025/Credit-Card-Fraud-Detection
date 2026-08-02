@@ -102,7 +102,9 @@ class TestSharedRedisCounter:
 
         # Create two limiters with SEPARATE backends
         limiter_a = Limiter(key_func=get_remote_address)  # In-memory
-        limiter_b = Limiter(key_func=get_remote_address)  # Also in-memory (different instance)
+        limiter_b = Limiter(
+            key_func=get_remote_address
+        )  # Also in-memory (different instance)
 
         test_key = "test:separate:worker"
 

@@ -158,8 +158,7 @@ class RetrainingTrigger:
         critical_events = [
             e
             for e in recent_drift_events
-            if e.get("alert_type") == "CRITICAL"
-            or e.get("alert", "") == "CRITICAL"
+            if e.get("alert_type") == "CRITICAL" or e.get("alert", "") == "CRITICAL"
         ]
         # Filter by time if timestamps available.
         # Events with unparseable timestamps are included conservatively
@@ -307,8 +306,7 @@ class RetrainingTrigger:
 
         if drift["met"] and feedback["met"]:
             primary_reason = (
-                f"Drift ({drift['detail']}) AND "
-                f"feedback volume ({feedback['detail']})"
+                f"Drift ({drift['detail']}) AND feedback volume ({feedback['detail']})"
             )
         elif drift["met"]:
             primary_reason = f"Drift trigger: {drift['detail']}"
@@ -389,7 +387,9 @@ class RetrainingTrigger:
 
             experiment = mlflow.get_experiment_by_name(self.mlflow_experiment)
             if experiment is None:
-                logger.warning("MLflow experiment '%s' not found", self.mlflow_experiment)
+                logger.warning(
+                    "MLflow experiment '%s' not found", self.mlflow_experiment
+                )
                 return None
 
             # Find the latest run in the experiment
@@ -536,9 +536,7 @@ class RetrainingTrigger:
 
         # Step 4: Register in MLflow
         trigger_type = (
-            "drift"
-            if check["conditions"]["drift"]["met"]
-            else "feedback_volume"
+            "drift" if check["conditions"]["drift"]["met"] else "feedback_volume"
         )
         mlflow_run_id = self.register_mlflow_run(
             trigger=trigger_type,
@@ -615,9 +613,7 @@ def run_retraining_pipeline() -> None:
 
     dry_run = os.environ.get("RETRAINING_DRY_RUN", "").lower() == "true"
 
-    logger.info(
-        "Retraining trigger check starting (dry_run=%s)...", dry_run
-    )
+    logger.info("Retraining trigger check starting (dry_run=%s)...", dry_run)
 
     result = check_and_trigger(dry_run=dry_run)
 

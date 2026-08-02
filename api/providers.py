@@ -273,7 +273,6 @@ def _get_request_state(request: Optional[Request] = None):
         return request.app.state
     # Fallback: try to get the current request context
     try:
-
         # If called as a plain function, we can't access app.state without a request
         return None
     except Exception:

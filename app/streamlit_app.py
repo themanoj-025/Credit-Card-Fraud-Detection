@@ -106,16 +106,20 @@ with st.sidebar:
                 </span>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:6px;">
-                <span style="color:#555;font-size:11px;">{today.total_calls} calls</span>
+                <span style="color:#555;font-size:11px;">{
+                today.total_calls
+            } calls</span>
                 <span style="color:#555;font-size:11px;">
                     {today.total_input_tokens + today.total_output_tokens:,} tokens
                 </span>
             </div>
             <div style="margin-top:4px;">
-                {" ".join(
+                {
+                " ".join(
                     f'<span style="background:#2a2a3e;color:#a0a0a0;padding:1px 6px;border-radius:4px;font-size:10px;margin:1px;">{m} ${c:.4f}</span>'
                     for m, c in sorted(today.by_model.items())
-                )}
+                )
+            }
             </div>
         </div>
         """,

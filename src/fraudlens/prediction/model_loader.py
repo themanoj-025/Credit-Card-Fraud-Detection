@@ -27,7 +27,6 @@ class ModelLoadError(Exception):
     """Raised when a model artifact cannot be loaded or verified."""
 
 
-
 class ModelLoader:
     """
     Load, verify, and provide access to trained model artifacts.

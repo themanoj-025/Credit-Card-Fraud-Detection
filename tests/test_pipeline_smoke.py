@@ -40,7 +40,11 @@ class TestPipelineSummarySmoke:
         }
         best_threshold = 0.45
         cv_results = {
-            "xgboost": {"mean_score": 0.82, "std_score": 0.03, "scores": [0.80, 0.84, 0.82]},
+            "xgboost": {
+                "mean_score": 0.82,
+                "std_score": 0.03,
+                "scores": [0.80, 0.84, 0.82],
+            },
         }
         business_costs = {
             "xgboost": {
@@ -50,18 +54,21 @@ class TestPipelineSummarySmoke:
                 "net_benefit_usd": 7500.0,
             },
         }
-        pd.DataFrame({
-            "Model": ["xgboost", "random_forest"],
-            "PR-AUC": [0.85, 0.80],
-            "F1": [0.80, 0.75],
-            "Precision": [0.82, 0.78],
-            "Recall": [0.78, 0.72],
-            "Net Benefit ($)": [7500.0, 5000.0],
-        })
+        pd.DataFrame(
+            {
+                "Model": ["xgboost", "random_forest"],
+                "PR-AUC": [0.85, 0.80],
+                "F1": [0.80, 0.75],
+                "Precision": [0.82, 0.78],
+                "Recall": [0.78, 0.72],
+                "Net Benefit ($)": [7500.0, 5000.0],
+            }
+        )
 
         # ─── Run the exact summary code block that was broken ─────────────
         # This is the block from run_pipeline.py that had `has_autoencoder`:
         import io
+
         captured = io.StringIO()
         old_stdout = sys.stdout
         sys.stdout = captured
@@ -74,7 +81,9 @@ class TestPipelineSummarySmoke:
             print(f"\n  Best Model:      {selection['best_model_name']}")
             print(f"  PR-AUC:          {selection['metric_value']:.4f}")
             print(f"  Threshold:       {best_threshold:.4f}")
-            print(f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}")
+            print(
+                f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}"
+            )
             print(f"  Selection:       {selection['reasoning']}")
 
             biz = business_costs.get(selection["best_model_name"], {})
@@ -115,6 +124,7 @@ class TestPipelineSummarySmoke:
         business_costs = {}
 
         import io
+
         captured = io.StringIO()
         old_stdout = sys.stdout
         sys.stdout = captured
@@ -125,7 +135,9 @@ class TestPipelineSummarySmoke:
             print("=" * 70)
             print(f"\n  Best Model:      {selection['best_model_name']}")
             print(f"  PR-AUC:          {selection['metric_value']:.4f}")
-            print(f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}")
+            print(
+                f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}"
+            )
 
             biz = business_costs.get(selection["best_model_name"], {})
             if biz:
@@ -187,7 +199,9 @@ class TestPipelineSummarySmoke:
         thresholds = {"logistic_regression": threshold}
 
         evaluator = FraudEvaluator(avg_fraud_loss=150.0, review_cost=5.0)
-        comparison = evaluator.compare_models(y, predictions, thresholds, business_costs)
+        comparison = evaluator.compare_models(
+            y, predictions, thresholds, business_costs
+        )
 
         # Model selection
         selector = ModelSelector(metric="PR-AUC")
@@ -197,6 +211,7 @@ class TestPipelineSummarySmoke:
 
         # Now run the summary section — this should NOT crash
         import io
+
         captured = io.StringIO()
         old_stdout = sys.stdout
         sys.stdout = captured
@@ -208,7 +223,9 @@ class TestPipelineSummarySmoke:
             print(f"  Best Model:      {selection['best_model_name']}")
             print(f"  PR-AUC:          {selection['metric_value']:.4f}")
             print(f"  Threshold:       {best_threshold:.4f}")
-            print(f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}")
+            print(
+                f"  CV Score:        {cv_results.get(selection['best_model_name'], {}).get('mean_score', 'N/A')}"
+            )
 
             biz = business_costs.get(selection["best_model_name"], {})
             if biz:
@@ -242,6 +259,7 @@ class TestRunPipelineDirectly:
         # We can't import run_pipeline directly since it runs on import,
         # but we can verify the syntax is valid by compiling it
         import py_compile
+
         pipeline_path = Path(__file__).resolve().parent.parent / "run_pipeline.py"
         assert pipeline_path.exists()
         # This will raise PyCompileError if syntax is broken

@@ -5,7 +5,6 @@ Tests for IsolationForestDetector only.
 AutoencoderDetector was removed per ADR-0001.
 """
 
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -124,5 +123,3 @@ class TestIsolationForestDetector:
         detector = IsolationForestDetector()
         detector.fit(normal_data)
         assert detector.model is not None
-
-
