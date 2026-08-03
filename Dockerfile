@@ -40,7 +40,7 @@ RUN pip install --no-cache-dir \
     sqlalchemy[asyncio] alembic asyncpg aiosqlite psycopg2-binary \
     matplotlib seaborn plotly \
     umap-learn scipy \
-    fastapi uvicorn pydantic httpx slowapi \
+    fastapi uvicorn 'pydantic>=2.0.0' pydantic-settings httpx slowapi \
     streamlit \
     mlflow \
     joblib \
@@ -63,7 +63,11 @@ RUN pip install --no-cache-dir \
     sqlalchemy[asyncio] alembic asyncpg aiosqlite psycopg2-binary \
     matplotlib seaborn plotly \
     umap-learn scipy \
-    fastapi uvicorn pydantic httpx slowapi \
+    fastapi uvicorn 'pydantic>=2.0.0' pydantic-settings httpx slowapi \
+    structlog tenacity \
+    prometheus-fastapi-instrumentator \
+    opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp opentelemetry-instrumentation-fastapi \
+    imbalanced-learn \
     streamlit \
     mlflow \
     joblib \

@@ -2,8 +2,6 @@
 # FraudLens — Docker Compose
 # ════════════════════════════════════════════════════════════════
 
-version: '3.8'
-
 volumes:
   postgres_data:
     driver: local
@@ -88,8 +86,8 @@ services:
       - "3000:3000"
     volumes:
       - ./infra/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json:ro
-      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./infra/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./infra/grafana/provisioning/dashboards/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/dashboard.json
