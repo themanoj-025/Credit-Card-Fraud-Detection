@@ -26,6 +26,7 @@ env:
 jobs:
   # ─── Lint (blocking) ─────────────────────────────────────────────
   lint:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -55,6 +56,7 @@ jobs:
 
   # ─── Test (parallel, coverage enforced) ──────────────────────────
   test:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -89,6 +91,7 @@ jobs:
 
   # ─── Build — verify Docker image compiles ──────────────────────
   build:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: [lint, test]
     steps:
@@ -112,6 +115,7 @@ jobs:
 
   # ─── Scan — Trivy vulnerability scan (fail on critical) ──────
   scan:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -140,6 +144,7 @@ jobs:
 
   # ─── Deploy — push to GHCR on main merge ─────────────────────
   deploy:
+    timeout-minutes: 15
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: [scan]
