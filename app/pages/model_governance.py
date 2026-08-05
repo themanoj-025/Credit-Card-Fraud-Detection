@@ -251,20 +251,19 @@ def _render_candidate_card(client: Any, cand: Dict[str, Any], index: int) -> Non
     f1 = cand.get("f1_score")
     precision = cand.get("precision")
     recall = cand.get("recall")
-    threshold = cand.get("threshold")
+    cand.get("threshold")
     created_at = cand.get("created_at", "")
     mlflow_run_id = cand.get("mlflow_run_id")
 
     # Fetch comparison data
     production_data = None
-    metrics_delta = None
     is_pending = status == "candidate"
 
     if is_pending:
         try:
             compare = client.compare_candidate(version)
             production_data = compare.get("current_production")
-            metrics_delta = compare.get("metrics_delta")
+            compare.get("metrics_delta")
         except FraudLensAPIError:
             pass
 
@@ -632,7 +631,7 @@ def _show_demo_content() -> None:
                 )
 
             st.caption(
-                f"📊 Comparing against production model: **XGBoost (0.8810 PR-AUC)**"
+                "📊 Comparing against production model: **XGBoost (0.8810 PR-AUC)**"
             )
 
             if is_pending:
