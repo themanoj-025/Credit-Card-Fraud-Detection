@@ -144,6 +144,24 @@ sequenceDiagram
 | Index staleness | Rebuild cadence + drift detection |
 | Missing deps in env | requirements pinned; CI installs all |
 
+## Deployment Topology
+
+```mermaid
+graph TD
+    ANALYST[Analyst] --> UI[Streamlit dashboard]
+    ANALYST --> API[FastAPI API]
+    API --> MODELS[Model registry: XGBoost / LightGBM / CatBoost / sklearn]
+    API --> EXPLAIN[SHAP explainer]
+    API --> FAISS[(FAISS vector store)]
+    API --> LLM[Claude: case narration]
+    API --> MLFLOW[MLflow tracking + registry]
+    subgraph Deploy
+        UI --> UI_C[Dashboard container]
+        API --> API_C[API container]
+        MLFLOW --> ML_C[MLflow container]
+    end
+```
+
 ## 11. Related Documents
 
 | Document | Relationship |
