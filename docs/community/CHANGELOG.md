@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `SECURITY.md`: Added shared-counter test reference to rate-limiting section with run command
-- `docs/adr/0000-baseline.md`: Updated with Phase 14b results (coverage, test additions, EDA bug fixes, pipeline fix)
+- `docs/adr/../decisions/0000-baseline.md`: Updated with Phase 14b results (coverage, test additions, EDA bug fixes, pipeline fix)
 
 ## [2.1.0] — 2026-07-22
 ### Added
@@ -83,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed TensorFlow and Keras from `requirements.txt` (~600MB dependency saved)
 - Removed `AUTOENCODER_ENCODING_DIM`, `AUTOENCODER_EPOCHS`, `AUTOENCODER_BATCH_SIZE` from config
 - `IsolationForestDetector` is now the sole unsupervised anomaly detector
-- `docs/adr/0001-remove-autoencoder.md` — ADR documenting the decision
+- `docs/adr/../decisions/0001-remove-autoencoder.md` — ADR documenting the decision
 
 #### Automated Retraining Trigger (Phase 14 — Gap 7)
 - `src/fraudlens/retraining/` package — automated retraining trigger module
@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `api/routers/admin.py`: Added `/v1/admin/llm-usage` endpoint (admin-only, rate-limited)
 - `api/rate_limit.py`: Redis default with memory fallback and startup warnings
 - `docker-compose.yml`: Auto-downloads/generates data on container startup
-- `docs/adr/0000-baseline.md`: Updated with Phase 14 results (audit score 7.8 → 9.1)
+- `docs/adr/../decisions/0000-baseline.md`: Updated with Phase 14 results (audit score 7.8 → 9.1)
 
 ### Removed
 - `AutoencoderDetector` class (untrained, unused, TF dependency cost)
@@ -159,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `LLMCircuitBreaker` with CLOSED/OPEN/HALF_OPEN states, configurable thresholds, cooldown multiplier
 - Tenacity retry wrapper around Anthropic API (3 attempts, exponential backoff 2s–8s)
 - Honest fallback narratives with `[Automated summary — narrative generation unavailable]` prefix
-- `docs/RESILIENCE.md` documenting all graceful degradation scenarios
+- `docs/../reference/RESILIENCE.md` documenting all graceful degradation scenarios
 
 #### Documentation & Polish (Phase 13)
 - `CHANGELOG.md` (this file)
@@ -176,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Architecture:** Removed global mutable state, injected dependencies via FastAPI `Depends()`, split `FraudPredictor` into `ModelLoader` + `FraudPredictor` + `ShapExplainer` + `ExplanationFormatter`
 - **Data layer:** PostgreSQL via docker-compose, Alembic migrations, repository pattern, prediction/feedback/API keys tables
 - **Performance:** Async SHAP via FastAPI `BackgroundTasks`, Redis LRU prediction cache, vectorized numpy prediction path, Locust load tests
-- **ML quality:** `FeatureEngineer` wired into both training and inference, Optuna hyperparameter tuning (30 trials, 3-fold CV), model card (`docs/MODEL_CARD.md`)
+- **ML quality:** `FeatureEngineer` wired into both training and inference, Optuna hyperparameter tuning (30 trials, 3-fold CV), model card (`docs/../reference/MODEL_CARD.md`)
 - **API design:** All endpoints under `/v1/`, RFC 7807 error format, cursor-based pagination on `/v1/similar-cases`, per-dependency health check with degraded status
 - **Frontend:** Shared API client (`app/api_client.py`), no hardcoded mock data in production pages, loading spinners with retries/timeouts, live synthetic transaction streaming
 - **Testing:** 85% coverage target, integration tests with real model fixture, mocked external services (respx), edge-case tests (NaN/Inf/empty batch/boundary), OpenAPI contract tests
