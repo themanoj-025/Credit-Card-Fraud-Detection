@@ -58,7 +58,7 @@ The `LLMCircuitBreaker` in `api/exceptions.py` protects against cascading
 LLM failures:
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| ----------- | --------- | ------------- |
 | `failure_threshold` | 3 | Consecutive failures before opening |
 | `recovery_timeout` | 30s | Wait time before half-open trial |
 | `cooldown_multiplier` | 2.0 | Multiplier for timeout on repeated opens |
@@ -81,7 +81,7 @@ narrator returns a template narrative and the chat endpoint returns
 LLM API calls use tenacity for retry with exponential backoff:
 
 | Parameter | Value |
-|-----------|-------|
+| ----------- | ------- |
 | Max attempts | 3 |
 | Wait strategy | Exponential (2s, 4s, 8s) |
 | Reraise | True (retries exhausted → exception propagates) |
@@ -93,7 +93,7 @@ LLM API calls use tenacity for retry with exponential backoff:
 ## Typed Exceptions
 
 | Exception | Status | When Raised |
-|-----------|--------|-------------|
+| ----------- | -------- | ------------- |
 | `ModelNotLoadedError` | 503 | Model not loaded at startup |
 | `LLMServiceUnavailable` | 503 | LLM unreachable or circuit breaker open |
 | `PredictionError` | 500 | Model prediction failure |
@@ -108,7 +108,7 @@ status codes are returned without requiring custom exception handlers.
 ### Scenario 1: LLM (Anthropic) is down
 
 | Feature | Behavior |
-|---------|----------|
+| --------- | ---------- |
 | `/v1/explain` | Returns SHAP values without narrative (narrative=null) |
 | `/v1/chat` | Returns 503 with clear message |
 | Case Narrator | Returns template-based narrative with "[Automated summary]" prefix |
@@ -117,7 +117,7 @@ status codes are returned without requiring custom exception handlers.
 ### Scenario 2: Model not loaded (no model artifact found)
 
 | Feature | Behavior |
-|---------|----------|
+| --------- | ---------- |
 | `/v1/predict` | Returns 503 "Model not loaded" |
 | `/v1/explain` | Returns 503 "Model not loaded" |
 | `/v1/chat` | Unaffected |
@@ -127,7 +127,7 @@ status codes are returned without requiring custom exception handlers.
 ### Scenario 3: Database unavailable
 
 | Feature | Behavior |
-|---------|----------|
+| --------- | ---------- |
 | `/health` | Returns 200 with database status: "degraded" |
 | Prediction features | Still work (predictions are mostly stateless) |
 | Feedback endpoints | Fail with 503 |
@@ -135,7 +135,7 @@ status codes are returned without requiring custom exception handlers.
 ### Scenario 4: Circuit breaker opens (repeated LLM failures)
 
 | Feature | Behavior |
-|---------|----------|
+| --------- | ---------- |
 | `/v1/explain` | Template narrative (no LLM) |
 | `/v1/chat` | Returns 503 "LLM temporarily unavailable" |
 | Circuit breaker | Recovers after 30s + cooldown (CLOSED → OPEN → HALF_OPEN → CLOSED) |
@@ -179,7 +179,7 @@ curl -X POST http://localhost:8000/v1/chat -H "Content-Type: application/json" \
 ## Related Code
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `api/exceptions.py` | Typed exceptions + circuit breaker |
 | `api/errors.py` | RFC 7807 error handlers |
 | `api/routers/chat.py` | Chat with retry + circuit breaker |

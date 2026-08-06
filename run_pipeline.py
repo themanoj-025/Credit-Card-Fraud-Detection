@@ -237,9 +237,9 @@ print(comparison.to_string(index=False))
 # Save comparison CSV to both locations
 comparison.to_csv(REPORTS_DIR / "model_comparison_fraud.csv", index=False)
 comparison.to_csv(PROCESSED_DATA_DIR / "model_comparison.csv", index=False)
-print(f"\n  Comparison saved to:")
-print(f"    reports/model_comparison_fraud.csv")
-print(f"    data/processed/model_comparison.csv")
+print("\n  Comparison saved to:")
+print("    reports/model_comparison_fraud.csv")
+print("    data/processed/model_comparison.csv")
 
 # STAGE 6: Auto-Select Best Model
 print("\n" + "-" * 70)
@@ -425,18 +425,18 @@ print(f"  Selection:       {selection['reasoning']}")
 
 biz = business_costs.get(selection["best_model_name"], {})
 if biz:
-    print(f"\n  Business Impact (Best Model):")
+    print("\n  Business Impact (Best Model):")
     print(f"    Fraud Caught:    ${biz.get('fraud_caught_usd', 0):,.2f}")
     print(f"    Fraud Missed:    ${biz.get('fraud_missed_usd', 0):,.2f}")
     print(f"    Review Costs:    ${biz.get('review_costs_usd', 0):,.2f}")
     print(f"    Net Benefit:     ${biz.get('net_benefit_usd', 0):,.2f}")
 
-print(f"\n  Saved Artifacts:")
-print(f"    Best model:       models/best_fraud_model.pkl")
-print(f"    Anomaly detector: models/anomaly_detector.pkl")
-print(f"    Threshold:        models/threshold.txt")
-print(f"    Comparison CSV:   reports/model_comparison_fraud.csv")
-print(f"    Charts:           data/processed/*.png")
+print("\n  Saved Artifacts:")
+print("    Best model:       models/best_fraud_model.pkl")
+print("    Anomaly detector: models/anomaly_detector.pkl")
+print("    Threshold:        models/threshold.txt")
+print("    Comparison CSV:   reports/model_comparison_fraud.csv")
+print("    Charts:           data/processed/*.png")
 print("=" * 70)
 
 # Save summary JSON

@@ -48,7 +48,7 @@ feature shape/order between training-time and inference-time.
 ### Feature Ablation Results
 
 | Configuration | PR-AUC | F1 | Net Benefit |
-|---------------|--------|-----|-------------|
+| --------------- | -------- | ----- | ------------- |
 | Base features (V1-V28 + Time + Amount) | 0.8810 | 0.7068 | $12,445 |
 | + Engineered features | 0.8812 | 0.7071 | $12,450 |
 | Difference | +0.0002 | +0.0003 | +$5 |
@@ -92,7 +92,7 @@ XGBoost and LightGBM are automatically tuned:
 ## Evaluation Metrics
 
 | Metric | Description | Target |
-|--------|-------------|--------|
+| -------- | ------------- | -------- |
 | **PR-AUC** | Area under precision-recall curve | ≥ 0.70 |
 | **F1 Score** | Harmonic mean of precision and recall | ≥ 0.70 |
 | **Precision** | TP / (TP + FP) | ≥ 0.50 |
@@ -102,7 +102,7 @@ XGBoost and LightGBM are automatically tuned:
 ## Performance (Best Model: XGBoost)
 
 | Metric | Value |
-|--------|-------|
+| -------- | ------- |
 | PR-AUC | **0.8810** |
 | ROC-AUC | 0.9724 |
 | F1 Score | 0.7068 |
@@ -113,7 +113,7 @@ XGBoost and LightGBM are automatically tuned:
 ### Business Impact (per 100,000 transactions)
 
 | Component | Value |
-|-----------|-------|
+| ----------- | ------- |
 | Fraud Caught | $13,200 (88%) |
 | Fraud Missed | $1,500 (12%) |
 | Review Costs | $755 |
@@ -123,7 +123,7 @@ XGBoost and LightGBM are automatically tuned:
 ### PR-AUC Comparison
 
 | Model | PR-AUC |
-|-------|--------|
+| ------- | -------- |
 | **XGBoost** | **0.8810** |
 | Random Forest | 0.8352 |
 | Logistic Regression | 0.7159 |
@@ -147,7 +147,7 @@ XGBoost and LightGBM are automatically tuned:
 5. **Autoencoder Removed (ADR-0001):** The `AutoencoderDetector` was removed
    in Phase 14. It was never trained on real data, never integrated into the
    serving pipeline, and dragged in TensorFlow + Keras (~600MB). The decision
-   is documented in `docs/adr/0001-remove-autoencoder.md`. Isolation Forest
+   is documented in `docs/adr/../decisions/0001-remove-autoencoder.md`. Isolation Forest
    provides the sole unsupervised anomaly signal in production.
 
 6. **RAG Embedding Approach:** The `SimilarCaseRetriever` uses raw PCA feature

@@ -87,7 +87,7 @@ git commit -m "docs: update API reference with new endpoints"
 git push origin feat/your-feature-name
 ```
 
-Then open a pull request against `main`. Fill out the [PR template](.github/PULL_REQUEST_TEMPLATE.md) completely.
+Then open a pull request against `main`. Fill out the [PR template](../../.github/PULL_REQUEST_TEMPLATE.md) completely.
 
 ## Coding Standards
 
@@ -101,7 +101,7 @@ Then open a pull request against `main`. Fill out the [PR template](.github/PULL
 ### Naming Conventions
 
 | Element | Convention | Example |
-|---------|-----------|---------|
+| --------- | ----------- | --------- |
 | Packages | `lowercase` | `fraudlens.models` |
 | Modules | `lowercase_with_underscores` | `case_narrator.py` |
 | Classes | `PascalCase` | `FraudPredictor` |
