@@ -1,11 +1,11 @@
 # Design — FraudLens: Design System & UX Principles
 
-|Field|Value|
-|---|---|
-|Version|v0.1|
-|Last Updated|2026-08-06|
-|Owner|Design Lead|
-|Status|In Review|
+| Field | Value |
+| --- | --- |
+| Version | v0.1 |
+| Last Updated | 2026-08-06 |
+| Owner | Design Lead |
+| Status | In Review |
 
 ---
 
@@ -24,26 +24,26 @@
 
 ## 3. Color System
 
-|Token|Hex|Usage|Contrast (AA)|
-|---|---|---|---|
-|bg|`#0F172A`|dark dashboard bg|—|
-|surface|`#1E293B`|cards|—|
-|text|`#F1F5F9`|primary text|12:1|
-|muted|`#94A3B8`|secondary text|7:1|
-|risk-high|`#EF4444`|high risk|5.5:1|
-|risk-medium|`#F59E0B`|medium risk|4.8:1|
-|risk-low|`#22C55E`|low risk|5:1|
-|accent|`#3B82F6`|CTAs, links|5.8:1|
+| Token | Hex | Usage | Contrast (AA) |
+| --- | --- | --- | --- |
+| bg | `#0F172A` | dark dashboard bg | — |
+| surface | `#1E293B` | cards | — |
+| text | `#F1F5F9` | primary text | 12:1 |
+| muted | `#94A3B8` | secondary text | 7:1 |
+| risk-high | `#EF4444` | high risk | 5.5:1 |
+| risk-medium | `#F59E0B` | medium risk | 4.8:1 |
+| risk-low | `#22C55E` | low risk | 5:1 |
+| accent | `#3B82F6` | CTAs, links | 5.8:1 |
 
 ## 4. Typography Scale
 
-|Token|Font|Size|Weight|Line-height|Usage|
-|---|---|---|---|---|---|
-|display|system sans|28px|700|1.2|KPI numbers|
-|heading|system sans|20px|600|1.3|page headers|
-|body|system sans|14px|400|1.5|content|
-|table|mono|13px|400|1.4|transaction tables|
-|label|system sans|12px|600|1.4|field labels|
+| Token | Font | Size | Weight | Line-height | Usage |
+| --- | --- | --- | --- | --- | --- |
+| display | system sans | 28px | 700 | 1.2 | KPI numbers |
+| heading | system sans | 20px | 600 | 1.3 | page headers |
+| body | system sans | 14px | 400 | 1.5 | content |
+| table | mono | 13px | 400 | 1.4 | transaction tables |
+| label | system sans | 12px | 600 | 1.4 | field labels |
 
 ## 5. Spacing & Grid
 
@@ -89,18 +89,18 @@ Dark-first theme (dashboard is dark by default).
 
 ## 12. Related Documents
 
-|Document|Relationship|
-|---|---|
-|[AppFlow.md](AppFlow.md)|Screens consuming components|
-|[PRD.md](../product/PRD.md)|UX goals|
-|[TechSpec.md](../technical/TechSpec.md)|Dashboard stack|
-|[Schema.md](../technical/Schema.md)|Data displayed|
-|[ImplementationPlan.md](../project/ImplementationPlan.md)|Tasks|
-|[Tracker.md](../project/Tracker.md)|Status|
-|[Rules.md](../project/Rules.md)|Standards|
-|[API.md](../technical/API.md)|Data contracts|
-|[SecurityAndCompliance.md](../technical/SecurityAndCompliance.md)|Access|
-|[Testing.md](../technical/Testing.md)|UI tests|
-|[Deployment.md](../technical/Deployment.md)|Deploy|
-|[Glossary.md](../reference/Glossary.md)|Vocabulary|
-|[RiskRegister.md](../project/RiskRegister.md)|Risks|
+| Document | Relationship |
+| --- | --- |
+| [AppFlow.md](AppFlow.md) | Screens consuming components |
+| [PRD.md](../product/PRD.md) | UX goals |
+| [TechSpec.md](../technical/TechSpec.md) | Dashboard stack |
+| [Schema.md](../technical/Schema.md) | Data displayed |
+| [ImplementationPlan.md](../project/ImplementationPlan.md) | Tasks |
+| [Tracker.md](../project/Tracker.md) | Status |
+| [Rules.md](../project/Rules.md) | Standards |
+| [API.md](../technical/API.md) | Data contracts |
+| [SecurityAndCompliance.md](../technical/SecurityAndCompliance.md) | Access |
+| [Testing.md](../technical/Testing.md) | UI tests |
+| [Deployment.md](../technical/Deployment.md) | Deploy |
+| [Glossary.md](../reference/Glossary.md) | Vocabulary |
+| [RiskRegister.md](../project/RiskRegister.md) | Risks |

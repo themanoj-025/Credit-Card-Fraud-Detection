@@ -100,14 +100,14 @@ Then open a pull request against `main`. Fill out the [PR template](../../.githu
 
 ### Naming Conventions
 
-|Element|Convention|Example|
-|---------|-----------|---------|
-|Packages|`lowercase`|`fraudlens.models`|
-|Modules|`lowercase_with_underscores`|`case_narrator.py`|
-|Classes|`PascalCase`|`FraudPredictor`|
-|Functions|`snake_case`|`predict_transaction()`|
-|Constants|`UPPER_CASE`|`AVG_FRAUD_LOSS`|
-|Private|`_leading_underscore`|`_verify_checksum()`|
+| Element | Convention | Example |
+| --------- | ----------- | --------- |
+| Packages | `lowercase` | `fraudlens.models` |
+| Modules | `lowercase_with_underscores` | `case_narrator.py` |
+| Classes | `PascalCase` | `FraudPredictor` |
+| Functions | `snake_case` | `predict_transaction()` |
+| Constants | `UPPER_CASE` | `AVG_FRAUD_LOSS` |
+| Private | `_leading_underscore` | `_verify_checksum()` |
 
 ### Imports Ordering
 

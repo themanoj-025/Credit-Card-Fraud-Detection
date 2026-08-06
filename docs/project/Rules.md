@@ -1,11 +1,11 @@
 # Rules — FraudLens: Coding Standards & AI-Agent Operating Rules
 
-|Field|Value|
-|---|---|
-|Version|v0.1|
-|Last Updated|2026-08-06|
-|Owner|Engineering Lead|
-|Status|In Review|
+| Field | Value |
+| --- | --- |
+| Version | v0.1 |
+| Last Updated | 2026-08-06 |
+| Owner | Engineering Lead |
+| Status | In Review |
 
 ---
 
@@ -81,13 +81,13 @@ tests/
 
 ## 8. Prohibited Patterns
 
-|Anti-pattern|Why|
-|---|---|
-|Selecting models by accuracy on imbalanced data|Misleading|
-|Logging raw card numbers|PCI risk|
-|Direct model promotion without gate|Uncontrolled drift|
-|Hardcoded API keys|Leak|
-|Blanket `except Exception`|Hides failures|
+| Anti-pattern | Why |
+| --- | --- |
+| Selecting models by accuracy on imbalanced data | Misleading |
+| Logging raw card numbers | PCI risk |
+| Direct model promotion without gate | Uncontrolled drift |
+| Hardcoded API keys | Leak |
+| Blanket `except Exception` | Hides failures |
 
 ## 9. Escalation Rules
 
@@ -96,18 +96,18 @@ tests/
 
 ## 10. Related Documents
 
-|Document|Relationship|
-|---|---|
-|[Testing.md](../technical/Testing.md)|Test requirements|
-|[SecurityAndCompliance.md](../technical/SecurityAndCompliance.md)|Security baseline|
-|[PRD.md](../product/PRD.md)|Requirements|
-|[TechSpec.md](../technical/TechSpec.md)|Architecture|
-|[AppFlow.md](../design/AppFlow.md)|Flows|
-|[Design.md](../design/Design.md)|Design|
-|[Schema.md](../technical/Schema.md)|Data|
-|[ImplementationPlan.md](ImplementationPlan.md)|Tasks|
-|[Tracker.md](Tracker.md)|Status|
-|[API.md](../technical/API.md)|Contract|
-|[Deployment.md](../technical/Deployment.md)|Env vars|
-|[Glossary.md](../reference/Glossary.md)|Vocabulary|
-|[RiskRegister.md](RiskRegister.md)|Risks|
+| Document | Relationship |
+| --- | --- |
+| [Testing.md](../technical/Testing.md) | Test requirements |
+| [SecurityAndCompliance.md](../technical/SecurityAndCompliance.md) | Security baseline |
+| [PRD.md](../product/PRD.md) | Requirements |
+| [TechSpec.md](../technical/TechSpec.md) | Architecture |
+| [AppFlow.md](../design/AppFlow.md) | Flows |
+| [Design.md](../design/Design.md) | Design |
+| [Schema.md](../technical/Schema.md) | Data |
+| [ImplementationPlan.md](ImplementationPlan.md) | Tasks |
+| [Tracker.md](Tracker.md) | Status |
+| [API.md](../technical/API.md) | Contract |
+| [Deployment.md](../technical/Deployment.md) | Env vars |
+| [Glossary.md](../reference/Glossary.md) | Vocabulary |
+| [RiskRegister.md](RiskRegister.md) | Risks |

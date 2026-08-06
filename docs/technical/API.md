@@ -1,26 +1,26 @@
 # API — FraudLens: API Reference
 
-|Field|Value|
-|---|---|
-|Version|v0.1|
-|Last Updated|2026-08-06|
-|Owner|Backend Engineer|
-|Status|In Review|
+| Field | Value |
+| --- | --- |
+| Version | v0.1 |
+| Last Updated | 2026-08-06 |
+| Owner | Backend Engineer |
+| Status | In Review |
 
 ---
 
 ## 1. Endpoint Inventory
 
-|Method|Path|Auth|Description|
-|---|---|---|---|
-|POST|`/predict`|API key|Score single transaction|
-|POST|`/predict/batch`|API key|Score multiple transactions|
-|POST|`/explain`|API key|SHAP explanation|
-|POST|`/similar`|API key|RAG similar cases|
-|POST|`/chat`|API key|LLM case narration|
-|GET|`/health`|None|Liveness|
-|GET|`/metrics`|internal|Prometheus metrics|
-|GET|`/model-info`|API key|Current model metadata|
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/predict` | API key | Score single transaction |
+| POST | `/predict/batch` | API key | Score multiple transactions |
+| POST | `/explain` | API key | SHAP explanation |
+| POST | `/similar` | API key | RAG similar cases |
+| POST | `/chat` | API key | LLM case narration |
+| GET | `/health` | None | Liveness |
+| GET | `/metrics` | internal | Prometheus metrics |
+| GET | `/model-info` | API key | Current model metadata |
 
 ## 2. Example: POST /predict
 
@@ -56,13 +56,13 @@ Response: `{"narration": "This transaction shows an unusual 4,500 INR purchase a
 
 ## 4. Error Codes
 
-|Code|Meaning|Retry?|
-|---|---|---|
-|401|Missing/invalid API key|No|
-|422|Validation error (field detail)|No|
-|429|Rate limited|Yes, backoff|
-|503|Model unavailable|Yes|
-|500|Internal|Yes|
+| Code | Meaning | Retry? |
+| --- | --- | --- |
+| 401 | Missing/invalid API key | No |
+| 422 | Validation error (field detail) | No |
+| 429 | Rate limited | Yes, backoff |
+| 503 | Model unavailable | Yes |
+| 500 | Internal | Yes |
 
 ## 5. Rate Limits
 
@@ -93,18 +93,18 @@ sequenceDiagram
 
 ## 8. Related Documents
 
-|Document|Relationship|
-|---|---|
-|[TechSpec.md](TechSpec.md)|API layer|
-|[Schema.md](Schema.md)|Data contracts|
-|[SecurityAndCompliance.md](SecurityAndCompliance.md)|Auth + limits|
-|[AppFlow.md](../design/AppFlow.md)|Dashboard → API|
-|[PRD.md](../product/PRD.md)|Requirements|
-|[Design.md](../design/Design.md)|Response rendering|
-|[ImplementationPlan.md](../project/ImplementationPlan.md)|Tasks|
-|[Tracker.md](../project/Tracker.md)|Status|
-|[Rules.md](../project/Rules.md)|Standards|
-|[Testing.md](Testing.md)|Contract tests|
-|[Deployment.md](Deployment.md)|Deploy|
-|[Glossary.md](../reference/Glossary.md)|Vocabulary|
-|[RiskRegister.md](../project/RiskRegister.md)|Risks|
+| Document | Relationship |
+| --- | --- |
+| [TechSpec.md](TechSpec.md) | API layer |
+| [Schema.md](Schema.md) | Data contracts |
+| [SecurityAndCompliance.md](SecurityAndCompliance.md) | Auth + limits |
+| [AppFlow.md](../design/AppFlow.md) | Dashboard → API |
+| [PRD.md](../product/PRD.md) | Requirements |
+| [Design.md](../design/Design.md) | Response rendering |
+| [ImplementationPlan.md](../project/ImplementationPlan.md) | Tasks |
+| [Tracker.md](../project/Tracker.md) | Status |
+| [Rules.md](../project/Rules.md) | Standards |
+| [Testing.md](Testing.md) | Contract tests |
+| [Deployment.md](Deployment.md) | Deploy |
+| [Glossary.md](../reference/Glossary.md) | Vocabulary |
+| [RiskRegister.md](../project/RiskRegister.md) | Risks |
